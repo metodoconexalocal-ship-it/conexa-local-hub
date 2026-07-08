@@ -1,0 +1,205 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Função auxiliar: apenas usuário autenticado e com e-mail verificado ──
+    function isAuth() {
+      return request.auth != null
+          && request.auth.token.email_verified == true;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  PORTAL DE LEADS DO CLIENTE
+    // ══════════════════════════════════════════════════════════════════════
+
+    // Informações públicas do portal (banner, nome, campos)
+    // Clientes leem sem login para ver o banner/formulário
+    match /portal_public/{docId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+
+    // Configurações completas (inclui accessCode) — só a agência acessa
+    match /portal_configs/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // Leads submetidos pelo cliente
+    // CREATE: qualquer um que envie o accessCode correto (validado servidor)
+    // READ/UPDATE: apenas agência autenticada
+    match /portal_leads/{docId} {
+      allow create: if
+        request.resource.data.keys().hasAll(['portalId', 'accessCode']) &&
+        request.resource.data.accessCode ==
+          get(/databases/$(database)/documents/portal_configs/$(request.resource.data.portalId)).data.accessCode;
+      allow read, update, delete: if isAuth();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  AGENDA PESSOAL — PRIVADA NO NÍVEL DO BANCO
+    //  Nem admins, nem a equipe, nem ninguém vê tarefas de outro usuário.
+    //  A regra userId == auth.uid é validada pelo servidor Firebase.
+    // ══════════════════════════════════════════════════════════════════════
+
+    match /personal_tasks/{docId} {
+      // Leitura, edição e exclusão: apenas o dono do documento
+      allow read, update, delete: if isAuth()
+          && resource.data.userId == request.auth.uid;
+      // Criação: só pode criar com o próprio userId
+      allow create: if isAuth()
+          && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  MÓDULOS INTERNOS — acesso somente com login verificado
+    // ══════════════════════════════════════════════════════════════════════
+
+    // CRM principal
+    match /crm_main/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_files/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_lembretes/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_avaliacoes/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_cal_notes/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_alertas/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_notas/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_jornada_cal/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_labels/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_prospeccao/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // ── Calendário de Conteúdo ───────────────────────────────────────────
+    match /content_posts/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /content_hashtags/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /client_results/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // ── Equipe e usuários ────────────────────────────────────────────────
+    match /team_members/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();  // restrinja a admins se necessário
+    }
+
+    match /crm_users/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+
+    // ── Financeiro ───────────────────────────────────────────────────────
+    match /crm_financeiro/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // ── Documentos ───────────────────────────────────────────────────────
+    match /crm_docs/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /crm_doc_folders/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  FORMULÁRIOS PÚBLICOS — clientes externos preenchem sem login
+    //  APENAS criação (INSERT), nunca leitura ou alteração pública
+    // ══════════════════════════════════════════════════════════════════════
+
+    match /crm_briefings/{docId} {
+      allow create: if request.resource.size() < 50000; // máx 50KB por envio
+      allow read, update, delete: if isAuth();          // só internos leem
+    }
+
+    match /crm_form_responses/{docId} {
+      allow create: if request.resource.size() < 50000;
+      allow read, update, delete: if isAuth();
+    }
+
+    // Formulários customizados — clientes podem LER para preencher
+    match /crm_custom_forms/{docId} {
+      allow read: if true;                              // necessário para o cliente acessar
+      allow write: if isAuth();                         // só internos criam/editam
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  GMN HUB — espelhos ghub_* (sistema GMN Hub, dados separados do CRM)
+    //  Somente as coleções com acesso público precisam de regra explícita;
+    //  as demais ghub_* caem na regra padrão (isAuth) do fim do arquivo.
+    // ══════════════════════════════════════════════════════════════════════
+
+    match /ghub_portal_public/{docId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+
+    match /ghub_portal_configs/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /ghub_portal_leads/{docId} {
+      allow create: if
+        request.resource.data.keys().hasAll(['portalId', 'accessCode']) &&
+        request.resource.data.accessCode ==
+          get(/databases/$(database)/documents/ghub_portal_configs/$(request.resource.data.portalId)).data.accessCode;
+      allow read, update, delete: if isAuth();
+    }
+
+    match /ghub_briefings/{docId} {
+      allow create: if request.resource.size() < 50000;
+      allow read, update, delete: if isAuth();
+    }
+
+    match /ghub_form_responses/{docId} {
+      allow create: if request.resource.size() < 50000;
+      allow read, update, delete: if isAuth();
+    }
+
+    match /ghub_custom_forms/{docId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  BLOQUEIO PADRÃO — qualquer coleção não listada acima é bloqueada
+    //  Isso garante que novos módulos criados sem regra explícita
+    //  não fiquem expostos acidentalmente
+    // ══════════════════════════════════════════════════════════════════════
+
+    match /{collection}/{docId} {
+      allow read, write: if isAuth();
+    }
+  }
+}

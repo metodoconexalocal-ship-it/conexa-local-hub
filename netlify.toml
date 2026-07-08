@@ -1,9 +1,18 @@
-# ── GMN Hub — Netlify config ────────────────────────────────────────────────
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# ── Cabeçalhos HTTP para controle de cache ─────────────────────────────────
+# sw.js: nunca cachear — navegador sempre busca versão nova
 [[headers]]
-  for = "/index.html"
+  for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
 
+# JS e CSS: usa ETag/Last-Modified mas sempre verifica atualização
 [[headers]]
   for = "/js/*"
   [headers.values]
@@ -14,26 +23,41 @@
   [headers.values]
     Cache-Control = "no-cache"
 
+# index.html: nunca em cache
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# ── Segurança HTTP — todas as páginas ─────────────────────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
+    # Impede clickjacking (iframe de outro site)
     X-Frame-Options = "SAMEORIGIN"
+    # Impede que o browser "adivinhe" tipo de arquivo (MIME sniffing attack)
     X-Content-Type-Options = "nosniff"
+    # Referrer seguro
     Referrer-Policy = "strict-origin-when-cross-origin"
+    # Remove identificação do servidor
+    Server = ""
+    # Content Security Policy — bloqueia injeção de scripts externos não autorizados
     Content-Security-Policy = """
       default-src 'self';
-      script-src 'self' 'unsafe-inline'
+      script-src 'self' 'unsafe-inline' 'unsafe-eval'
         https://www.gstatic.com/firebasejs/
         https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline'
         https://fonts.googleapis.com;
-      font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
+      font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: blob: https:;
       connect-src 'self'
         https://*.firebaseio.com
         https://*.googleapis.com
-        https://*.firebaseapp.com;
-      frame-src https://crm-digitalcreate.firebaseapp.com;
+        https://*.supabase.co
+        https://api.anthropic.com
+        https://api.x.ai;
+      frame-src 'none';
       object-src 'none';
       base-uri 'self';
     """
