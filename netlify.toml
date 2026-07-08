@@ -1,0 +1,39 @@
+# ── GMN Hub — Netlify config ────────────────────────────────────────────────
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline'
+        https://www.gstatic.com/firebasejs/
+        https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline'
+        https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
+      img-src 'self' data: blob: https:;
+      connect-src 'self'
+        https://*.firebaseio.com
+        https://*.googleapis.com
+        https://*.firebaseapp.com;
+      frame-src https://crm-digitalcreate.firebaseapp.com;
+      object-src 'none';
+      base-uri 'self';
+    """
