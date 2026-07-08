@@ -409,7 +409,7 @@
   };
 
   // ── Auth state observer ───────────────────────────────────────────────────
-  const SENHA_ACESSO = 'Amanda&PalomaCRM2026@';
+  const SENHA_ACESSO = 'GmnHub&Amanda2026@';
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { showLoginScreen(); return; }
