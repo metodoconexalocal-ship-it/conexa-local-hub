@@ -30,13 +30,13 @@
   import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg",
-    authDomain: "crm-digitalcreate.firebaseapp.com",
-    projectId: "crm-digitalcreate",
-    storageBucket: "crm-digitalcreate.firebasestorage.app",
-    messagingSenderId: "633842305840",
-    appId: "1:633842305840:web:400c2ae135c3edb136d6f5",
-    measurementId: "G-V21DE8DZ74"
+    apiKey: "AIzaSyB3FKKUyhVtwnAM5_g2t_JdI_WnrOTiORI",
+    authDomain: "conexa-local-hub.firebaseapp.com",
+    projectId: "conexa-local-hub",
+    storageBucket: "conexa-local-hub.firebasestorage.app",
+    messagingSenderId: "708029453150",
+    appId: "1:708029453150:web:1a7cc74e14efc9a257b5cf",
+    measurementId: "G-17HPWXKR1E"
   };
 
   const app = initializeApp(firebaseConfig);
