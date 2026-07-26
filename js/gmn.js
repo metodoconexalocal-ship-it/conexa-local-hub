@@ -133,7 +133,23 @@
   const perfilNome = (id) => (perfilById(id) || {}).nome || '(perfil removido)';
   function checklistPct(p) {
     const c = p.checklist || {};
-    return Math.round((CHECKLIST.filter((i) => c[i.k]).length / CHECKLIST.length) * 100);
+    const checkPct = CHECKLIST.filter((i) => c[i.k]).length / CHECKLIST.length;
+    const subElements = (p.subElementos || []);
+    const subPct = subElements.length ? subElements.filter((s) => s.feito).length / subElements.length : 0;
+    const pctMedia = subElements.length ? (checkPct + subPct) / 2 : checkPct;
+    return Math.round(pctMedia * 100);
+  }
+
+  function getSubElementos(perfilId) {
+    const p = perfilById(perfilId);
+    return (p && p.subElementos) || [];
+  }
+
+  function subElementosStats(perfilId) {
+    const subs = getSubElementos(perfilId);
+    const total = subs.length;
+    const feitos = subs.filter((s) => s.feito).length;
+    return { total, feitos, pct: total ? Math.round((feitos / total) * 100) : 0 };
   }
   function avalStats(perfilId) {
     const list = S.avaliacoes.filter((a) => a.perfilId === perfilId);
@@ -308,7 +324,7 @@
       <div class="gmn-panel-title" style="margin-bottom:10px">Checklist de otimização
         <span style="font-family:var(--mono);font-size:12px;color:${pct === 100 ? 'var(--green)' : 'var(--accent)'}">${pct}%</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto">
+      <div style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;margin-bottom:16px">
         ${CHECKLIST.map((i) => {
           const done = (p.checklist || {})[i.k];
           return `<label class="checklist-item ${done ? 'done' : ''}">
@@ -317,6 +333,23 @@
           </label>`;
         }).join('')}
       </div>
+
+      <div class="gmn-panel-title" style="margin-bottom:10px">
+        Sub-elementos customizados
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">${(p.subElementos || []).filter((s) => s.feito).length}/${(p.subElementos || []).length}</span>
+        <button class="btn btn-primary" style="float:right;font-size:11px;padding:4px 8px" onclick="GMN.addSubElemento('${p.id}')"><i class="bi bi-plus"></i> Novo</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:16px">
+        ${(p.subElementos || []).length === 0
+          ? `<div style="font-size:12px;color:var(--text-muted);padding:12px;text-align:center">Nenhum sub-elemento criado ainda</div>`
+          : (p.subElementos || []).map((sub) => `
+            <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg-base);border-radius:6px;border:1px solid var(--border)">
+              <input type="checkbox" ${sub.feito ? 'checked' : ''} onchange="GMN.toggleSubElemento('${p.id}','${sub.id}')" style="cursor:pointer">
+              <span style="flex:1;font-size:12px;${sub.feito ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">${esc(sub.titulo)}</span>
+              <button class="btn btn-ghost" style="font-size:11px;padding:2px 6px" onclick="GMN.delSubElemento('${p.id}','${sub.id}')"><i class="bi bi-trash"></i></button>
+            </div>`).join('')}
+      </div>
+
       <div class="modal-actions">
         <button class="btn btn-danger" onclick="GMN.delPerfil('${p.id}')"><i class="bi bi-trash"></i> Excluir</button>
         <div style="flex:1"></div>
@@ -393,6 +426,38 @@
     if (!confirm('Excluir este perfil?\nPosts, avaliações e ranking dele ficam órfãos. Essa ação não pode ser desfeita.')) return;
     await window.dbDelete('gmn_perfis', id);
     GMN.closeModal(); await refresh(); toast('Perfil excluído');
+  };
+
+  /* ══════════════ SUB-ELEMENTOS CUSTOMIZADOS ═════════════════════════════ */
+  GMN.addSubElemento = async (perfilId) => {
+    const titulo = prompt('Nome do sub-elemento (ex: Fotos de pratos, Descrição, Categoria)');
+    if (!titulo) return;
+    const p = perfilById(perfilId);
+    if (!p) return;
+    p.subElementos = p.subElementos || [];
+    const newSub = { id: Date.now().toString(), titulo: titulo.trim(), feito: false, criadoEm: new Date().toISOString() };
+    p.subElementos.push(newSub);
+    await window.dbSave('gmn_perfis', { id: p.id, subElementos: p.subElementos });
+    await refresh(); toast('✅ Sub-elemento adicionado');
+  };
+
+  GMN.toggleSubElemento = async (perfilId, subId) => {
+    const p = perfilById(perfilId);
+    if (!p || !p.subElementos) return;
+    const sub = p.subElementos.find((s) => s.id === subId);
+    if (sub) {
+      sub.feito = !sub.feito;
+      await window.dbSave('gmn_perfis', { id: p.id, subElementos: p.subElementos });
+      await refresh();
+    }
+  };
+
+  GMN.delSubElemento = async (perfilId, subId) => {
+    const p = perfilById(perfilId);
+    if (!p || !p.subElementos) return;
+    p.subElementos = p.subElementos.filter((s) => s.id !== subId);
+    await window.dbSave('gmn_perfis', { id: p.id, subElementos: p.subElementos });
+    await refresh(); toast('🗑️ Sub-elemento removido');
   };
 
   /* ═══════════════════════════════ POSTAGENS ══════════════════════════════ */
