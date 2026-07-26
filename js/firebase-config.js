@@ -3,6 +3,7 @@
 
   // ── CRUD genérico (módulos GMN — coleções gmn_*) ──────────────────────────
   window.dbList = async (col, orderField, dir) => {
+    if (window._devMode) return []; // DEV MODE: retorna array vazio
     try {
       const q = orderField
         ? query(collection(getFirestore(), col), orderBy(orderField, dir || 'desc'))
@@ -26,7 +27,7 @@
     try { await deleteDoc(doc(getFirestore(), col, id)); return true; }
     catch (e) { console.error('dbDelete ' + col + ':', e); return false; }
   };
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -516,9 +517,19 @@
 
   // ── Auth state observer ───────────────────────────────────────────────────
   const SENHA_ACESSO = 'GmnHub&Amanda2026@';
+  const DEV_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  window._devMode = DEV_MODE;
+
+  // DEV MODE: pula Firebase, mostra apenas tela de senha
+  if (DEV_MODE) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('senha-screen').style.display = 'flex';
+    document.getElementById('senha-input').focus();
+  }
 
   onAuthStateChanged(auth, async (user) => {
-    if (!user) { showLoginScreen(); return; }
+    if (!user && !DEV_MODE) { showLoginScreen(); return; }
+    if (DEV_MODE) return; // DEV MODE: pula auth state check completamente
 
     // Check if email is in pre-cad list OR already registered
     const allUsers = await window.loadAllUsers();
@@ -566,6 +577,29 @@
     }
 
     // Senha correta — prosseguir com login
+    if (DEV_MODE) {
+      // DEV MODE: criar usuário fake
+      const userData = {
+        uid: 'dev-user-' + Date.now(),
+        name: 'Desenvolvimento',
+        email: 'metodoconexalocal@gmail.com',
+        photo: '',
+        role: 'admin'
+      };
+      window.currentUser = userData;
+      window.currentRole = userData.role;
+      document.getElementById('senha-screen').style.display = 'none';
+      document.getElementById('app-root').style.display = 'flex';
+      const nm = document.getElementById('sidebar-user-name');
+      const rl = document.getElementById('sidebar-user-role');
+      if (nm) nm.textContent = userData.name;
+      if (rl) rl.textContent = '👑 Admin (Dev)';
+      window._firebaseReady = true;
+      window.dispatchEvent(new Event('firebase-ready'));
+      setTimeout(() => document.dispatchEvent(new Event('crm-ready')), 500);
+      return;
+    }
+
     const user = window._pendingUser;
     const isFirst = window._pendingIsFirst;
     const jaRegistrado = window._pendingJaRegistrado;
