@@ -121,7 +121,7 @@
   };
   function render() {
     const fn = {
-      'gmn-dashboard': renderDash, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
+      'gmn-dashboard': renderDash, 'gmn-dashboard-filtrada': renderDashboardFiltrada, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
       'gmn-avaliacoes': renderAvals, 'gmn-ranking': renderRank,
     }[pagina];
     if (fn) $g('main-content').innerHTML = fn();
@@ -213,6 +213,99 @@
           <div class="gmn-panel-title"><i class="bi bi-calendar2-week" style="color:var(--accent2)"></i> Postagens desta semana (${fmtData(start)} – ${fmtData(end)})</div>
           ${listaPosts(S.posts.filter((p) => p.data >= start && p.data <= end), true)}
         </div>
+      </div>
+    </div>`;
+  }
+
+  /* ══════════════ DASHBOARD FILTRADA (RECORRÊNCIA VS IMPLEMENTAÇÃO) ════════ */
+  function renderDashboardFiltrada() {
+    const abaTipo = F.abaTipo || 'recorrencia';
+    const filtrados = S.perfis.filter((p) => (p.tipo || 'recorrencia') === abaTipo);
+
+    const stats = {
+      total: filtrados.length,
+      emDia: filtrados.filter((p) => !p.deadline || new Date(p.deadline) >= new Date()).length,
+      atrasados: filtrados.filter((p) => p.deadline && new Date(p.deadline) < new Date() && checklistPct(p) < 100).length,
+      completos: filtrados.filter((p) => checklistPct(p) === 100).length,
+    };
+
+    const hoje = new Date();
+    const semanaProxima = new Date(hoje);
+    semanaProxima.setDate(hoje.getDate() + 7);
+
+    const proximosVencer = filtrados
+      .filter((p) => p.deadline && new Date(p.deadline) >= hoje && new Date(p.deadline) <= semanaProxima && checklistPct(p) < 100)
+      .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+    return `<div class="page-wrap">
+      <div style="display:flex;gap:12px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px">
+        <button class="btn ${abaTipo === 'recorrencia' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('abaTipo','recorrencia');GMN.render()" style="font-size:13px">
+          <i class="bi bi-arrow-repeat"></i> Recorrência
+        </button>
+        <button class="btn ${abaTipo === 'implementacao' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('abaTipo','implementacao');GMN.render()" style="font-size:13px">
+          <i class="bi bi-rocket-takeoff"></i> Implementação
+        </button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val">${stats.total}</div></div>
+        <div class="stat-card"><div class="stat-label">Em dia</div><div class="stat-val green">${stats.emDia}</div></div>
+        <div class="stat-card"><div class="stat-label">Atrasados</div><div class="stat-val ${stats.atrasados ? '' : 'green'}">${stats.atrasados}</div></div>
+        <div class="stat-card"><div class="stat-label">Completos</div><div class="stat-val green">${stats.completos}</div></div>
+      </div>
+
+      ${proximosVencer.length > 0 ? `
+        <div class="gmn-panel" style="margin-bottom:16px">
+          <div class="gmn-panel-title"><i class="bi bi-exclamation-triangle" style="color:var(--yellow)"></i> Prazos próximos de vencer (7 dias)</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${proximosVencer.map((p) => `
+              <div class="gmn-card-compact" onclick="GMN.openPerfilDetalhe('${p.id}')" style="cursor:pointer">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <div style="font-weight:600;font-size:13px">${esc(p.nome)}</div>
+                  <div style="font-size:11px;color:var(--text-muted)">${fmtData(p.deadline)}</div>
+                </div>
+                <div style="background:var(--bg-base);height:16px;border-radius:4px;overflow:hidden;border:1px solid var(--border)">
+                  <div style="height:100%;background:var(--accent);width:${checklistPct(p)}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff">${checklistPct(p)}%</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="gmn-panel">
+        <div class="gmn-panel-title">
+          ${abaTipo === 'recorrencia' ? '🔄 Perfis em Recorrência' : '🚀 Perfis em Implementação'}
+          <span style="font-size:12px;color:var(--text-muted)">(${filtrados.length})</span>
+        </div>
+        ${filtrados.length === 0
+          ? `<div class="gmn-empty">Nenhum perfil nesta categoria</div>`
+          : `<div class="gmn-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${filtrados.map((p) => {
+              const pct = checklistPct(p);
+              const st = STATUS_PERFIL[p.status] || STATUS_PERFIL['nao-verificado'];
+              const hoje = new Date();
+              const deadlineAtrasado = p.deadline && new Date(p.deadline) < hoje && pct < 100;
+              return `
+                <div class="gmn-card" onclick="GMN.openPerfilDetalhe('${p.id}')">
+                  <div class="gmn-card-top">
+                    <div>
+                      <div class="gmn-card-nome">${esc(p.nome)}</div>
+                      <div class="gmn-card-sub">${esc(p.categoria || '—')}${p.cliente ? ' · ' + esc(p.cliente) : ''}</div>
+                    </div>
+                    <span class="badge ${st.c}">${st.l}</span>
+                  </div>
+                  <div style="margin:10px 0;padding:10px;background:var(--bg-base);border-radius:6px;border:1px solid var(--border)">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                      <span style="font-size:12px;font-weight:600">${pct}% completo</span>
+                      ${p.deadline ? `<span style="font-size:11px;color:${deadlineAtrasado ? 'var(--red)' : 'var(--text-muted)'}">${fmtData(p.deadline)}</span>` : ''}
+                    </div>
+                    <div style="height:12px;background:var(--bg-card);border-radius:4px;overflow:hidden;border:1px solid var(--border)">
+                      <div style="height:100%;background:${deadlineAtrasado ? 'var(--red)' : 'var(--accent)'};width:${pct}%"></div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}</div>`}
       </div>
     </div>`;
   }
