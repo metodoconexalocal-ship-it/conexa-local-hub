@@ -121,7 +121,7 @@
   };
   function render() {
     const fn = {
-      'gmn-dashboard': renderDash, 'gmn-dashboard-filtrada': renderDashboardFiltrada, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
+      'gmn-dashboard': renderDash, 'gmn-dashboard-filtrada': renderDashboardFiltrada, 'gmn-tarefas': renderTarefas, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
       'gmn-avaliacoes': renderAvals, 'gmn-ranking': renderRank,
     }[pagina];
     if (fn) $g('main-content').innerHTML = fn();
@@ -306,6 +306,168 @@
                 </div>
               `;
             }).join('')}</div>`}
+      </div>
+    </div>`;
+  }
+
+  /* ══════════════ VISÃO SEMANAL/DIÁRIA DE TAREFAS ═══════════════════════════ */
+  function renderTarefas() {
+    const periodoAba = F.periodoAba || 'hoje';
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const amanha = new Date(hoje);
+    amanha.setDate(hoje.getDate() + 1);
+
+    const inicioSemana = new Date(hoje);
+    inicioSemana.setDate(hoje.getDate() - hoje.getDay() + (hoje.getDay() === 0 ? -6 : 1));
+
+    const fimSemana = new Date(inicioSemana);
+    fimSemana.setDate(inicioSemana.getDate() + 6);
+
+    const inicioProxSemana = new Date(fimSemana);
+    inicioProxSemana.setDate(fimSemana.getDate() + 1);
+
+    const fimProxSemana = new Date(inicioProxSemana);
+    fimProxSemana.setDate(inicioProxSemana.getDate() + 6);
+
+    const isoHoje = hoje.toISOString().split('T')[0];
+    const isoAmanha = amanha.toISOString().split('T')[0];
+    const isoInicioSemana = inicioSemana.toISOString().split('T')[0];
+    const isoFimSemana = fimSemana.toISOString().split('T')[0];
+    const isoInicioProx = inicioProxSemana.toISOString().split('T')[0];
+    const isoFimProx = fimProxSemana.toISOString().split('T')[0];
+
+    const getTarefas = (dataInicio, dataFim) => {
+      const tarefas = [];
+
+      // Sub-elementos pendentes
+      S.perfis.forEach((p) => {
+        (p.subElementos || []).filter((s) => !s.feito).forEach((sub) => {
+          tarefas.push({
+            tipo: 'sub-elemento',
+            titulo: sub.titulo,
+            perfil: p.nome,
+            perfilId: p.id,
+            data: sub.criadoEm ? sub.criadoEm.split('T')[0] : isoHoje,
+            prioridade: p.deadline && new Date(p.deadline) < today ? 'urgente' : 'normal',
+            deadline: p.deadline,
+          });
+        });
+      });
+
+      // Posts pendentes
+      S.posts.filter((p) => p.data >= dataInicio && p.data <= dataFim && p.status !== 'feito').forEach((post) => {
+        tarefas.push({
+          tipo: 'post',
+          titulo: `Post: ${post.titulo || post.descricao?.substring(0, 50) || 'Sem título'}`,
+          perfil: perfilNome(post.perfilId),
+          perfilId: post.perfilId,
+          data: post.data,
+          prioridade: post.data < isoHoje ? 'urgente' : 'normal',
+          deadline: post.data,
+        });
+      });
+
+      // Avaliações não respondidas
+      S.avaliacoes.filter((a) => !a.respondida).forEach((aval) => {
+        tarefas.push({
+          tipo: 'avaliacao',
+          titulo: `Responder avaliação (${aval.nota}⭐)`,
+          perfil: perfilNome(aval.perfilId),
+          perfilId: aval.perfilId,
+          data: aval.criadoEm ? aval.criadoEm.split('T')[0] : isoHoje,
+          prioridade: 'alta',
+          deadline: null,
+        });
+      });
+
+      // Checklists não completos
+      S.perfis.filter((p) => checklistPct(p) < 100).forEach((p) => {
+        tarefas.push({
+          tipo: 'checklist',
+          titulo: `Completar checklist (${checklistPct(p)}%)`,
+          perfil: p.nome,
+          perfilId: p.id,
+          data: isoHoje,
+          prioridade: p.deadline && new Date(p.deadline) < today ? 'urgente' : 'normal',
+          deadline: p.deadline,
+        });
+      });
+
+      return tarefas.filter((t) => t.data >= dataInicio && t.data <= dataFim).sort((a, b) => {
+        const prioridadeMap = { urgente: 0, alta: 1, normal: 2 };
+        if (prioridadeMap[a.prioridade] !== prioridadeMap[b.prioridade]) {
+          return prioridadeMap[a.prioridade] - prioridadeMap[b.prioridade];
+        }
+        return a.data.localeCompare(b.data);
+      });
+    };
+
+    const tarefasHoje = getTarefas(isoHoje, isoHoje);
+    const tarefasEstaSemana = getTarefas(isoInicioSemana, isoFimSemana);
+    const tarefasProxSemana = getTarefas(isoInicioProx, isoFimProx);
+    const tarefasAtrasadas = S.perfis
+      .filter((p) => p.deadline && new Date(p.deadline) < hoje && checklistPct(p) < 100)
+      .map((p) => ({
+        tipo: 'deadline',
+        titulo: `⚠️ Prazo vencido: ${checklistPct(p)}% completo`,
+        perfil: p.nome,
+        perfilId: p.id,
+        data: p.deadline,
+        prioridade: 'urgente',
+        deadline: p.deadline,
+      }));
+
+    const renderTarefasList = (list) => {
+      if (list.length === 0) {
+        return `<div class="gmn-empty">Nenhuma tarefa neste período</div>`;
+      }
+
+      return `<div style="display:flex;flex-direction:column;gap:8px">
+        ${list.map((t) => {
+          const iconMap = { 'sub-elemento': 'bi-check2-square', post: 'bi-calendar2-week', avaliacao: 'bi-star', checklist: 'bi-list-check', deadline: 'bi-exclamation-triangle' };
+          const corPrio = { urgente: 'var(--red)', alta: 'var(--yellow)', normal: 'var(--text-muted)' };
+          return `
+            <div style="padding:10px;background:var(--bg-base);border-left:3px solid ${corPrio[t.prioridade]};border-radius:4px;cursor:pointer" onclick="GMN.openPerfilDetalhe('${t.perfilId}')">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <i class="bi ${iconMap[t.tipo] || 'bi-task'}"></i>
+                <span style="flex:1;font-weight:500;font-size:13px">${esc(t.titulo)}</span>
+                <span style="font-size:11px;color:var(--text-muted)">${fmtData(t.data)}</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-left:24px">${esc(t.perfil)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>`;
+    };
+
+    return `<div class="page-wrap">
+      <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;overflow-x:auto">
+        <button class="btn ${periodoAba === 'hoje' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','hoje');GMN.render()" style="font-size:12px;white-space:nowrap">
+          📅 Hoje (${tarefasHoje.length})
+        </button>
+        <button class="btn ${periodoAba === 'semana' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','semana');GMN.render()" style="font-size:12px;white-space:nowrap">
+          📆 Esta semana (${tarefasEstaSemana.length})
+        </button>
+        <button class="btn ${periodoAba === 'proxsemana' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','proxsemana');GMN.render()" style="font-size:12px;white-space:nowrap">
+          ➡️ Próx. semana (${tarefasProxSemana.length})
+        </button>
+        <button class="btn ${periodoAba === 'atrasadas' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','atrasadas');GMN.render()" style="font-size:12px;white-space:nowrap;color:var(--red)">
+          🔴 Atrasadas (${tarefasAtrasadas.length})
+        </button>
+      </div>
+
+      <div class="gmn-panel">
+        <div class="gmn-panel-title">
+          ${periodoAba === 'hoje' ? '📅 Tarefas de hoje' : periodoAba === 'semana' ? '📆 Esta semana' : periodoAba === 'proxsemana' ? '➡️ Próxima semana' : '🔴 Tarefas atrasadas'}
+        </div>
+        ${
+          periodoAba === 'hoje' ? renderTarefasList(tarefasHoje)
+          : periodoAba === 'semana' ? renderTarefasList(tarefasEstaSemana)
+          : periodoAba === 'proxsemana' ? renderTarefasList(tarefasProxSemana)
+          : renderTarefasList(tarefasAtrasadas)
+        }
       </div>
     </div>`;
   }
