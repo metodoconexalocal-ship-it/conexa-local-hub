@@ -235,18 +235,29 @@
     const st = STATUS_PERFIL[p.status] || STATUS_PERFIL['nao-verificado'];
     const av = avalStats(p.id);
     const postsSem = postsDaSemana(p.id).length;
+
+    // Status de deadline
+    const hoje = new Date();
+    const deadlineAtrasado = p.deadline && new Date(p.deadline) < hoje && pct < 100;
+    const proximoDeadline = p.deadline ? ` • Prazo: ${fmtData(p.deadline)}` : '';
+    const statusAtraso = deadlineAtrasado ? ' 🔴 ATRASADO' : '';
+
     return `
     <div class="gmn-card" onclick="GMN.openPerfilDetalhe('${p.id}')">
       <div class="gmn-card-top">
         <div>
           <div class="gmn-card-nome">${esc(p.nome)}</div>
-          <div class="gmn-card-sub">${esc(p.categoria || '—')}${p.cidade ? ' · ' + esc(p.cidade) : ''}</div>
+          <div class="gmn-card-sub">${esc(p.categoria || '—')}${p.cidade ? ' · ' + esc(p.cidade) : ''}${statusAtraso}</div>
         </div>
         <span class="badge ${st.c}">${st.l}</span>
       </div>
       ${p.cliente ? `<div class="gmn-card-cliente"><i class="bi bi-person"></i> ${esc(p.cliente)}</div>` : ''}
-      <div class="gmn-progress-wrap" title="Checklist de otimização">
-        <div class="gmn-progress"><div class="gmn-progress-fill ${pct === 100 ? 'full' : ''}" style="width:${pct}%"></div></div>
+      <div class="gmn-progress-wrap" title="Checklist de otimização: ${pct}%${proximoDeadline}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:600">${pct}% completo</span>
+          ${p.deadline ? `<span style="font-size:11px;color:var(--text-muted)">${fmtData(p.deadline)}</span>` : ''}
+        </div>
+        <div class="gmn-progress"><div class="gmn-progress-fill ${pct === 100 ? 'full' : deadlineAtrasado ? 'atrasado' : ''}" style="width:${pct}%"></div></div>
         <span class="gmn-progress-label">${pct}%</span>
       </div>
       <div class="gmn-card-footer">
@@ -324,6 +335,13 @@
         <div class="form-row"><label>Categoria principal</label><input id="pf-categoria" value="${esc(p.categoria || '')}" placeholder="Ex.: Ótica"></div>
         <div class="form-row"><label>Cidade</label><input id="pf-cidade" value="${esc(p.cidade || '')}" placeholder="Ex.: Florianópolis/SC"></div>
         <div class="form-row"><label>Telefone / WhatsApp</label><input id="pf-telefone" value="${esc(p.telefone || '')}" placeholder="(48) 9…"></div>
+        <div class="form-row"><label>Prazo máximo de conclusão</label><input id="pf-deadline" type="date" value="${p.deadline || ''}"></div>
+        <div class="form-row"><label>Tipo de perfil</label>
+          <select id="pf-tipo">
+            <option value="recorrencia" ${p.tipo === 'recorrencia' ? 'selected' : ''}>Recorrência (manutenção)</option>
+            <option value="implementacao" ${p.tipo === 'implementacao' ? 'selected' : ''}>Implementação/Criação/Regularização</option>
+          </select>
+        </div>
         <div class="form-row"><label>Status de verificação</label>
           <select id="pf-status">${Object.entries(STATUS_PERFIL).map(([k, v]) => `<option value="${k}" ${p.status === k ? 'selected' : ''}>${v.l}</option>`).join('')}</select>
         </div>
@@ -347,6 +365,8 @@
       categoria: $g('pf-categoria').value.trim(),
       cidade: $g('pf-cidade').value.trim(),
       telefone: $g('pf-telefone').value.trim(),
+      deadline: $g('pf-deadline').value || null,
+      tipo: $g('pf-tipo').value,
       status: $g('pf-status').value,
       emailAcesso: $g('pf-email').value.trim(),
       linkPerfil: $g('pf-link').value.trim(),
