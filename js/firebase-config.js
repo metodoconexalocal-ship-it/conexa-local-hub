@@ -3,7 +3,12 @@
 
   // ── CRUD genérico (módulos GMN — coleções gmn_*) ──────────────────────────
   window.dbList = async (col, orderField, dir) => {
-    if (window._devMode) return []; // DEV MODE: retorna array vazio
+    if (window._devMode) {
+      // DEV MODE: retorna dados fake do localStorage
+      const key = '_devdata_' + col;
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    }
     try {
       const q = orderField
         ? query(collection(getFirestore(), col), orderBy(orderField, dir || 'desc'))
@@ -520,11 +525,70 @@
   const DEV_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   window._devMode = DEV_MODE;
 
-  // DEV MODE: pula Firebase, mostra apenas tela de senha
+  // DEV MODE: pula Firebase, mostra apenas tela de senha + dados fake
   if (DEV_MODE) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('senha-screen').style.display = 'flex';
     document.getElementById('senha-input').focus();
+
+    // Dados fake para teste
+    if (!localStorage.getItem('_devdata_gmn_perfis')) {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const amanha = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      const semanaQ = new Date(Date.now() + 7*86400000).toISOString().slice(0, 10);
+      const atrasado = new Date(Date.now() - 2*86400000).toISOString().slice(0, 10);
+
+      const perfis = [
+        {
+          id: 'perfil-1',
+          nome: 'Empresa A - São Paulo',
+          tipoRecorrencia: 'Recorrência',
+          status: 'verificado',
+          checklist: { nome: true, descricao: true, fotos: false, aval_inicial: true, aval_resp: false },
+          deadline: semanaQ,
+          subelementos: [
+            { id: 's1', nome: 'Atualizar fotos', status: 'feito' },
+            { id: 's2', nome: 'Responder 3 avaliações', status: 'em-andamento' },
+            { id: 's3', nome: 'Publicar post semanal', status: 'pendente' }
+          ]
+        },
+        {
+          id: 'perfil-2',
+          nome: 'Empresa B - Rio de Janeiro',
+          tipoRecorrencia: 'Implementação',
+          status: 'pendente',
+          checklist: { nome: true, descricao: true, fotos: true, aval_inicial: true, aval_resp: true },
+          deadline: hoje,
+          subelementos: [
+            { id: 's4', nome: 'Monitorar 5 posts', status: 'feito' },
+            { id: 's5', nome: 'Gerar relatório mensal', status: 'feito' }
+          ]
+        },
+        {
+          id: 'perfil-3',
+          nome: 'Empresa C - Belo Horizonte',
+          tipoRecorrencia: 'Recorrência',
+          status: 'nao-verificado',
+          checklist: { nome: true, descricao: false, fotos: false, aval_inicial: false, aval_resp: false },
+          deadline: atrasado,
+          subelementos: [
+            { id: 's6', nome: 'Completar descrição', status: 'pendente' },
+            { id: 's7', nome: 'Upload 10+ fotos', status: 'pendente' },
+            { id: 's8', nome: 'Primeira avaliação', status: 'pendente' }
+          ]
+        }
+      ];
+      localStorage.setItem('_devdata_gmn_perfis', JSON.stringify(perfis));
+      localStorage.setItem('_devdata_gmn_posts', JSON.stringify([
+        { id: 'p1', perfilId: 'perfil-1', tipo: 'oferta', titulo: 'Promoção verão', data: hoje, status: 'rascunho' },
+        { id: 'p2', perfilId: 'perfil-2', tipo: 'novidade', titulo: 'Nova filial em SP', data: amanha, status: 'agendado' }
+      ]));
+      localStorage.setItem('_devdata_gmn_avaliacoes', JSON.stringify([
+        { id: 'a1', perfilId: 'perfil-1', nota: 5, autor: 'Cliente 1', texto: 'Ótimo!', data: hoje, respondida: false },
+        { id: 'a2', perfilId: 'perfil-2', nota: 4, autor: 'Cliente 2', texto: 'Bom', data: amanha, respondida: true }
+      ]));
+      console.log('✅ Dados de teste criados no localStorage');
+    }
   }
 
   onAuthStateChanged(auth, async (user) => {
