@@ -294,6 +294,17 @@
         <button class="btn btn-ghost" style="font-size:11.5px" onclick="GMN.closeModal();GMN.setF('perfilRank','${p.id}');showPage('gmn-ranking')"><i class="bi bi-graph-up-arrow"></i> Ranking</button>
         <button class="btn btn-ghost" style="font-size:11.5px" onclick="GMN.closeModal();GMN.setF('perfilPosts','${p.id}');showPage('gmn-postagens')"><i class="bi bi-calendar2-week"></i> Posts</button>
       </div>
+      <div style="margin-bottom:20px;padding:12px;background:var(--bg-base);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:600;font-size:13px">Progresso de otimização</div>
+          <div style="font-size:12px;color:var(--text-muted)">${p.deadline ? 'Prazo: ' + fmtData(p.deadline) : 'Sem prazo definido'}</div>
+        </div>
+        <div style="background:var(--bg-card);height:24px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">
+          <div style="height:100%;background:linear-gradient(90deg, var(--accent), var(--accent2));width:${pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff">${pct > 10 ? pct + '%' : ''}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Tipo: <strong>${p.tipo === 'recorrencia' ? '🔄 Recorrência' : '🚀 Implementação'}</strong></div>
+      </div>
+
       <div class="gmn-panel-title" style="margin-bottom:10px">Checklist de otimização
         <span style="font-family:var(--mono);font-size:12px;color:${pct === 100 ? 'var(--green)' : 'var(--accent)'}">${pct}%</span>
       </div>
