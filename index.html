@@ -1139,11 +1139,9 @@
       <div class="client-step active" id="cstep-1"><div class="client-step-dot">1</div><br>Responsável</div>
       <div class="client-step" id="cstep-2"><div class="client-step-dot">2</div><br>Empresa</div>
       <div class="client-step" id="cstep-3"><div class="client-step-dot">3</div><br>Redes Sociais</div>
-      <div class="client-step" id="cstep-4"><div class="client-step-dot">4</div><br>Acessos</div>
-      <div class="client-step" id="cstep-5"><div class="client-step-dot">5</div><br>Serviços</div>
-      <div class="client-step" id="cstep-6"><div class="client-step-dot">6</div><br>Financeiro</div>
-      <div class="client-step" id="cstep-7"><div class="client-step-dot">7</div><br>Briefing</div>
-      <div class="client-step" id="cstep-8"><div class="client-step-dot">8</div><br>Equipe</div>
+      <div class="client-step" id="cstep-4"><div class="client-step-dot">4</div><br>Serviços</div>
+      <div class="client-step" id="cstep-5"><div class="client-step-dot">5</div><br>Financeiro</div>
+      <div class="client-step" id="cstep-6"><div class="client-step-dot">6</div><br>Equipe</div>
     </div>
 
     <!-- STEP 1: RESPONSÁVEL -->
@@ -1159,17 +1157,9 @@
       </div>
         <div class="form-row"><label>CPF</label><div class="sensitive-field"><input id="c-cpf" type="text" placeholder="000.000.000-00"><button class="sensitive-toggle" onclick="toggleSensitive('c-cpf',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
         <div class="form-row"><label>Data de nascimento</label><input id="c-nasc" type="date"></div>
-        <div class="form-row"><label>Cargo na empresa</label><input id="c-cargo" type="text" placeholder="ex: CEO, Diretor..."></div>
         <div class="form-row"><label>E-mail principal</label><input id="c-email" type="email" placeholder="email@exemplo.com"></div>
         <div class="form-row"><label>Telefone / WhatsApp</label><input id="c-tel" type="text" inputmode="tel" placeholder="(00) 00000-0000"></div>
         <div class="form-row"><label>Telefone secundário</label><input id="c-tel2" type="text" inputmode="tel" placeholder="(00) 00000-0000"></div>
-        <div class="form-row"><label>Melhor horário para contato</label><input id="c-horario" type="text" placeholder="ex: Seg-Sex, 9h-18h"></div>
-        <div class="form-row form-full"><label>Preferência de comunicação</label>
-          <select id="c-pref-com"><option>WhatsApp</option><option>Ligação</option><option>E-mail</option></select></div>
-        <div class="form-row form-full"><label>Temperatura</label>
-          <select id="c-temp"><option value="">—</option><option value="Quente"><i class="bi bi-circle-fill" style="color:#ef4444"></i> Quente</option><option value="Morno"><i class="bi bi-circle-fill" style="color:#f59e0b"></i> Morno</option><option value="Frio"><i class="bi bi-circle-fill" style="color:#3b82f6"></i> Frio</option></select></div>
-        <div class="form-row form-full"><label>Status do cliente</label>
-          <select id="c-status-cli"><option value="Lead">Lead</option><option value="Em negociação">Em negociação</option><option value="Ativo">Ativo</option><option value="Pausado">Pausado</option><option value="Encerrado">Encerrado</option></select></div>
         <div class="form-row form-full"><label>Origem do cliente</label><input id="c-origem" type="text" placeholder="ex: Indicação, Instagram..."></div>
         <div class="form-row form-full"><label>Observações sobre o relacionamento</label><textarea id="c-obs-rel" placeholder="Notas sobre o perfil do cliente..."></textarea></div>
       </div>
@@ -1180,9 +1170,7 @@
       <div class="step-section-title">Dados da Empresa</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Nome da empresa</label><input id="c-empresa" type="text" placeholder="Razão social"></div>
-        <div class="form-row"><label>Nome fantasia</label><input id="c-fantasia" type="text"></div>
         <div class="form-row"><label>CNPJ</label><div class="sensitive-field"><input id="c-cnpj" type="text" placeholder="00.000.000/0000-00"><button class="sensitive-toggle" onclick="toggleSensitive('c-cnpj',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-        <div class="form-row"><label>Inscrição estadual</label><input id="c-ie" type="text"></div>
         <div class="form-row"><label>Data de abertura</label><input id="c-dt-abertura" type="date"></div>
         <div class="form-row"><label>Site oficial</label><input id="c-site" type="url" placeholder="https://..."></div>
         <div class="form-row"><label>E-mail empresarial</label><input id="c-email-emp" type="email"></div>
@@ -1199,9 +1187,6 @@
         <div class="form-row form-full"><label>Principais serviços / produtos</label><textarea id="c-servicos-emp" rows="2"></textarea></div>
         <div class="form-row"><label>Ticket médio</label><input id="c-ticket" type="text" placeholder="R$ 0,00"></div>
         <div class="form-row"><label>Região de atuação</label><input id="c-regiao" type="text"></div>
-        <div class="form-row form-full"><label>Público-alvo</label><textarea id="c-publico" rows="2"></textarea></div>
-        <div class="form-row form-full"><label>Diferencial da empresa</label><textarea id="c-diferencial" rows="2"></textarea></div>
-        <div class="form-row form-full"><label>Principais concorrentes</label><input id="c-concorrentes" type="text"></div>
         <div class="form-row form-full"><label>Modelo de atuação</label>
           <select id="c-modelo"><option>Física</option><option>Online</option><option>Híbrida</option></select></div>
       </div>
@@ -1214,26 +1199,8 @@
       <button class="btn-add-social" onclick="addSocialRow()">+ Adicionar rede social</button>
     </div>
 
-    <!-- STEP 4: ACESSOS -->
+    <!-- STEP 4: SERVIÇOS -->
     <div class="step-panel" id="spanel-4">
-      <div class="step-section-title">Acessos e Contas Importantes</div>
-      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px">Campos sensíveis — passe o mouse sobre o campo para revelar</div>
-      <div class="form-grid">
-        <div class="form-row"><label>Google (Gmail principal)</label><div class="sensitive-field"><input id="c-gmail" type="text"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-        <div class="form-row"><label>Senha Google</label><div class="sensitive-field"><input id="c-gmail-senha" type="password"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail-senha',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-        <div class="form-row"><label>Google Meu Negócio</label><input id="c-gmn" type="text"></div>
-        <div class="form-row"><label>Gerenciador Meta Ads</label><input id="c-meta-ads" type="text"></div>
-        <div class="form-row"><label>Conta Google Ads</label><input id="c-gads" type="text"></div>
-        <div class="form-row"><label>Plataforma do site</label><input id="c-plat-site" type="text" placeholder="WordPress, Wix..."></div>
-        <div class="form-row"><label>Login do site</label><div class="sensitive-field"><input id="c-site-login" type="text"><button class="sensitive-toggle" onclick="toggleSensitive('c-site-login',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-        <div class="form-row"><label>Senha do site</label><div class="sensitive-field"><input id="c-site-senha" type="password"><button class="sensitive-toggle" onclick="toggleSensitive('c-site-senha',this)" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-        <div class="form-row form-full"><label>Plataforma de automação</label><input id="c-automacao" type="text"></div>
-        <div class="form-row form-full"><label>Outros acessos relevantes</label><textarea id="c-outros-acessos" rows="3" placeholder="Descreva outros acessos importantes..."></textarea></div>
-      </div>
-    </div>
-
-    <!-- STEP 5: SERVIÇOS -->
-    <div class="step-panel" id="spanel-5">
       <div class="step-section-title">Serviços Contratados</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Tipo de plano</label>
@@ -1259,8 +1226,8 @@
       </div>
     </div>
 
-    <!-- STEP 6: FINANCEIRO -->
-    <div class="step-panel" id="spanel-6">
+    <!-- STEP 5: FINANCEIRO -->
+    <div class="step-panel" id="spanel-5">
       <div class="step-section-title">Financeiro</div>
       <div class="form-grid">
         <div class="form-row"><label>Valor do contrato</label><input id="c-valor" type="text" placeholder="R$ 0,00"></div>
@@ -1279,21 +1246,11 @@
       <div class="form-grid">
         <div class="form-row form-full"><label>Link da pasta do cliente (Drive)</label><input id="c-link-pasta" type="url" placeholder="https://drive.google.com/..."></div>
         <div class="form-row form-full"><label>Link do contrato</label><input id="c-link-contrato" type="url" placeholder="https://..."></div>
-        <div class="form-row form-full"><label>Link do planejamento</label><input id="c-link-plan" type="url" placeholder="https://..."></div>
-        <div class="form-row form-full"><label>Etapa atual do projeto</label><input id="c-etapa" type="text" placeholder="ex: Onboarding, Implementação..."></div>
       </div>
     </div>
 
-    <!-- STEP 7: OBSERVAÇÕES -->
-    <div class="step-panel" id="spanel-7">
-      <div class="step-section-title">Observações Gerais</div>
-      <div class="form-row" style="margin-bottom:16px"><label>Campo livre para informações adicionais</label><textarea id="c-obs" rows="5" placeholder="Qualquer informação adicional sobre o cliente..."></textarea></div>
-      <div class="step-section-title">Checklist de Onboarding</div>
-      <div id="onb-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg-card2);border-radius:10px;border:1px solid var(--border)"></div>
-    </div>
-
-    <!-- STEP 8: EQUIPE -->
-    <div class="step-panel" id="spanel-8">
+    <!-- STEP 6: EQUIPE -->
+    <div class="step-panel" id="spanel-6">
       <div class="step-section-title">Adicionar à Equipe</div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Selecione as equipes que terão acesso a este cliente. Para cada equipe selecionada, escolha em qual grupo o elemento do cliente vai aparecer.</div>
       <div class="team-assign-grid" id="team-assign-grid"></div>
@@ -1331,10 +1288,8 @@
       <div class="client-detail-tab active" onclick="switchDetailTab('geral',this)">Geral</div>
       <div class="client-detail-tab" onclick="switchDetailTab('empresa',this)">Empresa</div>
       <div class="client-detail-tab" onclick="switchDetailTab('redes',this)">Redes</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('acessos',this)">Acessos</div>
       <div class="client-detail-tab" onclick="switchDetailTab('servicos',this)">Serviços</div>
       <div class="client-detail-tab" onclick="switchDetailTab('financeiro',this)">Financeiro</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('briefing',this)">Briefing</div>
       <div class="client-detail-tab" onclick="switchDetailTab('jornada360',this)">Jornada</div>
       <div class="client-detail-tab" onclick="switchDetailTab('avaliacao',this)">Avaliação</div>
       <div class="client-detail-tab" onclick="switchDetailTab('calendario',this)">Calendário</div>

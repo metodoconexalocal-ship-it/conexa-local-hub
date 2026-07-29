@@ -2499,7 +2499,7 @@ function clientStatusClass(s) {
 
 // ─── CLIENT REGISTRATION MODAL ────────────────────────────────────────────────
 let _socialCount = 0;
-const CLIENT_STEPS = 8;
+const CLIENT_STEPS = 6;
 
 function openClientReg(clientId) {
   editingClientId = clientId || null;
@@ -2570,21 +2570,15 @@ function clearClientForm() {
 
 function prefillClientForm(c) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val||''; };
-  set('c-nome',c.nome); set('c-cpf',c.cpf); set('c-nasc',c.nasc); set('c-cargo',c.cargo);
-  set('c-email',c.email); set('c-tel',c.tel); set('c-tel2',c.tel2); set('c-horario',c.horario);
-  set('c-pref-com',c.prefCom); set('c-temp',c.temp); set('c-status-cli',c.statusCli);
+  set('c-nome',c.nome); set('c-cpf',c.cpf); set('c-nasc',c.nasc);
+  set('c-email',c.email); set('c-tel',c.tel); set('c-tel2',c.tel2);
   set('c-origem',c.origem); set('c-obs-rel',c.obsRel);
-  set('c-empresa',c.empresa); set('c-fantasia',c.fantasia); set('c-cnpj',c.cnpj);
-  set('c-ie',c.ie); set('c-dt-abertura',c.dtAbertura); set('c-site',c.site);
+  set('c-empresa',c.empresa); set('c-cnpj',c.cnpj);
+  set('c-dt-abertura',c.dtAbertura); set('c-site',c.site);
   set('c-email-emp',c.emailEmp); set('c-tel-emp',c.telEmp); set('c-end',c.end);
   set('c-cidade',c.cidade); set('c-estado',c.estado); set('c-cep',c.cep);
   set('c-segmento',c.segmento); set('c-categoria',c.categoria); set('c-servicos-emp',c.servicosEmp);
-  set('c-ticket',c.ticket); set('c-regiao',c.regiao); set('c-publico',c.publico);
-  set('c-diferencial',c.diferencial); set('c-concorrentes',c.concorrentes); set('c-modelo',c.modelo);
-  set('c-gmail',c.gmail); set('c-gmail-senha',c.gmailSenha); set('c-gmn',c.gmn);
-  set('c-meta-ads',c.metaAds); set('c-gads',c.gads); set('c-plat-site',c.platSite);
-  set('c-site-login',c.siteLogin); set('c-site-senha',c.siteSenha);
-  set('c-automacao',c.automacao); set('c-outros-acessos',c.outrosAcessos);
+  set('c-ticket',c.ticket); set('c-regiao',c.regiao); set('c-modelo',c.modelo);
   set('c-plano',c.plano); set('c-entrega',c.entrega); set('c-frequencia',c.frequencia);
   set('c-responsaveis',c.responsaveis); set('c-objetivo',c.objetivo); set('c-metas',c.metas);
   set('c-problemas',c.problemas); set('c-historico',c.historico); set('c-tom',c.tom);
@@ -2593,7 +2587,6 @@ function prefillClientForm(c) {
   set('c-pay-status',c.payStatus); set('c-tipo-cont',c.tipoCont); set('c-renovacao',c.renovacao);
   set('c-inicio',c.inicio); set('c-fim',c.fim);
   set('c-link-pasta',c.linkPasta); set('c-link-contrato',c.linkContrato);
-  set('c-link-plan',c.linkPlan); set('c-etapa',c.etapa); set('c-obs',c.obs);
   // Checkboxes services
   document.querySelectorAll('.svc-check').forEach(cb => { cb.checked = (c.servicos||[]).includes(cb.value); });
   // Checkboxes onboarding
@@ -2615,26 +2608,20 @@ function collectClientForm() {
     const inputs = row.querySelectorAll('input, select');
     const obj = {};
     inputs.forEach(inp => { if (inp.dataset.field) obj[inp.dataset.field] = inp.value.trim(); });
-    if (obj.plataforma || obj.link || obj.usuario) socials.push(obj);
+    if (obj.plataforma || obj.link) socials.push(obj);
   });
   const teams = collectTeamAssign();
   return {
-    nome:get('c-nome'), cpf:get('c-cpf'), nasc:get('c-nasc'), cargo:get('c-cargo'),
-    email:get('c-email'), tel:get('c-tel'), tel2:get('c-tel2'), horario:get('c-horario'),
-    prefCom:get('c-pref-com'), temp:get('c-temp'), statusCli:get('c-status-cli'),
+    nome:get('c-nome'), cpf:get('c-cpf'), nasc:get('c-nasc'),
+    email:get('c-email'), tel:get('c-tel'), tel2:get('c-tel2'),
     origem:get('c-origem'), obsRel:get('c-obs-rel'),
-    empresa:get('c-empresa'), fantasia:get('c-fantasia'), cnpj:get('c-cnpj'),
-    ie:get('c-ie'), dtAbertura:get('c-dt-abertura'), site:get('c-site'),
+    empresa:get('c-empresa'), cnpj:get('c-cnpj'),
+    dtAbertura:get('c-dt-abertura'), site:get('c-site'),
     emailEmp:get('c-email-emp'), telEmp:get('c-tel-emp'), end:get('c-end'),
     cidade:get('c-cidade'), estado:get('c-estado'), cep:get('c-cep'),
     segmento:get('c-segmento'), categoria:get('c-categoria'), servicosEmp:get('c-servicos-emp'),
-    ticket:get('c-ticket'), regiao:get('c-regiao'), publico:get('c-publico'),
-    diferencial:get('c-diferencial'), concorrentes:get('c-concorrentes'), modelo:get('c-modelo'),
+    ticket:get('c-ticket'), regiao:get('c-regiao'), modelo:get('c-modelo'),
     socials,
-    gmail:get('c-gmail'), gmailSenha:get('c-gmail-senha'), gmn:get('c-gmn'),
-    metaAds:get('c-meta-ads'), gads:get('c-gads'), platSite:get('c-plat-site'),
-    siteLogin:get('c-site-login'), siteSenha:get('c-site-senha'),
-    automacao:get('c-automacao'), outrosAcessos:get('c-outros-acessos'),
     plano:get('c-plano'), servicos, entrega:get('c-entrega'), frequencia:get('c-frequencia'),
     responsaveis:get('c-responsaveis'), objetivo:get('c-objetivo'), metas:get('c-metas'),
     problemas:get('c-problemas'), historico:get('c-historico'), tom:get('c-tom'),
@@ -2643,7 +2630,6 @@ function collectClientForm() {
     payStatus:get('c-pay-status'), tipoCont:get('c-tipo-cont'), renovacao:get('c-renovacao'),
     inicio:get('c-inicio'), fim:get('c-fim'),
     linkPasta:get('c-link-pasta'), linkContrato:get('c-link-contrato'),
-    linkPlan:get('c-link-plan'), etapa:get('c-etapa'), obs:get('c-obs'),
     onboarding, teams,
   };
 }
@@ -2957,13 +2943,7 @@ function addSocialRow(prefill) {
       </select>
       <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;margin-left:auto"><i class="bi bi-x-lg"></i></button>
     </div>
-    <div class="form-row"><label>Link do perfil</label><input data-field="link" type="url" value="${prefill&&prefill.link||''}" placeholder="https://..."></div>
-    <div class="form-row"><label>Nome de usuário</label><input data-field="usuario" type="text" value="${prefill&&prefill.usuario||''}" placeholder="@usuario"></div>
-    <div class="form-row"><label>E-mail vinculado</label><input data-field="emailSocial" type="email" value="${prefill&&prefill.emailSocial||''}"></div>
-    <div class="form-row"><label>Login</label><div class="sensitive-field"><input data-field="login" type="text" value="${prefill&&prefill.login||''}"><button class="sensitive-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-    <div class="form-row"><label>Senha</label><div class="sensitive-field"><input data-field="senha" type="password" value="${prefill&&prefill.senha||''}"><button class="sensitive-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" tabindex="-1"><i class="bi bi-eye"></i></button></div></div>
-    <div class="form-row"><label>2FA?</label><select data-field="twofa"><option${prefill&&prefill.twofa==='Não'?' selected':''}>Não</option><option${prefill&&prefill.twofa==='Sim'?' selected':''}>Sim</option></select></div>
-    <div class="form-row"><label>Quem tem acesso?</label><input data-field="acesso" type="text" value="${prefill&&prefill.acesso||''}" placeholder="ex: Amanda, Gabriel"></div>
+    <div class="form-row form-full"><label>Link do perfil</label><input data-field="link" type="url" value="${prefill&&prefill.link||''}" placeholder="https://..."></div>
   `;
   container.appendChild(div);
 }
@@ -3091,26 +3071,21 @@ function renderClientDetail() {
 
   const sections = {
     geral: `<div class="detail-grid">
-      ${field('Nome completo',c.nome)}${field('Cargo',c.cargo)}
-      ${field('E-mail',c.email)}${field('Telefone',c.tel)}
-      ${field('WhatsApp secundário',c.tel2)}${field('Melhor horário',c.horario)}
-      ${field('Preferência de contato',c.prefCom)}${field('Temperatura',c.temp?tempEmoji(c.temp)+' '+c.temp:'')}
-      ${field('Status',c.statusCli)}${field('Origem',c.origem)}
+      ${field('Nome completo',c.nome)}${field('E-mail',c.email)}
+      ${field('Telefone',c.tel)}${field('WhatsApp secundário',c.tel2)}
+      ${field('Origem',c.origem)}
       ${c.obsRel?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Observações</div><div class="detail-value">${c.obsRel}</div></div>`:''}
       ${(c.teams||[]).length?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Equipes</div><div class="detail-value">${(c.teams||[]).map(t=>`<span class="client-team-chip">${t.memberLabel}</span>`).join(' ')}</div></div>`:''}
     </div>`,
     empresa: `<div class="detail-grid">
-      ${field('Nome fantasia', c.fantasia || c.empresa)}${(c.empresa && c.fantasia && c.empresa !== c.fantasia) ? field('Razão social', c.empresa) : ''}
-      ${field('CNPJ',c.cnpj,true)}${field('Inscrição estadual',c.ie,true)}
+      ${field('Nome', c.empresa)}
+      ${field('CNPJ',c.cnpj,true)}
       ${field('Site',c.site)}${field('E-mail empresarial',c.emailEmp)}
       ${field('Telefone comercial',c.telEmp)}${field('Endereço',c.end)}
       ${field('Cidade',c.cidade)}${field('Estado',c.estado)}${field('CEP',c.cep)}
       ${field('Segmento',c.segmento)}${field('Categoria',c.categoria)}
       ${field('Ticket médio',c.ticket)}${field('Região de atuação',c.regiao)}
       ${field('Modelo',c.modelo)}
-      ${c.publico?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Público-alvo</div><div class="detail-value">${c.publico}</div></div>`:''}
-      ${c.diferencial?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Diferencial</div><div class="detail-value">${c.diferencial}</div></div>`:''}
-      ${field('Concorrentes',c.concorrentes)}
     </div>`,
     redes: (c.socials||[]).length ? c.socials.map(s=>`
       <div style="background:var(--bg-card2);border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid var(--border)">
@@ -3122,14 +3097,6 @@ function renderClientDetail() {
           ${field('2FA',s.twofa)}${field('Quem tem acesso',s.acesso)}
         </div>
       </div>`).join('') : '<div style="color:var(--text-muted);padding:20px;text-align:center">Nenhuma rede social cadastrada.</div>',
-    acessos: canSensitive ? `<div class="detail-grid">
-      ${field('Gmail',c.gmail,true)}${field('Senha Google',c.gmailSenha,true)}
-      ${field('Google Meu Negócio',c.gmn)}${field('Meta Ads',c.metaAds)}
-      ${field('Google Ads',c.gads)}${field('Plataforma do site',c.platSite)}
-      ${field('Login do site',c.siteLogin,true)}${field('Senha do site',c.siteSenha,true)}
-      ${field('Automação',c.automacao)}
-      ${c.outrosAcessos?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Outros acessos</div><div class="detail-value">${c.outrosAcessos}</div></div>`:''}
-    </div>` : '<div style="padding:30px;text-align:center;color:var(--text-muted)"><i class="bi bi-lock"></i> Seção restrita a Admin e Gerente.</div>',
     servicos: `<div class="detail-grid">
       ${field('Plano',c.plano)}${field('Frequência',c.frequencia)}
       ${field('Responsáveis',c.responsaveis)}${field('Etapa atual',c.etapa)}
@@ -3143,15 +3110,6 @@ function renderClientDetail() {
       ${field('Dia de pagamento',c.diaPag)}${field('Status',c.payStatus)}
       ${field('Tipo de contrato',c.tipoCont)}${field('Renovação automática',c.renovacao)}
       ${field('Início',c.inicio?fmtDate(c.inicio):'')}${field('Término',c.fim?fmtDate(c.fim):'')}
-    </div>`,
-    briefing: `<div class="detail-grid">
-      ${c.objetivo?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Objetivo</div><div class="detail-value">${c.objetivo}</div></div>`:''}
-      ${c.metas?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Metas</div><div class="detail-value">${c.metas}</div></div>`:''}
-      ${c.problemas?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Problemas atuais</div><div class="detail-value">${c.problemas}</div></div>`:''}
-      ${c.historico?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Histórico</div><div class="detail-value">${c.historico}</div></div>`:''}
-      ${field('Tom de comunicação',c.tom)}${field('Referências',c.refs)}
-      ${c.restricoes?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Restrições</div><div class="detail-value">${c.restricoes}</div></div>`:''}
-      ${c.obs?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Observações gerais</div><div class="detail-value">${c.obs}</div></div>`:''}
     </div>`,
   };
 
