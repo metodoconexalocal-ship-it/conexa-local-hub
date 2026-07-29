@@ -161,7 +161,7 @@
       </div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-label">Google Meu Negócio</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Google Meu Negócio</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-gmn-dashboard" onclick="showPage(&#39;gmn-dashboard&#39;)">
         <span class="nav-icon"><i class="bi bi-pin-map"></i></span> Visão GMN
       </div>
@@ -1454,6 +1454,35 @@
   </div>
 </div>
 
+<script>
+// Toggle sidebar sections collapse/expand
+function toggleSection(labelEl) {
+  const section = labelEl.closest('.sidebar-section');
+  if (!section) return;
+
+  section.classList.toggle('collapsed');
+
+  // Salvar estado no localStorage
+  const sectionLabel = labelEl.textContent.trim();
+  const isCollapsed = section.classList.contains('collapsed');
+  localStorage.setItem(`sidebar-${sectionLabel}`, isCollapsed ? 'collapsed' : 'expanded');
+}
+
+// Restaurar estado das seções ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.sidebar-section').forEach(section => {
+    const label = section.querySelector('.sidebar-label');
+    if (!label) return;
+
+    const sectionName = label.textContent.trim();
+    const savedState = localStorage.getItem(`sidebar-${sectionName}`);
+
+    if (savedState === 'collapsed') {
+      section.classList.add('collapsed');
+    }
+  });
+});
+</script>
 </body>
 </html>
 
