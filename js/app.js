@@ -2525,11 +2525,11 @@ function openClientReg(clientId) {
       lbl.innerHTML = `<input type="checkbox" class="svc-check" value="${s}" style="accent-color:var(--accent)"> ${s}`;
       svcContainer.appendChild(lbl);
     });
-    const outro = document.createElement('div');
-    outro.style.cssText = 'grid-column:1/-1;display:flex;gap:6px;align-items:center';
-    outro.innerHTML = `<label style="font-size:12px;white-space:nowrap">Outro:</label><input id="c-svc-outro" type="text" style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none">`;
-    svcContainer.appendChild(outro);
   }
+
+  // Reset cronogramas
+  window._cronogramas = [];
+  renderCronogramas();
 
   // Build onboarding checklist
   const onbContainer = document.getElementById('onb-check-container');
@@ -2579,8 +2579,7 @@ function prefillClientForm(c) {
   set('c-cidade',c.cidade); set('c-estado',c.estado); set('c-cep',c.cep);
   set('c-segmento',c.segmento); set('c-categoria',c.categoria); set('c-servicos-emp',c.servicosEmp);
   set('c-ticket',c.ticket); set('c-regiao',c.regiao); set('c-modelo',c.modelo);
-  set('c-plano',c.plano); set('c-entrega',c.entrega); set('c-frequencia',c.frequencia);
-  set('c-responsaveis',c.responsaveis); set('c-objetivo',c.objetivo); set('c-metas',c.metas);
+  set('c-plano',c.plano); set('c-plano-custom',c.planoCustizado); set('c-objetivo',c.objetivo); set('c-metas',c.metas);
   set('c-problemas',c.problemas); set('c-historico',c.historico); set('c-tom',c.tom);
   set('c-refs',c.refs); set('c-restricoes',c.restricoes);
   set('c-valor',c.valor); set('c-forma-pag',c.formaPag); set('c-dia-pag',c.diaPag);
@@ -2591,6 +2590,9 @@ function prefillClientForm(c) {
   document.querySelectorAll('.svc-check').forEach(cb => { cb.checked = (c.servicos||[]).includes(cb.value); });
   // Checkboxes onboarding
   document.querySelectorAll('.onb-check').forEach(cb => { cb.checked = (c.onboarding||[]).includes(cb.value); });
+  // Load cronogramas
+  window._cronogramas = (c.cronogramas || []).map(cron => ({...cron}));
+  renderCronogramas();
   // Social rows
   document.getElementById('social-rows-container').innerHTML = '';
   _socialCount = 0;
@@ -2601,7 +2603,6 @@ function prefillClientForm(c) {
 function collectClientForm() {
   const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const servicos = [...document.querySelectorAll('.svc-check:checked')].map(c=>c.value);
-  const outro = get('c-svc-outro'); if (outro) servicos.push(outro);
   const onboarding = [...document.querySelectorAll('.onb-check:checked')].map(c=>c.value);
   const socials = [];
   document.querySelectorAll('.social-row-item').forEach(row => {
@@ -2622,8 +2623,7 @@ function collectClientForm() {
     segmento:get('c-segmento'), categoria:get('c-categoria'), servicosEmp:get('c-servicos-emp'),
     ticket:get('c-ticket'), regiao:get('c-regiao'), modelo:get('c-modelo'),
     socials,
-    plano:get('c-plano'), servicos, entrega:get('c-entrega'), frequencia:get('c-frequencia'),
-    responsaveis:get('c-responsaveis'), objetivo:get('c-objetivo'), metas:get('c-metas'),
+    plano:get('c-plano'), planoCustizado:get('c-plano-custom'), servicos, cronogramas: window._cronogramas || [], objetivo:get('c-objetivo'), metas:get('c-metas'),
     problemas:get('c-problemas'), historico:get('c-historico'), tom:get('c-tom'),
     refs:get('c-refs'), restricoes:get('c-restricoes'),
     valor:get('c-valor'), formaPag:get('c-forma-pag'), diaPag:get('c-dia-pag'),
@@ -2927,6 +2927,89 @@ function deleteClientFull(clientId) {
   renderClients();
 }
 
+// ─── PLANO CUSTOMIZADO ────────────────────────────────────────────────────────
+window._cronogramas = [];
+
+function togglePlanoCustomizado() {
+  const plano = document.getElementById('c-plano').value;
+  const customRow = document.getElementById('plano-custom-row');
+  if (customRow) customRow.style.display = plano === 'Personalizado' ? '' : 'none';
+}
+
+// ─── CRONOGRAMA DE ENTREGA ────────────────────────────────────────────────────
+function openCronogramaModal() {
+  document.getElementById('modal-cronograma').style.display = 'flex';
+  document.getElementById('cron-tipo').value = 'semana';
+  updateCronType();
+  document.querySelectorAll('.cron-dia').forEach(cb => cb.checked = false);
+  document.getElementById('cron-descricao').value = '';
+  document.getElementById('cron-inicio').value = '';
+  document.getElementById('cron-fim').value = '';
+}
+
+function closeCronogramaModal() {
+  document.getElementById('modal-cronograma').style.display = 'none';
+}
+
+function updateCronType() {
+  const tipo = document.getElementById('cron-tipo').value;
+  const diasGroup = document.getElementById('dias-semana-group');
+  diasGroup.style.display = tipo === 'semana' ? '' : 'none';
+}
+
+function salvarCronograma() {
+  const tipo = document.getElementById('cron-tipo').value;
+  const descricao = document.getElementById('cron-descricao').value.trim();
+  const inicio = document.getElementById('cron-inicio').value;
+  const fim = document.getElementById('cron-fim').value;
+
+  if (!descricao) { alert('Descreva o que será feito'); return; }
+  if (!inicio || !fim) { alert('Informe datas de início e término'); return; }
+
+  let dias = [];
+  if (tipo === 'semana') {
+    dias = Array.from(document.querySelectorAll('.cron-dia:checked')).map(cb => cb.value);
+    if (!dias.length) { alert('Selecione pelo menos um dia da semana'); return; }
+  }
+
+  window._cronogramas.push({
+    id: Date.now(),
+    tipo, dias, descricao, inicio, fim
+  });
+
+  renderCronogramas();
+  closeCronogramaModal();
+}
+
+function deleteCronograma(id) {
+  window._cronogramas = window._cronogramas.filter(c => c.id !== id);
+  renderCronogramas();
+}
+
+function renderCronogramas() {
+  const container = document.getElementById('cronograma-container');
+  if (!window._cronogramas || !window._cronogramas.length) {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px">Nenhum cronograma adicionado</div>';
+    return;
+  }
+
+  container.innerHTML = window._cronogramas.map(c => {
+    const tipoLabel = c.tipo === 'semana' ? c.dias.join(', ') : `A cada ${c.tipo === '15dias' ? '15' : c.tipo === '30dias' ? '30' : '1'} dia(s)`;
+    return `
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px">${tipoLabel}</div>
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:4px">${c.descricao}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${new Date(c.inicio).toLocaleDateString('pt-BR')} até ${new Date(c.fim).toLocaleDateString('pt-BR')}</div>
+          </div>
+          <button onclick="deleteCronograma(${c.id})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0"><i class="bi bi-x-lg"></i></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 // ─── SOCIAL ROWS ──────────────────────────────────────────────────────────────
 function addSocialRow(prefill) {
   _socialCount++;
@@ -3098,11 +3181,13 @@ function renderClientDetail() {
         </div>
       </div>`).join('') : '<div style="color:var(--text-muted);padding:20px;text-align:center">Nenhuma rede social cadastrada.</div>',
     servicos: `<div class="detail-grid">
-      ${field('Plano',c.plano)}${field('Frequência',c.frequencia)}
-      ${field('Responsáveis',c.responsaveis)}${field('Etapa atual',c.etapa)}
+      ${field('Plano',c.plano + (c.planoCustizado ? ` (${c.planoCustizado})` : ''))}
       ${(c.servicos||[]).length?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Serviços contratados</div><div class="detail-value">${c.servicos.join(', ')}</div></div>`:''}
-      ${c.entrega?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Detalhamento de entrega</div><div class="detail-value">${c.entrega}</div></div>`:''}
-      ${c.linkPasta?field('Pasta Drive',c.linkPasta):''}${c.linkContrato?field('Contrato',c.linkContrato):''}${c.linkPlan?field('Planejamento',c.linkPlan):''}
+      ${(c.cronogramas||[]).length?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Cronograma de entrega</div><div class="detail-value">${(c.cronogramas||[]).map(cron => {
+        const tipo = cron.tipo === 'semana' ? cron.dias.join(', ') : `A cada ${cron.tipo === '15dias' ? '15' : cron.tipo === '30dias' ? '30' : '1'} dia(s)`;
+        return `<div style="margin-bottom:8px;padding:8px;background:var(--bg-hover);border-radius:6px"><strong>${tipo}</strong> — ${cron.descricao}<br><small>${new Date(cron.inicio).toLocaleDateString('pt-BR')} até ${new Date(cron.fim).toLocaleDateString('pt-BR')}</small></div>`;
+      }).join('')}</div></div>`:''}
+      ${c.linkPasta?field('Pasta Drive',c.linkPasta):''}${c.linkContrato?field('Contrato',c.linkContrato):''}
       ${(c.onboarding||[]).length?`<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Onboarding</div><div class="detail-value">${c.onboarding.map(i=>`<i class="bi bi-check-circle-fill"></i> ${i}`).join('<br>')}</div></div>`:''}
     </div>`,
     financeiro: `<div class="detail-grid">

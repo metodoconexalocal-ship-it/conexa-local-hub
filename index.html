@@ -1204,16 +1204,21 @@
       <div class="step-section-title">Serviços Contratados</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Tipo de plano</label>
-          <select id="c-plano"><option>Completo</option><option>Intermediário</option><option>Básico</option><option>Personalizado</option></select></div>
-        <div class="form-row form-full"><label>Serviços incluídos</label>
-          <div id="svc-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:var(--bg-card2);border-radius:8px;border:1px solid var(--border)">
-            <div style="grid-column:1/-1;display:flex;gap:6px;align-items:center"><label style="font-size:12px;white-space:nowrap">Outro:</label><input id="c-svc-outro" type="text" style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none"></div>
-          </div>
-        </div>
-        <div class="form-row form-full"><label>Detalhamento do que será entregue</label><textarea id="c-entrega" rows="3"></textarea></div>
-        <div class="form-row"><label>Frequência de entrega</label><input id="c-frequencia" type="text" placeholder="ex: Semanal, Mensal"></div>
-        <div class="form-row"><label>Responsáveis pelo projeto</label><input id="c-responsaveis" type="text" placeholder="ex: Amanda, Gabriel"></div>
+          <select id="c-plano" onchange="togglePlanoCustomizado()"><option value="Completo">Completo</option><option value="Intermediário">Intermediário</option><option value="Básico">Básico</option><option value="Personalizado">Personalizado</option></select></div>
+        <div class="form-row form-full" id="plano-custom-row" style="display:none"><label>Descrever plano customizado</label><input id="c-plano-custom" type="text" placeholder="ex: Apenas Social Media + Relatório"></div>
       </div>
+
+      <div class="step-section-title">Serviços Incluídos</div>
+      <div id="svc-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:var(--bg-card2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+        <!-- Checkboxes serão preenchidas via JavaScript -->
+      </div>
+
+      <div class="step-section-title">Frequência de Entrega</div>
+      <div style="margin-bottom:16px">
+        <div id="cronograma-container" style="margin-bottom:12px"></div>
+        <button type="button" class="btn-add-social" onclick="openCronogramaModal()">+ Adicionar cronograma de entrega</button>
+      </div>
+
       <div class="step-section-title">Briefing e Estratégia</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Objetivo principal</label><textarea id="c-objetivo" rows="2"></textarea></div>
@@ -1255,6 +1260,62 @@
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Selecione as equipes que terão acesso a este cliente. Para cada equipe selecionada, escolha em qual grupo o elemento do cliente vai aparecer.</div>
       <div class="team-assign-grid" id="team-assign-grid"></div>
       <div id="group-selects-container"></div>
+    </div>
+
+    <!-- MODAL CRONOGRAMA DE ENTREGA -->
+    <div id="modal-cronograma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center">
+      <div style="background:var(--bg-card);border-radius:var(--radius-lg);width:500px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div style="font-size:16px;font-weight:700">Adicionar Cronograma de Entrega</div>
+          <button onclick="closeCronogramaModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px"><i class="bi bi-x"></i></button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Tipo de recorrência</label>
+            <select id="cron-tipo" onchange="updateCronType()" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-primary);font-family:var(--font);outline:none">
+              <option value="semana">Dias da semana</option>
+              <option value="15dias">A cada 15 dias</option>
+              <option value="30dias">A cada 30 dias</option>
+              <option value="diario">Diariamente</option>
+            </select>
+          </div>
+
+          <div id="dias-semana-group">
+            <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Selecione os dias</label>
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="seg"> Seg</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="ter"> Ter</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="qua"> Qua</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="qui"> Qui</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="sex"> Sex</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px"><input type="checkbox" class="cron-dia" value="sab"> Sab</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;grid-column:1/2"><input type="checkbox" class="cron-dia" value="dom"> Dom</label>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">O que será feito?</label>
+            <textarea id="cron-descricao" rows="3" placeholder="Ex: Postar conteúdo, Analisar métricas..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-primary);font-family:var(--font);outline:none;box-sizing:border-box"></textarea>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Data de início</label>
+              <input id="cron-inicio" type="date" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-primary);outline:none;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Data de término</label>
+              <input id="cron-fim" type="date" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-primary);outline:none;box-sizing:border-box">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button onclick="closeCronogramaModal()" class="btn btn-ghost" style="padding:8px 16px;font-size:12px">Cancelar</button>
+            <button onclick="salvarCronograma()" class="btn btn-primary" style="padding:8px 16px;font-size:12px">Adicionar</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ACTIONS -->
