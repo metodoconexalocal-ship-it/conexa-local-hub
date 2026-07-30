@@ -214,12 +214,6 @@
       <button class="add-group-btn nav-team" style="margin-top:6px;font-size:11px;padding:7px 10px" onclick="openTeamModal()"><i class="bi bi-gear"></i> Gerenciar equipe</button>
       <button class="add-group-btn nav-team" style="margin-top:4px;font-size:11px;padding:7px 10px;background:rgba(124,92,252,.08)" onclick="openUsersModal()"><i class="bi bi-people"></i> Gerenciar usuários</button>
     </div>
-    <div class="sidebar-section nav-team" id="nav-section-settings">
-      <div class="sidebar-label" onclick="toggleSection(this)"><span>Administração</span><i class="bi bi-chevron-down toggle-icon"></i></div>
-      <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
-        <span class="nav-icon"><i class="bi bi-gear-fill"></i></span> Configurações
-      </div>
-    </div>
     <div class="sidebar-bottom">
       <div style="display:flex;align-items:center;gap:6px">
         <div class="user-pill" onclick="openProfileModal()" style="cursor:pointer;flex:1;padding:8px 10px" title="Editar perfil">
@@ -231,6 +225,12 @@
           </div>
         </div>
         <button onclick="window.doLogout()" title="Sair" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .15s" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="sidebar-section nav-team" id="nav-section-settings" style="margin-top:auto;border-top:1px solid var(--border);padding-top:16px">
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Administração</span><i class="bi bi-chevron-down toggle-icon"></i></div>
+      <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
+        <span class="nav-icon"><i class="bi bi-gear-fill"></i></span> Configurações
       </div>
     </div>
   </aside>

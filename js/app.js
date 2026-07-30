@@ -8383,7 +8383,7 @@ async function renderDashboard() {
   // Clientes ativos sem atividade no CRM há 7+ dias
   const RISK_DIAS = 7;
   const clientUltAtiv = {};
-  Object.entries(boards || {}).forEach(([, b]) => {
+  Object.entries(state || {}).forEach(([, b]) => {
     (b.groups || []).forEach(g => {
       (g.items || []).forEach(i => {
         const cid = i._clientId || (clientsData.find(c => c.name === i.cliente || c.nome === i.cliente)?.id);
