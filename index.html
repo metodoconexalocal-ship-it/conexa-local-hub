@@ -137,7 +137,7 @@
       </div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-label">Visão Geral</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Visão Geral</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-dashboard" onclick="showPage('dashboard')">
         <span class="nav-icon"><i class="bi bi-speedometer2"></i></span> Dashboard
       </div>
@@ -179,7 +179,7 @@
       </div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-label">Gestão</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Gestão</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')">
         <span class="nav-icon"><i class="bi bi-people"></i></span> Clientes
       </div>
@@ -191,7 +191,7 @@
       </div>
     </div>
     <div class="sidebar-section" id="nav-section-conteudo-2">
-      <div class="sidebar-label">Conteúdo</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Conteúdo</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-conteudo-geral2" onclick="showPage('conteudo-geral')">
         <span class="nav-icon"><i class="bi bi-calendar-week"></i></span> Calendário Geral
       </div>
@@ -203,19 +203,19 @@
       </div>
     </div>
     <div class="sidebar-section" id="nav-section-formularios">
-      <div class="sidebar-label">Formulários</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Formulários</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-custom-forms" onclick="showPage('custom-forms')" style="font-weight:600;color:var(--accent)">
         <span class="nav-icon"><i class="bi bi-ui-checks-grid"></i></span> Meus Formulários
       </div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-label">Equipe</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Equipe</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div id="team-nav-list"></div>
       <button class="add-group-btn nav-team" style="margin-top:6px;font-size:11px;padding:7px 10px" onclick="openTeamModal()"><i class="bi bi-gear"></i> Gerenciar equipe</button>
       <button class="add-group-btn nav-team" style="margin-top:4px;font-size:11px;padding:7px 10px;background:rgba(124,92,252,.08)" onclick="openUsersModal()"><i class="bi bi-people"></i> Gerenciar usuários</button>
     </div>
     <div class="sidebar-section nav-team" id="nav-section-settings">
-      <div class="sidebar-label">Administração</div>
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Administração</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <span class="nav-icon"><i class="bi bi-gear-fill"></i></span> Configurações
       </div>
