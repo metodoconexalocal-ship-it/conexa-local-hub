@@ -8597,7 +8597,16 @@ async function _cfSave() {
 }
 
 function _cfCopyLink(id) {
-  const url = window.location.origin + '/forms/form.html?id=' + id;
+  const form = _cfForms.find(f => f.id === id);
+  let url;
+
+  // Se for a cópia de Google Meu Negócio, usar o link do ficha-gmb.html
+  if (form?.title?.includes('Google Meu Negócio') && form?.title?.includes('editável')) {
+    url = 'https://conexa-local-hub.vercel.app/forms/ficha-gmb.html';
+  } else {
+    url = window.location.origin + '/forms/form.html?id=' + id;
+  }
+
   navigator.clipboard.writeText(url).then(() => {
     alert('Link copiado!\n\n' + url + '\n\nCompartilhe com o cliente.');
   }).catch(() => {
