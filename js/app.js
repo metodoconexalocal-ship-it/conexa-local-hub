@@ -2765,7 +2765,7 @@ function exportClientData(clientId) {
     <div class="meta">
       <div>Ficha do cliente</div>
       <div>${new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
-      <div class="brand">DigitalCreate Hub</div>
+      <div class="brand">Conexa Local Hub</div>
     </div>
   </div>
 
@@ -2840,7 +2840,7 @@ function exportClientData(clientId) {
   ])}
 
   <div class="footer">
-    Ficha gerada automaticamente pelo DigitalCreate Hub &bull;
+    Ficha gerada automaticamente pelo Conexa Local Hub &bull;
     Dados de acesso e senhas não são incluídos nesta exportação por segurança.
   </div>
 </body>
@@ -5161,13 +5161,13 @@ function renderProspeccao() {
       const followupAlert = l.followup && l.followup <= hoje ? ' style="color:var(--yellow);font-weight:600"' : '';
       const wapp = l.whatsapp ? l.whatsapp.replace(/\D/g,'') : '';
       const _wappMsg = s => encodeURIComponent({
-        'Abordado': `Olá, ${l.nome||''}! Aqui é da DigitalCreate. Tudo bem? Gostaríamos de entender melhor sobre o seu negócio e ver como podemos ajudar. Tem um minutinho?`,
+        'Abordado': `Olá, ${l.nome||''}! Aqui é da Conexa Local. Tudo bem? Gostaríamos de entender melhor sobre o seu negócio e ver como podemos ajudar. Tem um minutinho?`,
         'Respondeu': `Olá, ${l.nome||''}! Obrigado por responder! Podemos agendar uma conversa rápida para entender melhor os seus objetivos?`,
         'Agendou': `Olá, ${l.nome||''}! Só confirmando nossa reunião. Qualquer dúvida, estou por aqui!`,
         'Em negociação': `Olá, ${l.nome||''}! Dando seguimento à nossa conversa — ficou com alguma dúvida sobre a proposta?`,
         'Qualificado': `Olá, ${l.nome||''}! Já preparamos uma proposta personalizada para você. Quando podemos apresentar?`,
-        'Perdido': `Olá, ${l.nome||''}! Ficamos felizes em ter conversado. Se surgir alguma necessidade futura, pode contar com a DigitalCreate!`,
-      }[s] || `Olá, ${l.nome||''}! Aqui é da DigitalCreate. Como posso ajudar?`);
+        'Perdido': `Olá, ${l.nome||''}! Ficamos felizes em ter conversado. Se surgir alguma necessidade futura, pode contar com a Conexa Local!`,
+      }[s] || `Olá, ${l.nome||''}! Aqui é da Conexa Local. Como posso ajudar?`);
       const wappLink = wapp ? `<a href="https://wa.me/55${wapp}?text=${_wappMsg(l.status)}" target="_blank" class="icon-btn" title="WhatsApp: ${l.whatsapp}" style="color:var(--green);text-decoration:none"><i class="bi bi-whatsapp"></i></a>` : '—';
       const isFechado = l.status === 'Fechado';
       const isQualif = l.status === 'Qualificado';
@@ -6503,7 +6503,7 @@ function exportBriefingPDF(idx) {
   </head><body>
   <div class="pdf-header">
     <h1>${titleName}</h1>
-    <p>${cfg.title} &nbsp;•&nbsp; Recebido em ${date} &nbsp;•&nbsp; DigitalCreate</p>
+    <p>${cfg.title} &nbsp;•&nbsp; Recebido em ${date} &nbsp;•&nbsp; Conexa Local</p>
   </div>
   ${sectionsHTML}
   ${(() => {
@@ -6511,7 +6511,7 @@ function exportBriefingPDF(idx) {
     if (!cqEntries.length) return '';
     return `<div class="pdf-section"><div class="pdf-section-title"><i class="bi bi-stars"></i> Perguntas Personalizadas</div>${cqEntries.map(([k,v]) => `<div class="pdf-field"><div class="pdf-label">${k.replace('cq_','').replace(/_/g,' ')}</div><div class="pdf-value">${String(v).replace(/\n/g,'<br>')}</div></div>`).join('')}</div>`;
   })()}
-  <div class="pdf-footer">DigitalCreate — ${cfg.title} • Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+  <div class="pdf-footer">Conexa Local — ${cfg.title} • Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
   <script>window.onload = () => { window.print(); }<\/script>
   </body></html>`);
   win.document.close();
@@ -10385,7 +10385,7 @@ function renderIAPage() {
         <div id="ia-msgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:16px;min-height:0">
           <div id="ia-welcome" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;padding:40px 20px;text-align:center">
             <div style="font-size:44px"><i class="bi bi-robot"></i></div>
-            <div style="font-size:15px;font-weight:600">Olá! Sou a IA da DigitalCreate.</div>
+            <div style="font-size:15px;font-weight:600">Olá! Sou a IA da Conexa Local.</div>
             <div style="font-size:13px;color:var(--text-muted);max-width:380px">Selecione um cliente para eu ter contexto completo sobre ele, ou converse em modo geral sobre marketing e estratégias.</div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px">
               ${['Crie uma legenda para Instagram','Analise o cliente selecionado','Sugira estratégia de conteúdo','Me ajude a escrever um e-mail'].map(s =>
@@ -10626,7 +10626,7 @@ function _iaClearChat(newConversation = false) {
 
 // ── System prompt ────────────────────────────────────────
 function _iaBuildSystemPrompt() {
-  const agencia = `Você é a IA assistente interna da agência DigitalCreate, uma agência de marketing digital brasileira.
+  const agencia = `Você é a IA assistente interna da agência Conexa Local, uma agência de marketing digital brasileira.
 Você ajuda a equipe com: criação de conteúdo, análise de clientes, estratégias de marketing, copywriting, gestão de redes sociais, tráfego pago e Google Meu Negócio.
 Responda sempre em português brasileiro. Seja objetivo, criativo e prático.`;
 
@@ -10835,7 +10835,7 @@ function _iaAnalisarCarteira() {
     return `• ${nome} | plano: ${classif} | etapa: ${etapa} | temp: ${temp} | última ativ: ${diasSem}d atrás | ${tarefas.length} tarefa(s) — ${resumoTarefas}`;
   }).join('\n');
 
-  const prompt = `Preciso de uma análise estratégica da carteira de clientes da agência DigitalCreate.
+  const prompt = `Preciso de uma análise estratégica da carteira de clientes da agência Conexa Local.
 
 CARTEIRA ATUAL — ${ativos.length} cliente(s) ativo(s):
 ${linhas || 'Nenhum cliente ativo cadastrado ainda.'}
@@ -10886,7 +10886,7 @@ function _iaSugerirAcao(clientId) {
     const contrato = finState.find(f => !f.archived && (f._clientId===clientId || f.client===(c.nome||c.fantasia||c.empresa)));
     const tarefasResumo = tarefas.slice(0,5).map(t => `${t.done?'✔':'○'} ${t.nome} (${t.status})`).join('\n');
 
-    const prompt = `Com base no perfil completo deste cliente, sugira a melhor próxima ação concreta para a equipe da DigitalCreate tomar AGORA:
+    const prompt = `Com base no perfil completo deste cliente, sugira a melhor próxima ação concreta para a equipe da Conexa Local tomar AGORA:
 
 **CLIENTE:** ${nome}
 **Status:** ${c.statusCli||'—'} | **Temperatura:** ${c.temp||'—'} | **Etapa:** ${c.etapaJornada||'onboarding'}
@@ -10956,7 +10956,7 @@ function _resumoMensal(clientId) {
 <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
   <div>
     <h1>${nome}</h1>
-    <div style="color:#6b7280;font-size:12px">Resumo mensal · ${mesNome} · DigitalCreate</div>
+    <div style="color:#6b7280;font-size:12px">Resumo mensal · ${mesNome} · Conexa Local</div>
   </div>
   <button onclick="window.print()" style="padding:8px 18px;background:#7c5cfc;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">↓ Imprimir / PDF</button>
 </div>
@@ -10987,7 +10987,7 @@ ${onboarding.length ? `<h2>Checklist de Onboarding</h2>${onboarding.map(item=>ch
 ${(c.objetivo||c.metas) ? `<h2>Objetivos & Metas</h2><div style="color:#374151;font-size:13px;white-space:pre-wrap">${c.objetivo||''}${c.metas?'\n\nMetas: '+c.metas:''}</div>` : ''}
 
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between">
-  <span>DigitalCreate Hub · Relatório interno</span>
+  <span>Conexa Local Hub · Relatório interno</span>
   <span>Gerado em ${now.toLocaleString('pt-BR')}</span>
 </div>
 </body></html>`;
@@ -11817,8 +11817,8 @@ function _ctaPickForm(id) {
 }
 
 function _ctaBuildSystemPrompt() {
-  return `Você é redator jurídico especializado em contratos de marketing digital para a agência DigitalCreate.
-CONTRATADA (fixo): DigitalCreate — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
+  return `Você é redator jurídico especializado em contratos de marketing digital para a agência Conexa Local.
+CONTRATADA (fixo): Conexa Local — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
 
 REGRAS DE FORMATAÇÃO — SEGUIR RIGOROSAMENTE:
 1. TEXTO PURO APENAS. Zero markdown. Zero símbolos de formatação.
@@ -12267,7 +12267,7 @@ const _CAL_MONTHS     = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','
 const _CAL_MONTHS_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 const _CAL_COLORS = [
-  // DigitalCreate brand
+  // Conexa Local brand
   '#a760fd','#8f71fd','#6daffd','#65e7f3','#7c22b4','#3a2d94',
   // Extended palette
   '#7c5cfc','#06b6d4','#10b981','#f59e0b','#a855f7','#ef4444',
@@ -13371,10 +13371,10 @@ function _mtrRenderData(d, sessions, events) {
         Cole este código no HTML do site do cliente, antes do <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">&lt;/body&gt;</code>:
       </div>
       <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;overflow-x:auto">
-        <pre style="margin:0;font-size:11px;color:var(--text-primary);line-height:1.7;white-space:pre">&lt;!-- DC Tracker — DigitalCreate Hub --&gt;
+        <pre style="margin:0;font-size:11px;color:var(--text-primary);line-height:1.7;white-space:pre">&lt;!-- DC Tracker — Conexa Local Hub --&gt;
 &lt;script&gt;
 window.TRACKER_CONFIG = {
-  projectId: 'crm-digitalcreate',
+  projectId: 'crm-conexalocal',
   apiKey:    'AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg',
   site:      'nome-do-cliente', <span style="color:var(--text-muted)">// ex: 'mottaview' ou 'escola-futebol'</span>
 };
@@ -14036,7 +14036,7 @@ function _lpExportarPDF() {
     ${tableRows}
   </table>
   <div style="margin-top:24px;padding-top:12px;border-top:1px solid #e5e7eb;text-align:right;font-size:10px;color:#9ca3af">
-    DigitalCreate — digitalcreate.com.br
+    Conexa Local — conexalocal.com.br
   </div>
   </body></html>`;
 
@@ -14440,7 +14440,7 @@ function _agAtualizarBadge() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-//  CALENDÁRIO DE CONTEÚDO — DigitalCreate Hub
+//  CALENDÁRIO DE CONTEÚDO — Conexa Local Hub
 // ════════════════════════════════════════════════════════════════════════════
 
 const _CT = {
@@ -16069,12 +16069,12 @@ function _ctExportarCalendario() {
   <!-- Cabeçalho -->
   <div class="header">
     <div class="header-brand">
-      <img src="${window.location.origin}/img/logo-dc.png" alt="DigitalCreate"
+      <img src="${window.location.origin}/img/logo-dc.png" alt="Conexa Local"
         style="height:48px;max-width:160px;object-fit:contain"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="header-logo" style="display:none">DC</div>
       <div>
-        <div class="header-name">DigitalCreate</div>
+        <div class="header-name">Conexa Local</div>
         <div class="header-tagline">Agência de Marketing Digital</div>
       </div>
     </div>
@@ -16119,7 +16119,7 @@ function _ctExportarCalendario() {
     <div class="footer-left">
       Documento gerado em ${new Date().toLocaleDateString('pt-BR', { day:'numeric', month:'long', year:'numeric' })} · DC Hub
     </div>
-    <div class="footer-brand">DigitalCreate — digitalcreate.com.br</div>
+    <div class="footer-brand">Conexa Local — conexalocal.com.br</div>
   </div>
 
 </div>
