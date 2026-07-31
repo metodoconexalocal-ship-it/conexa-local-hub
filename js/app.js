@@ -8334,22 +8334,36 @@ function _cfFieldCard(f, i) {
 
   const hasOptions = ['radio','checkbox','select'].includes(f.type);
   return `
-  <div id="cff-${f.id}" data-field-id="${f.id}"
-    ondragover="_cfDragOver(event)" ondragleave="_cfDragLeave(event)" ondrop="_cfDrop(event,'${f.id}')"
-    style="background:var(--bg-base);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:box-shadow .15s">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span draggable="true" ondragstart="_cfDragStart(event,'${f.id}')" ondragend="_cfDragEnd(event)"
-        title="Arraste para reordenar" style="cursor:grab;color:var(--text-muted);font-size:16px;user-select:none;padding:0 2px">⠿</span>
-      <span style="font-size:11px;font-weight:700;color:var(--accent);background:rgba(26,115,232,.1);padding:2px 8px;border-radius:20px">${typeLabels[f.type]||f.type}</span>
-      <div style="flex:1"></div>
-      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);cursor:pointer">
-        <input type="checkbox" ${f.required?'checked':''} onchange="_cfFieldProp('${f.id}','required',this.checked)" style="cursor:pointer">
-        Obrigatório
-      </label>
-      <button onclick="_cfMoveField('${f.id}',-1)" style="border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:2px 4px" title="Mover para cima"><i class="bi bi-arrow-up"></i></button>
-      <button onclick="_cfMoveField('${f.id}',1)" style="border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:2px 4px" title="Mover para baixo"><i class="bi bi-arrow-down"></i></button>
-      <button onclick="_cfRemoveField('${f.id}')" style="border:none;background:none;cursor:pointer;color:#ef4444;font-size:14px;padding:2px 4px" title="Remover"><i class="bi bi-x-lg"></i></button>
+  <div style="position:relative">
+    <!-- Botão + para inserir campo ANTES -->
+    <div style="text-align:center;margin:8px 0">
+      <button onclick="_cfInsertFieldBefore('${f.id}')" style="border:none;background:var(--accent);color:#fff;cursor:pointer;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;opacity:0.6;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">+ Inserir campo</button>
     </div>
+
+    <div id="cff-${f.id}" data-field-id="${f.id}"
+      ondragover="_cfDragOver(event)" ondragleave="_cfDragLeave(event)" ondrop="_cfDrop(event,'${f.id}')"
+      style="background:var(--bg-base);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:box-shadow .15s">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span draggable="true" ondragstart="_cfDragStart(event,'${f.id}')" ondragend="_cfDragEnd(event)"
+          title="Arraste para reordenar" style="cursor:grab;color:var(--text-muted);font-size:16px;user-select:none;padding:0 2px">⠿</span>
+
+        <!-- Selector para mudar tipo -->
+        <select onchange="_cfChangeFieldType('${f.id}',this.value)"
+          style="font-size:11px;font-weight:700;color:var(--accent);background:rgba(26,115,232,.1);padding:2px 8px;border-radius:20px;border:none;cursor:pointer;outline:none">
+          ${['text','textarea','email','phone','number','date','radio','checkbox','select','section'].map(t =>
+            `<option value="${t}" ${t===f.type?'selected':''}>${typeLabels[t]||t}</option>`
+          ).join('')}
+        </select>
+
+        <div style="flex:1"></div>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);cursor:pointer">
+          <input type="checkbox" ${f.required?'checked':''} onchange="_cfFieldProp('${f.id}','required',this.checked)" style="cursor:pointer">
+          Obrigatório
+        </label>
+        <button onclick="_cfMoveField('${f.id}',-1)" style="border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:2px 4px" title="Mover para cima"><i class="bi bi-arrow-up"></i></button>
+        <button onclick="_cfMoveField('${f.id}',1)" style="border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:2px 4px" title="Mover para baixo"><i class="bi bi-arrow-down"></i></button>
+        <button onclick="_cfRemoveField('${f.id}')" style="border:none;background:none;cursor:pointer;color:#ef4444;font-size:14px;padding:2px 4px" title="Remover"><i class="bi bi-x-lg"></i></button>
+      </div>
     <input placeholder="Pergunta / label do campo *" value="${f.label.replace(/"/g,'&quot;')}"
       onchange="_cfFieldProp('${f.id}','label',this.value)"
       style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;background:var(--bg-card);color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;margin-bottom:6px;box-sizing:border-box">
@@ -8400,6 +8414,48 @@ function _cfRemoveField(id) {
   _cfFields = _cfFields.filter(x => x.id !== id);
   _cfRenderFieldsList();
 }
+
+function _cfInsertFieldBefore(id) {
+  const idx = _cfFields.findIndex(x => x.id === id);
+  if (idx === -1) return;
+
+  // Cria novo campo tipo "text" por padrão
+  const newField = {
+    id: 'f' + Date.now(),
+    type: 'text',
+    label: '',
+    hint: '',
+    required: false,
+    options: []
+  };
+
+  _cfFields.splice(idx, 0, newField);
+  _cfRenderFieldsList();
+}
+
+function _cfChangeFieldType(id, newType) {
+  const field = _cfFields.find(x => x.id === id);
+  if (!field) return;
+
+  const oldType = field.type;
+  field.type = newType;
+
+  // Se mudar PARA um tipo com opções, cria opções padrão
+  const hasOptions = ['radio','checkbox','select'].includes(newType);
+  const hadOptions = ['radio','checkbox','select'].includes(oldType);
+
+  if (hasOptions && !hadOptions) {
+    field.options = ['Opção 1', 'Opção 2'];
+  }
+
+  // Se mudar DE um tipo com opções, remove as opções
+  if (!hasOptions && hadOptions) {
+    field.options = [];
+  }
+
+  _cfRenderFieldsList();
+}
+
 function _cfMoveField(id, dir) {
   const idx = _cfFields.findIndex(x => x.id === id);
   const newIdx = idx + dir;
