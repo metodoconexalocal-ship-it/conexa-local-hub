@@ -109,8 +109,9 @@ let formFields = [];
 
   // Procurar por qualquer formulário com "fields" (estrutura correta)
   // Priorizar por título que contenha "Briefing", "Google Meu Negócio" ou "GMN"
+  // Usar ghub_custom_forms que tem regras de leitura pública
   onSnapshot(
-    collection(db, 'customForms'),
+    collection(db, 'ghub_custom_forms'),
     (snap) => {
       foundForm = true;
       clearTimeout(timeout);
