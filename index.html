@@ -1188,9 +1188,16 @@
         <div class="form-row"><label>Segmento / Nicho</label><input id="c-segmento" type="text"></div>
         <div class="form-row form-full"><label>Categoria Google Business <span style="color:var(--text-muted);font-size:10px">(para identificar oportunidades)</span></label>
           <div style="position:relative">
-            <input id="c-categoria-google" type="text" placeholder="Digitar categoria (ex: Restaurante, Salão de beleza...)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px" oninput="filterGoogleCategories(this.value)" onblur="setTimeout(()=>document.getElementById('cat-dropdown').style.display='none',150)">
-            <div id="cat-dropdown" style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;display:none;z-index:1000"></div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:8px 12px;transition:all .2s" id="cat-input-wrapper">
+              <i class="bi bi-search" style="color:var(--text-muted);font-size:14px"></i>
+              <input id="c-categoria-google" type="text" placeholder="Ex: Restaurante, Salão de beleza, Clínica..." style="flex:1;border:none;background:transparent;color:var(--text);font-size:13px;outline:none" oninput="filterGoogleCategories(this.value)" onfocus="showCategoryDropdown()" onblur="setTimeout(()=>document.getElementById('cat-dropdown').style.display='none',150)">
+              <button type="button" onclick="showAllCategories()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;opacity:0.6;hover:opacity:1" title="Ver todas as categorias">
+                <i class="bi bi-list-ul" style="font-size:14px"></i>
+              </button>
+            </div>
+            <div id="cat-dropdown" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;max-height:240px;overflow-y:auto;display:none;z-index:1000;box-shadow:0 8px 16px rgba(0,0,0,.2)" onmousedown="event.preventDefault()"></div>
           </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px">💡 Dica: Comece a digitar para ver sugestões do Google</div>
         </div>
         <div class="form-row form-full"><label>Principais serviços / produtos</label><textarea id="c-servicos-emp" rows="2"></textarea></div>
         <div class="form-row"><label>Ticket médio</label><input id="c-ticket" type="text" placeholder="R$ 0,00"></div>

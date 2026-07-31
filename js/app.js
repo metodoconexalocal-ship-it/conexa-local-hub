@@ -2991,6 +2991,24 @@ window._google_categories_list = [
   'Botox Capilar', 'Queratina', 'Escova Progressiva', 'Cauterização', 'Tratamento de Pontas', 'Banho de Brilho'
 ];
 
+function showCategoryDropdown() {
+  const input = document.getElementById('c-categoria-google').value.trim().toLowerCase();
+  if (input === '') {
+    // Se vazio, mostra sugestões populares
+    const popular = window._google_categories_list.slice(0, 8);
+    const dropdown = document.getElementById('cat-dropdown');
+    dropdown.innerHTML = `
+      <div style="padding:12px;font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase">Categorias Populares</div>
+      ${popular.map(cat =>
+        `<div onclick="selectGoogleCategory('${_esc(cat)}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;transition:background .2s" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'">
+          ${cat}
+        </div>`
+      ).join('')}
+    `;
+    dropdown.style.display = 'block';
+  }
+}
+
 function filterGoogleCategories(value) {
   const input = value.trim().toLowerCase();
   const dropdown = document.getElementById('cat-dropdown');
@@ -3000,20 +3018,34 @@ function filterGoogleCategories(value) {
     return;
   }
 
-  const matches = window._google_categories_list.filter(cat =>
-    cat.toLowerCase().includes(input)
-  ).slice(0, 10);  // Limita a 10 sugestões
+  // Busca por começo da palavra (mais relevante)
+  const startsWith = window._google_categories_list.filter(cat =>
+    cat.toLowerCase().startsWith(input)
+  );
+
+  // Depois busca por inclusão (menos relevante)
+  const includes = window._google_categories_list.filter(cat =>
+    !startsWith.includes(cat) && cat.toLowerCase().includes(input)
+  );
+
+  const matches = [...startsWith, ...includes].slice(0, 12);  // Limita a 12 sugestões
 
   if (matches.length === 0) {
-    dropdown.style.display = 'none';
+    dropdown.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">
+      Nenhuma categoria encontrada para "<strong>${_esc(input)}</strong>"<br>
+      <button type="button" onclick="showAllCategories()" style="margin-top:8px;padding:6px 12px;background:var(--accent-soft);border:none;border-radius:4px;color:var(--primary);font-size:11px;cursor:pointer">Ver todas</button>
+    </div>`;
+    dropdown.style.display = 'block';
     return;
   }
 
-  dropdown.innerHTML = matches.map((cat, i) =>
-    `<div onclick="selectGoogleCategory('${_esc(cat)}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .2s" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'">
-      <span style="color:var(--accent);font-weight:500">${highlightMatch(cat, input)}</span>
-    </div>`
-  ).join('');
+  dropdown.innerHTML = matches.map((cat, i) => {
+    const isFirst = startsWith.includes(cat);
+    return `<div onclick="selectGoogleCategory('${_esc(cat)}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;transition:all .2s;display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'">
+      <span style="color:var(--accent);opacity:${isFirst ? '1' : '0.6'};font-size:12px">${isFirst ? '✓' : '→'}</span>
+      <span>${highlightMatch(cat, input)}</span>
+    </div>`;
+  }).join('');
 
   dropdown.style.display = 'block';
 }
@@ -3025,7 +3057,57 @@ function selectGoogleCategory(category) {
 
 function highlightMatch(text, query) {
   const regex = new RegExp(`(${query})`, 'gi');
-  return text.replace(regex, '<strong>$1</strong>');
+  return text.replace(regex, '<strong style="color:var(--primary);font-weight:700">$1</strong>');
+}
+
+function showAllCategories() {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px';
+
+  const cols = window.innerWidth > 768 ? 3 : 1;
+  const categories = window._google_categories_list;
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:700px;max-height:70vh;display:flex;flex-direction:column">
+      <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <h2 style="font-size:18px;font-weight:800">Todas as Categorias Google</h2>
+        <button onclick="this.closest('div').parentElement.remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted)">&times;</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px">
+        <input type="text" id="cat-search-modal" placeholder="🔍 Buscar categoria..." style="width:100%;padding:10px;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);font-size:13px" oninput="filterCategoryList(this.value)">
+        <div id="cat-list" style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px">
+          ${categories.map(cat => `
+            <div onclick="selectGoogleCategory('${_esc(cat)}');this.closest('[style*=fixed]').remove()" style="padding:10px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s;display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--accent-soft)';this.style.borderColor='var(--primary)'" onmouseout="this.style.background='var(--bg-input)';this.style.borderColor='var(--border)'">
+              <span>🏢</span>
+              <span>${cat}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-muted)">
+        Total: ${categories.length} categorias do Google Business
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Fechar ao clicar fora
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+function filterCategoryList(query) {
+  const input = query.toLowerCase();
+  const items = document.getElementById('cat-list');
+  if (!items) return;
+
+  const divs = items.querySelectorAll('div[onclick*="selectGoogleCategory"]');
+  divs.forEach(div => {
+    const text = div.textContent.toLowerCase();
+    div.style.display = text.includes(input) ? '' : 'none';
+  });
 }
 
 // ─── PLANO CUSTOMIZADO ────────────────────────────────────────────────────────
