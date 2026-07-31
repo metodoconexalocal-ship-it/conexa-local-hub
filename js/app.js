@@ -17672,4 +17672,5 @@ window.DCEmoji = (function () {
 
 // Force rebuild - timestamp: $(date)
 
-// Version marker for cache bust - $(date)
+
+// CACHE BUST: 20260731_100204 - Força reload completo do arquivo
