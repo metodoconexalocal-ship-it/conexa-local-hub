@@ -103,60 +103,46 @@ let formFields = [];
   let foundForm = false;
   const timeout = setTimeout(() => {
     if (!foundForm) {
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro ao carregar formulário (timeout conexão)</p></div>';
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Timeout ao conectar no Firestore</p></div>';
     }
   }, 10000);
 
-  // Tentar múltiplas queries para encontrar o formulário
-  const queries = [
-    query(collection(db, 'customForms'), where('title', '==', 'Briefing Conexa Local | Google Empresas')),
-    query(collection(db, 'customForms'), where('title', '==', 'Google Meu Negócio (editável)')),
-    query(collection(db, 'customForms'))
-  ];
-
-  let currentQuery = 0;
-
-  const tryNextQuery = () => {
-    if (currentQuery >= queries.length) {
+  // Procurar por qualquer formulário com "fields" (estrutura correta)
+  // Priorizar por título que contenha "Briefing", "Google Meu Negócio" ou "GMN"
+  onSnapshot(
+    collection(db, 'customForms'),
+    (snap) => {
+      foundForm = true;
       clearTimeout(timeout);
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Nenhum formulário encontrado</p></div>';
-      return;
-    }
 
-    onSnapshot(
-      queries[currentQuery],
-      (snap) => {
-        foundForm = true;
-        clearTimeout(timeout);
-
-        let form = null;
-        if (currentQuery < 2) {
-          // Se era uma query específica, usar o primeiro documento
-          if (snap.docs.length) form = snap.docs[0].data();
-        } else {
-          // Se era a query geral, procurar pelos títulos
-          form = snap.docs.find(doc => {
-            const title = doc.data().title || '';
-            return title.includes('Briefing Conexa Local') || title.includes('Google Meu Negócio');
-          })?.data();
-        }
-
-        if (form) {
-          formFields = form.fields || [];
-          renderForm();
-        } else {
-          currentQuery++;
-          tryNextQuery();
-        }
-      },
-      (error) => {
-        currentQuery++;
-        tryNextQuery();
+      if (snap.docs.length === 0) {
+        document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Nenhum formulário encontrado na base</p></div>';
+        return;
       }
-    );
-  };
 
-  tryNextQuery();
+      // Procurar por formulário que contenha "Briefing", "Google Meu Negócio" ou "GMN" no título
+      let form = snap.docs.find(doc => {
+        const title = doc.data().title || '';
+        return title.includes('Briefing') || title.includes('Google Meu Negócio') || title.includes('GMN');
+      })?.data();
+
+      // Se não encontrar, usar o último formulário criado (provavelmente o mais recente)
+      if (!form && snap.docs.length > 0) {
+        form = snap.docs[snap.docs.length - 1].data();
+      }
+
+      if (form && form.fields && form.fields.length > 0) {
+        formFields = form.fields;
+        renderForm();
+      } else {
+        document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário sem campos definidos</p></div>';
+      }
+    },
+    (error) => {
+      clearTimeout(timeout);
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro Firestore: ' + error.message + '</p></div>';
+    }
+  );
 })();
 
 function renderForm() {
