@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ficha Empresarial – Google Meu Negócio | DigitalCreate</title>
+<title>Briefing Google Empresas | Conexa Local</title>
 <style>
 :root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -119,91 +119,176 @@ window._saveBriefing = async (data) => {
 </script>
 
 <div class="header">
-  <span class="header-brand">DigitalCreate</span>
+  <span class="header-brand">Conexa Local</span>
   <div class="header-sep"></div>
-  <span class="header-title">Ficha Empresarial – Google Meu Negócio</span>
+  <span class="header-title">Briefing Google Empresas</span>
 </div>
 
 <div class="progress-wrap" id="progressWrap">
   <div class="progress-top">
     <span class="progress-label">Progresso do preenchimento</span>
-    <span class="progress-count" id="progressCount">Seção 1 de 7</span>
+    <span class="progress-count" id="progressCount">Seção 1 de 12</span>
   </div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:8%"></div></div>
 </div>
 
 <div class="steps-nav" id="stepsNav">
-  <div class="step-pill active" onclick="goTo(0)">Identificação</div>
+  <div class="step-pill active" onclick="goTo(0)">Dados</div>
   <div class="step-pill" onclick="goTo(1)">Negócio</div>
-  <div class="step-pill" onclick="goTo(2)">Digital &amp; Concorrência</div>
+  <div class="step-pill" onclick="goTo(2)">Presença</div>
   <div class="step-pill" onclick="goTo(3)">Localização</div>
   <div class="step-pill" onclick="goTo(4)">Funcionamento</div>
-  <div class="step-pill" onclick="goTo(5)">Acessibilidade</div>
-  <div class="step-pill" onclick="goTo(6)">Serviços e Extras</div>
+  <div class="step-pill" onclick="goTo(5)">Atributos</div>
+  <div class="step-pill" onclick="goTo(6)">Serviços</div>
+  <div class="step-pill" onclick="goTo(7)">Materiais</div>
+  <div class="step-pill" onclick="goTo(8)">Avaliações</div>
+  <div class="step-pill" onclick="goTo(9)">Objetivos</div>
+  <div class="step-pill" onclick="goTo(10)">Conteúdo</div>
+  <div class="step-pill" onclick="goTo(11)">Documentação</div>
 </div>
 
 <div class="main">
   <div class="intro-card" id="introCard">
-    <div class="intro-badge">Ficha Completa</div>
-    <h1>Ficha Empresarial <span>Google Meu Negócio</span></h1>
-    <p>Preencha com o máximo de detalhes. Quanto mais completo, melhor será o resultado da otimização do seu perfil!</p>
+    <div class="intro-badge">Briefing Oficial Conexa Local</div>
+    <h1>Briefing <span>Google Empresas</span></h1>
+    <p>Preencha este formulário com os máximos detalhes possíveis. Quanto mais completo, melhor será a otimização e gestão do seu Perfil da Empresa no Google!</p>
     <div class="intro-stats">
-      <div class="intro-stat"><strong>7</strong><span>Seções</span></div>
-      <div class="intro-stat"><strong>30</strong><span>Questões</span></div>
-      <div class="intro-stat"><strong>~10 min</strong><span>Estimado</span></div>
+      <div class="intro-stat"><strong>12</strong><span>Seções</span></div>
+      <div class="intro-stat"><strong>90+</strong><span>Questões</span></div>
+      <div class="intro-stat"><strong>~30 min</strong><span>Estimado</span></div>
     </div>
   </div>
 
   <form id="briefingForm" onsubmit="return false">
 
-  <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+  <!-- SEÇÃO 1: DADOS DA EMPRESA -->
   <div class="section-card active" id="section-0">
     <div class="section-header">
       <div class="section-icon">01</div>
-      <div class="section-info"><h2>Identificação</h2><p>Dados básicos da empresa para a ficha do Google.</p></div>
+      <div class="section-info"><h2>Dados da Empresa</h2><p>Informações básicas e legais da sua empresa.</p></div>
     </div>
-    <div class="field"><label>Nome da empresa <span class="req">*</span></label><input type="text" name="nome_empresa" placeholder="Ex: Clínica Aura Bem" required></div>
-    <div class="field"><label>Endereço completo <span class="req">*</span><span class="hint">Rua, número, bairro, cidade, estado, CEP</span></label><input type="text" name="endereco" placeholder="Ex: Rua das Flores, 123 – Centro – São Paulo/SP – 01000-000" required></div>
-    <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" name="email" placeholder="contato@suaempresa.com.br" required></div>
-    <div class="field"><label>Telefone fixo e WhatsApp para a ficha <span class="req">*</span></label><input type="tel" name="telefone" placeholder="(11) 99999-9999 / (11) 3333-3333" required></div>
-    <div class="field"><label>Data de abertura da empresa<span class="hint">Mês e ano de fundação</span></label><input type="text" name="data_abertura" placeholder="Ex: Janeiro de 2018"></div>
+
+    <div class="field"><label>Nome da empresa <span class="req">*</span><span class="hint">Digite exatamente como deseja que o nome apareça no Google.</span></label><input type="text" name="nome_empresa" required></div>
+    <div class="field"><label>Endereço completo <span class="req">*</span><span class="hint">Informe o endereço completo conforme cadastrado no CNPJ, quando aplicável.</span></label><input type="text" name="endereco" required></div>
+    <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" name="email" required></div>
+    <div class="field"><label>Telefone principal <span class="req">*</span></label><input type="tel" name="telefone_principal" required></div>
+    <div class="field"><label>WhatsApp <span class="req">*</span></label><input type="tel" name="whatsapp" required></div>
+    <div class="field"><label>Data de abertura da empresa</label><input type="text" name="data_abertura" placeholder="Ex: Janeiro de 2018"></div>
+    <div class="field"><label>CNPJ <span class="hint">(Opcional)</span></label><input type="text" name="cnpj"></div>
+
     <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
-  <!-- SEÇÃO 2: NEGÓCIO -->
+  <!-- SEÇÃO 2: SOBRE O NEGÓCIO -->
   <div class="section-card" id="section-1">
     <div class="section-header">
       <div class="section-icon">02</div>
-      <div class="section-info"><h2>Sobre o Negócio</h2><p>Informações para posicionar sua empresa corretamente no Google.</p></div>
+      <div class="section-info"><h2>Sobre o Negócio</h2><p>Categorias, especialidades e posicionamento no Google.</p></div>
     </div>
-    <div class="field"><label>Quais categorias seu negócio se encaixa? <span class="req">*</span><span class="hint">Ex: Clínica de estética, Consultório odontológico, Loja de roupas</span></label><textarea name="categorias" placeholder="Liste as categorias que melhor descrevem seu negócio..." required></textarea></div>
-    <div class="field"><label>Qual palavra um cliente usaria para te achar no Google? <span class="req">*</span></label><input type="text" name="palavra_chave" placeholder="Ex: dentista em São Paulo, clínica estética zona sul" required></div>
-    <div class="field"><label>Quais são suas especialidades? <span class="req">*</span><span class="hint">Descreva com o máximo de detalhes possíveis</span></label><textarea name="especialidades" class="tall" placeholder="Ex: Harmonização facial, botox, preenchimento labial, limpeza de pele..." required></textarea></div>
-    <div class="field"><label>Se você fosse seu cliente, como pesquisaria pelo seu produto/serviço no Google? <span class="req">*</span></label><textarea name="busca_cliente" placeholder="Ex: 'melhor dentista perto de mim', 'clínica de estética com preço justo'..." required></textarea></div>
-    <div class="field"><label>Como esse produto/serviço pode ajudar na vida do seu cliente? <span class="req">*</span></label><textarea name="ajuda_cliente" placeholder="Ex: Recupera a autoestima, resolve dor de dente sem sofrimento..." required></textarea></div>
+
+    <div class="field"><label>Categoria principal do negócio <span class="req">*</span></label><input type="text" name="categoria_principal" required></div>
+    <div class="field"><label>Categorias secundárias</label><input type="text" name="categorias_secundarias"></div>
+    <div class="field"><label>Palavra-chave principal <span class="req">*</span><span class="hint">Qual serviço as pessoas pesquisam para encontrar sua empresa?</span></label><input type="text" name="palavra_chave_principal" required></div>
+    <div class="field"><label>Especialidades da empresa <span class="req">*</span></label><textarea name="especialidades" required></textarea></div>
+    <div class="field"><label>Como um cliente pesquisaria sua empresa no Google? <span class="req">*</span><span class="hint">Exemplos de pesquisas que um cliente faria.</span></label><textarea name="busca_cliente" required></textarea></div>
+    <div class="field"><label>Como sua empresa ajuda o cliente? <span class="req">*</span></label><textarea name="ajuda_cliente" required></textarea></div>
+    <div class="field"><label>Conte a história da empresa <span class="req">*</span></label><textarea name="historia_empresa" required></textarea></div>
+    <div class="field"><label>Quais são os principais diferenciais da empresa? <span class="req">*</span></label><textarea name="diferenciais" required></textarea></div>
+    <div class="field"><label>Quem é o público-alvo? <span class="req">*</span></label><textarea name="publico_alvo" required></textarea></div>
+    <div class="field"><label>Qual serviço é o mais lucrativo da empresa? <span class="req">*</span></label><textarea name="servico_lucrativo" required></textarea></div>
+
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
-  <!-- SEÇÃO 3: DIGITAL E CONCORRÊNCIA -->
+  <!-- SEÇÃO 3: PRESENÇA DIGITAL -->
   <div class="section-card" id="section-2">
     <div class="section-header">
       <div class="section-icon">03</div>
-      <div class="section-info"><h2>Presença Digital e Concorrência</h2><p>Suas redes e quem mais disputa seu espaço no Google.</p></div>
+      <div class="section-info"><h2>Presença Digital</h2><p>Seus canais online e infraestrutura digital.</p></div>
     </div>
-    <div class="field"><label>@ do Instagram, Facebook, site ou link da ficha atual? <span class="req">*</span></label><textarea name="redes_sociais" placeholder="Instagram: @suaempresa&#10;Facebook: facebook.com/suaempresa&#10;Site: www.suaempresa.com.br" required></textarea></div>
-    <div class="field"><label>Você possui site? Se sim, qual o link?</label><input type="text" name="possui_site" placeholder="www.suaempresa.com.br (ou 'Não possuo')"></div>
-    <div class="field"><label>Quais são seus maiores concorrentes? <span class="req">*</span></label><textarea name="concorrentes" placeholder="Ex: Clínica X, Studio Y, Academia Z..." required></textarea></div>
+
+    <div class="field"><label>Site</label><input type="text" name="site"></div>
+    <div class="field"><label>Perfil atual do Google</label><input type="text" name="google_profile"></div>
+    <div class="field"><label>Instagram</label><input type="text" name="instagram"></div>
+    <div class="field"><label>Facebook</label><input type="text" name="facebook"></div>
+    <div class="field"><label>LinkedIn</label><input type="text" name="linkedin"></div>
+    <div class="field"><label>Outras redes sociais</label><input type="text" name="outras_redes"></div>
+
+    <div class="field"><label>Possui site? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_site" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_site" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Possui WhatsApp Business? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="whatsapp_business" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="whatsapp_business" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Link do WhatsApp</label><input type="text" name="link_whatsapp"></div>
+
+    <div class="field"><label>Possui catálogo virtual? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="catalogo_virtual" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="catalogo_virtual" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Possui identidade visual? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="identidade_visual" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="identidade_visual" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Possui fotos profissionais? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="fotos_profissionais" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="fotos_profissionais" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Possui vídeos profissionais? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="videos_profissionais" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="videos_profissionais" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Principais concorrentes</label><textarea name="concorrentes"></textarea></div>
+
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
-  <!-- SEÇÃO 4: LOCALIZAÇÃO -->
+  <!-- SEÇÃO 4: LOCALIZAÇÃO E ÁREA DE ATENDIMENTO -->
   <div class="section-card" id="section-3">
     <div class="section-header">
       <div class="section-icon">04</div>
-      <div class="section-info"><h2>Localização e Cobertura</h2><p>Onde você está e onde quer aparecer.</p></div>
+      <div class="section-info"><h2>Localização e Área de Atendimento</h2><p>Onde você está e onde você atende.</p></div>
     </div>
-    <div class="field"><label>Qual a localização exata da sua empresa?<span class="hint">Bairro, cidade, referências próximas</span></label><input type="text" name="localizacao" placeholder="Ex: Próximo ao Shopping X, Bairro Centro, São Paulo/SP"></div>
-    <div class="field"><label>Quais áreas de cobertura/regiões você quer aparecer ou prestar serviços? <span class="req">*</span></label><textarea name="areas_cobertura" placeholder="Ex: Zona Sul de SP, cidades de Santos e Guarujá, toda a Grande São Paulo..." required></textarea></div>
+
+    <div class="field"><label>Localização exata <span class="req">*</span></label><input type="text" name="localizacao_exata" required></div>
+    <div class="field"><label>Áreas de cobertura <span class="req">*</span></label><textarea name="areas_cobertura" required></textarea></div>
+
+    <div class="field"><label>O cliente vai até sua empresa? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="cliente_vem" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="cliente_vem" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>A empresa atende no endereço do cliente? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="atende_cliente" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="atende_cliente" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Existe cobrança de deslocamento?</label><input type="text" name="cobranca_deslocamento"></div>
+
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
@@ -211,73 +296,279 @@ window._saveBriefing = async (data) => {
   <div class="section-card" id="section-4">
     <div class="section-header">
       <div class="section-icon">05</div>
-      <div class="section-info"><h2>Horário de Funcionamento</h2><p>Informe todos os horários para manter a ficha atualizada.</p></div>
+      <div class="section-info"><h2>Funcionamento</h2><p>Horários, agendamento e atendimento.</p></div>
     </div>
-    <div class="field"><label>Horário de funcionamento <span class="req">*</span><span class="hint">Se há horário de almoço fechado, inclua. Ex: Seg a Sex: 8h–12h / 14h–18h | Sáb: 8h–12h</span></label><textarea name="horario" placeholder="Segunda a Sexta: 8h às 18h&#10;Sábado: 8h às 12h&#10;Domingo: Fechado" required></textarea></div>
-    <div class="field"><label>Horários especiais – Atende em feriados?<span class="hint">Se sim, informe qual o horário</span></label><textarea name="horario_especial" placeholder="Ex: Feriados nacionais: Fechado. Carnaval: Fechado. Natal: 8h–12h..."></textarea></div>
-    <div class="field"><label>Oferece agendamento on-line? <span class="req">*</span></label>
+
+    <div class="field"><label>Horário de funcionamento <span class="req">*</span></label><input type="text" name="horario_funcionamento" required></div>
+    <div class="field"><label>Horários especiais e feriados</label><input type="text" name="horarios_especiais"></div>
+
+    <div class="field"><label>Atendimento somente com agendamento? <span class="req">*</span></label>
       <div class="options-group">
-        <label class="option-chip"><input type="radio" name="agendamento_online" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="agendamento_obrigatorio" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="agendamento_obrigatorio" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Possui agendamento online? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="agendamento_online" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
         <label class="option-chip"><input type="radio" name="agendamento_online" value="Não" onchange="selectChip(this)"><span>Não</span></label>
       </div>
     </div>
-    <div class="field"><label>Quais idiomas de atendimento estão disponíveis?</label><input type="text" name="idiomas" placeholder="Ex: Português, Inglês, Espanhol"></div>
-    <div class="field"><label>Se identifica como empresa de empreendedoras?</label>
+
+    <div class="field"><label>Link de agendamento</label><input type="text" name="link_agendamento"></div>
+    <div class="field"><label>Idiomas de atendimento</label><input type="text" name="idiomas_atendimento"></div>
+
+    <div class="field"><label>Atendimento aos finais de semana? <span class="req">*</span></label>
       <div class="options-group">
-        <label class="option-chip"><input type="radio" name="empreendedoras" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="empreendedoras" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="fim_de_semana" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="fim_de_semana" value="Não" onchange="selectChip(this)"><span>Não</span></label>
       </div>
     </div>
+
+    <div class="field"><label>Atendimento emergencial? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="atendimento_emergencial" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="atendimento_emergencial" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
-  <!-- SEÇÃO 6: ACESSIBILIDADE -->
+  <!-- SEÇÃO 6: ATRIBUTOS DA EMPRESA -->
   <div class="section-card" id="section-5">
     <div class="section-header">
       <div class="section-icon">06</div>
-      <div class="section-info"><h2>Acessibilidade e Estacionamento</h2><p>Recursos disponíveis para clientes com necessidades especiais.</p></div>
+      <div class="section-info"><h2>Atributos da Empresa</h2><p>Recursos e facilidades disponíveis.</p></div>
     </div>
-    <div class="field"><label>Aro de indução magnética? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="aro_inducao" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="aro_inducao" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
-    <div class="field"><label>Entrada com acessibilidade? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="entrada_acessivel" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="entrada_acessivel" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
-    <div class="field"><label>Dispositivos para auxílio a deficientes auditivos? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="dispositivos_auditivos" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="dispositivos_auditivos" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
-    <div class="field"><label>Assento acessível para cadeira de rodas? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="assento_cadeirante" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="assento_cadeirante" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
-    <div class="field"><label>Banheiro acessível a pessoas em cadeira de rodas? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="banheiro_cadeirante" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="banheiro_cadeirante" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
-    <div class="field"><label>Sobre o estacionamento: <span class="req">*</span></label>
+
+    <div class="field"><label>Quais atributos sua empresa possui? <span class="req">*</span></label>
       <div class="options-group">
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Coberto gratuito" onchange="toggleCheckChip(this)"><span>Coberto gratuito</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Coberto pago" onchange="toggleCheckChip(this)"><span>Coberto pago</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Descoberto gratuito" onchange="toggleCheckChip(this)"><span>Descoberto gratuito</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Descoberto pago" onchange="toggleCheckChip(this)"><span>Descoberto pago</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Gratuito na rua" onchange="toggleCheckChip(this)"><span>Gratuito na rua</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="No local" onchange="toggleCheckChip(this)"><span>No local</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Pago na rua" onchange="toggleCheckChip(this)"><span>Pago na rua</span></label>
-        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Sem estacionamento" onchange="toggleCheckChip(this)"><span>Sem estacionamento</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Wi-Fi" onchange="toggleCheckChip(this)"><span>Wi-Fi</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro" onchange="toggleCheckChip(this)"><span>Banheiro</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro unissex" onchange="toggleCheckChip(this)"><span>Banheiro unissex</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Ar-condicionado" onchange="toggleCheckChip(this)"><span>Ar-condicionado</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Ambiente climatizado" onchange="toggleCheckChip(this)"><span>Ambiente climatizado</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Pet Friendly" onchange="toggleCheckChip(this)"><span>Pet Friendly</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em português" onchange="toggleCheckChip(this)"><span>Atendimento em português</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em inglês" onchange="toggleCheckChip(this)"><span>Atendimento em inglês</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em espanhol" onchange="toggleCheckChip(this)"><span>Atendimento em espanhol</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita Pix" onchange="toggleCheckChip(this)"><span>Aceita Pix</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita cartão" onchange="toggleCheckChip(this)"><span>Aceita cartão</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita dinheiro" onchange="toggleCheckChip(this)"><span>Aceita dinheiro</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Pagamento por aproximação (NFC)" onchange="toggleCheckChip(this)"><span>Pagamento por aproximação (NFC)</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Entrada acessível" onchange="toggleCheckChip(this)"><span>Entrada acessível</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro acessível" onchange="toggleCheckChip(this)"><span>Banheiro acessível</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Assento para cadeirantes" onchange="toggleCheckChip(this)"><span>Assento para cadeirantes</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento" onchange="toggleCheckChip(this)"><span>Estacionamento</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento gratuito" onchange="toggleCheckChip(this)"><span>Estacionamento gratuito</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento coberto" onchange="toggleCheckChip(this)"><span>Estacionamento coberto</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento presencial" onchange="toggleCheckChip(this)"><span>Atendimento presencial</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento online" onchange="toggleCheckChip(this)"><span>Atendimento online</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Retirada no local" onchange="toggleCheckChip(this)"><span>Retirada no local</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Delivery" onchange="toggleCheckChip(this)"><span>Delivery</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Drive-thru" onchange="toggleCheckChip(this)"><span>Drive-thru</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Empresa liderada por mulheres" onchange="toggleCheckChip(this)"><span>Empresa liderada por mulheres</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Espaço para crianças" onchange="toggleCheckChip(this)"><span>Espaço para crianças</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Outro" onchange="toggleCheckChip(this)"><span>Outro</span></label>
       </div>
     </div>
+
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
 
-  <!-- SEÇÃO 7: SERVIÇOS E EXTRAS -->
+  <!-- SEÇÃO 7: SERVIÇOS -->
   <div class="section-card" id="section-6">
     <div class="section-header">
       <div class="section-icon">07</div>
-      <div class="section-info"><h2>Serviços e Demanda</h2><p>O que você oferece e o que quer destacar na ficha.</p></div>
+      <div class="section-info"><h2>Serviços</h2><p>Focar na demanda e oportunidades.</p></div>
     </div>
-    <div class="field"><label>Quais serviços você quer aumentar a demanda?</label><textarea name="servicos_aumentar" placeholder="Ex: Harmonização facial, limpeza de pele profunda..."></textarea></div>
-    <div class="field"><label>Quais serviços você não quer aumentar tanto a demanda? <span class="req">*</span></label><textarea name="servicos_nao_aumentar" placeholder="Ex: Serviços muito demorados, de baixa margem..." required></textarea></div>
-    <div class="field"><label>Por quais serviços seus clientes mais te procuram? <span class="req">*</span></label><textarea name="mais_procurado" placeholder="Ex: Botox, consultas de avaliação, pacotes mensais..." required></textarea></div>
-    <div class="field"><label>Quais produtos ou serviços você gostaria de mostrar ao público na ficha? <span class="req">*</span><span class="hint">Liste os principais para aparecerem no perfil do Google</span></label><textarea name="produtos_mostrar" class="tall" placeholder="Ex: Harmonização facial – R$800 / Limpeza de pele – R$200 / Botox – consultar..." required></textarea></div>
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Ficha Completa ✓</button></div>
+
+    <div class="field"><label>Quais serviços você deseja aumentar a demanda? <span class="req">*</span></label><textarea name="servicos_aumentar_demanda" required></textarea></div>
+    <div class="field"><label>Quais serviços NÃO deseja aumentar? <span class="req">*</span></label><textarea name="servicos_nao_aumentar_demanda" required></textarea></div>
+    <div class="field"><label>Quais são os serviços mais procurados? <span class="req">*</span></label><textarea name="servicos_mais_procurados" required></textarea></div>
+    <div class="field"><label>Quais produtos ou serviços deseja destacar no Google? <span class="req">*</span></label><textarea name="produtos_destacar" required></textarea></div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 8: FOTOS E MATERIAIS -->
+  <div class="section-card" id="section-7">
+    <div class="section-header">
+      <div class="section-icon">08</div>
+      <div class="section-info"><h2>Fotos e Materiais</h2><p>Conteúdo visual disponível.</p></div>
+    </div>
+
+    <div class="field"><label>Quais materiais você possui? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Logo" onchange="toggleCheckChip(this)"><span>Logo</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto da fachada" onchange="toggleCheckChip(this)"><span>Foto da fachada</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto interna" onchange="toggleCheckChip(this)"><span>Foto interna</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto da equipe" onchange="toggleCheckChip(this)"><span>Foto da equipe</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto dos produtos" onchange="toggleCheckChip(this)"><span>Foto dos produtos</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto dos serviços" onchange="toggleCheckChip(this)"><span>Foto dos serviços</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Antes e depois" onchange="toggleCheckChip(this)"><span>Antes e depois</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Vídeos" onchange="toggleCheckChip(this)"><span>Vídeos</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Identidade visual" onchange="toggleCheckChip(this)"><span>Identidade visual</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Cardápio" onchange="toggleCheckChip(this)"><span>Cardápio</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Catálogo" onchange="toggleCheckChip(this)"><span>Catálogo</span></label>
+        <label class="option-chip"><input type="checkbox" name="materiais" value="Outro" onchange="toggleCheckChip(this)"><span>Outro</span></label>
+      </div>
+    </div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 9: AVALIAÇÕES -->
+  <div class="section-card" id="section-8">
+    <div class="section-header">
+      <div class="section-icon">09</div>
+      <div class="section-info"><h2>Avaliações</h2><p>Reputação e feedback dos clientes.</p></div>
+    </div>
+
+    <div class="field"><label>Atualmente possui avaliações no Google? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_avaliacoes" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_avaliacoes" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Aproximadamente quantas avaliações?</label><input type="text" name="quantidade_avaliacoes"></div>
+
+    <div class="field"><label>Costuma solicitar avaliações aos clientes? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="solicita_avaliacoes" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="solicita_avaliacoes" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Responde às avaliações? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Sempre" onchange="selectChip(this)" required><span>Sempre</span></label>
+        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Às vezes" onchange="selectChip(this)"><span>Às vezes</span></label>
+        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Nunca" onchange="selectChip(this)"><span>Nunca</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Existe algum cliente que possa avaliar sua empresa imediatamente?</label><textarea name="cliente_avaliar"></textarea></div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 10: OBJETIVOS -->
+  <div class="section-card" id="section-9">
+    <div class="section-header">
+      <div class="section-icon">10</div>
+      <div class="section-info"><h2>Objetivos</h2><p>Metas e resultados esperados.</p></div>
+    </div>
+
+    <div class="field"><label>Principal objetivo com o Perfil da Empresa no Google <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Aumentar visibilidade" onchange="selectChip(this)" required><span>Aumentar visibilidade</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Gerar mais leads" onchange="selectChip(this)"><span>Gerar mais leads</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Aumentar vendas" onchange="selectChip(this)"><span>Aumentar vendas</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Reputação online" onchange="selectChip(this)"><span>Reputação online</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Meta de leads/vendas nos próximos 3 meses</label><input type="text" name="meta_3meses"></div>
+    <div class="field"><label>Qual seria um número de avaliações considerado sucesso?</label><input type="text" name="meta_avaliacoes"></div>
+    <div class="field"><label>Quer aparecer em pesquisas relacionadas à sua cidade?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="pesquisas_cidade" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="pesquisas_cidade" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 11: CONTEÚDO E DIFERENCIAIS -->
+  <div class="section-card" id="section-10">
+    <div class="section-header">
+      <div class="section-icon">11</div>
+      <div class="section-info"><h2>Conteúdo e Diferenciais</h2><p>Estratégia de conteúdo e posicionamento único.</p></div>
+    </div>
+
+    <div class="field"><label>Qual a principal vantagem competitiva? <span class="req">*</span></label><textarea name="vantagem_competitiva" required></textarea></div>
+    <div class="field"><label>Qual é o diferencial que te torna único no mercado? <span class="req">*</span></label><textarea name="diferencial_unico" required></textarea></div>
+    <div class="field"><label>Qual tipo de conteúdo você produz? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Posts nas redes sociais" onchange="toggleCheckChip(this)"><span>Posts nas redes sociais</span></label>
+        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Vídeos" onchange="toggleCheckChip(this)"><span>Vídeos</span></label>
+        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Blog/Artigos" onchange="toggleCheckChip(this)"><span>Blog/Artigos</span></label>
+        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Stories/Reels" onchange="toggleCheckChip(this)"><span>Stories/Reels</span></label>
+        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Nenhum" onchange="toggleCheckChip(this)"><span>Nenhum</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Com qual frequência você publica conteúdo?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Diariamente" onchange="selectChip(this)"><span>Diariamente</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="3-4 vezes na semana" onchange="selectChip(this)"><span>3-4 vezes na semana</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="1-2 vezes na semana" onchange="selectChip(this)"><span>1-2 vezes na semana</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Raramente" onchange="selectChip(this)"><span>Raramente</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Está disposto a investir em conteúdo profissional? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Talvez" onchange="selectChip(this)"><span>Talvez</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Orçamento aproximado para conteúdo/fotos profissionais</label><input type="text" name="orcamento_conteudo"></div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 12: DOCUMENTAÇÃO -->
+  <div class="section-card" id="section-11">
+    <div class="section-header">
+      <div class="section-icon">12</div>
+      <div class="section-info"><h2>Documentação</h2><p>Informações adicionais e observações importantes.</p></div>
+    </div>
+
+    <div class="field"><label>Possui certificados ou reconhecimentos? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_certificados" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_certificados" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Descreva os certificados/reconhecimentos</label><textarea name="certificados_descricao"></textarea></div>
+
+    <div class="field"><label>Participou de campanhas no Google Ads antes? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_google_ads" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_google_ads" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+
+    <div class="field"><label>Qual foi o resultado do Google Ads?</label><textarea name="resultado_google_ads"></textarea></div>
+
+    <div class="field"><label>Orçamento mensal disponível para marketing online</label><input type="text" name="orcamento_mensal_marketing"></div>
+
+    <div class="field"><label>Alguma informação importante que a gente não perguntou? <span class="req">*</span></label><textarea name="informacoes_adicionais" required></textarea></div>
+
+    <div class="field"><label>Qual é a melhor forma de entrar em contato?</label><input type="text" name="melhor_contato"></div>
+
+    <div class="field"><label>Alguém específico para acompanhar este projeto? <span class="req">*</span></label><textarea name="responsavel_projeto" required></textarea></div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Briefing Completo ✓</button></div>
   </div>
 
   </form>
 
   <div class="success-card" id="successCard">
     <div class="success-icon">✓</div>
-    <h2>Ficha enviada com sucesso!</h2>
-    <p>Recebemos todas as informações. A equipe DigitalCreate vai otimizar seu perfil no Google Meu Negócio e entrar em contato em breve!</p>
+    <h2>Briefing enviado com sucesso!</h2>
+    <p>Recebemos todas as informações. A equipe Conexa Local vai otimizar seu Perfil da Empresa no Google e entrar em contato em breve!</p>
     <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
-      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas:</strong></p>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia de suas respostas:</strong></p>
       <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
     </div>
   </div>
@@ -285,7 +576,7 @@ window._saveBriefing = async (data) => {
 
 <script>
 let current = 0;
-const total = 7;
+const total = 12;
 
 function updateUI() {
   const pct = Math.round(((current + 1) / total) * 100);
@@ -306,7 +597,8 @@ function goTo(idx) {
   updateUI();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-const _secTitles = ['Identificação','Sobre o Negócio','Presença Digital e Concorrência','Localização e Cobertura','Horário de Funcionamento','Acessibilidade e Estacionamento','Serviços e Demanda'];
+
+const _secTitles = ['Dados da Empresa','Sobre o Negócio','Presença Digital','Localização e Área de Atendimento','Funcionamento','Atributos da Empresa','Serviços','Fotos e Materiais','Avaliações','Objetivos','Conteúdo e Diferenciais','Documentação'];
 
 function _clearErrors() {
   document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
@@ -390,24 +682,8 @@ async function submitForm() {
   const btn = form.querySelector('.btn-submit');
   btn.textContent = 'Enviando...'; btn.disabled = true;
   const fd = new FormData(form);
-  const data = {
-    nome_empresa: fd.get('nome_empresa')||'', endereco: fd.get('endereco')||'',
-    email: fd.get('email')||'', telefone: fd.get('telefone')||'',
-    data_abertura: fd.get('data_abertura')||'', categorias: fd.get('categorias')||'',
-    palavra_chave: fd.get('palavra_chave')||'', especialidades: fd.get('especialidades')||'',
-    busca_cliente: fd.get('busca_cliente')||'', ajuda_cliente: fd.get('ajuda_cliente')||'',
-    redes_sociais: fd.get('redes_sociais')||'', possui_site: fd.get('possui_site')||'',
-    concorrentes: fd.get('concorrentes')||'', localizacao: fd.get('localizacao')||'',
-    areas_cobertura: fd.get('areas_cobertura')||'', horario: fd.get('horario')||'',
-    horario_especial: fd.get('horario_especial')||'', agendamento_online: fd.get('agendamento_online')||'',
-    idiomas: fd.get('idiomas')||'', empreendedoras: fd.get('empreendedoras')||'',
-    aro_inducao: fd.get('aro_inducao')||'', entrada_acessivel: fd.get('entrada_acessivel')||'',
-    dispositivos_auditivos: fd.get('dispositivos_auditivos')||'', assento_cadeirante: fd.get('assento_cadeirante')||'',
-    banheiro_cadeirante: fd.get('banheiro_cadeirante')||'',
-    estacionamento: [...fd.getAll('estacionamento')].join(', '),
-    servicos_aumentar: fd.get('servicos_aumentar')||'', servicos_nao_aumentar: fd.get('servicos_nao_aumentar')||'',
-    mais_procurado: fd.get('mais_procurado')||'', produtos_mostrar: fd.get('produtos_mostrar')||'',
-  };
+  const data = {};
+  fd.forEach((v, k) => { data[k] = data[k] ? data[k] + ', ' + v : v; });
   const cqSeen = {};
   document.querySelectorAll('[name^="cq_"]').forEach(inp => {
     if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
@@ -421,12 +697,14 @@ async function submitForm() {
     document.getElementById('successCard').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch(e) {
-    btn.textContent = 'Enviar Ficha Completa ✓'; btn.disabled = false;
-    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a DigitalCreate.' : (e?.message || String(e));
+    btn.textContent = 'Enviar Briefing Completo ✓'; btn.disabled = false;
+    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a Conexa Local.' : (e?.message || String(e));
     alert('Erro ao enviar:\n' + msg);
   }
 }
+
 updateUI();
+
 function downloadFormPDF() {
   const win = window.open('', '_blank', 'width=800,height=700');
   if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
@@ -445,7 +723,7 @@ function downloadFormPDF() {
   }
   const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha – Google Meu Negócio</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Ficha – Google Meu Negócio</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Briefing – Google Empresas</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Briefing – Google Empresas (Conexa Local)</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">Conexa Local • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
   win.document.close();
   setTimeout(() => { win.focus(); win.print(); }, 400);
 }
