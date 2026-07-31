@@ -3006,7 +3006,7 @@ function filterGoogleCategories(value) {
   }
 
   dropdown.innerHTML = matches.map((cat, i) =>
-    `<div onclick="selectGoogleCategory('${escapeHtml(cat)}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .2s" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'">
+    `<div onclick="selectGoogleCategory('${_esc(cat)}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .2s" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'">
       <span style="color:var(--accent);font-weight:500">${highlightMatch(cat, input)}</span>
     </div>`
   ).join('');
