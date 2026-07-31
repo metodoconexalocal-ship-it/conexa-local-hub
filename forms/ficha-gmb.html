@@ -304,10 +304,14 @@ function renderForm() {
     <div class="steps-nav" id="steps-nav"></div>
   `;
 
+  const emojis = ['🏢', '📊', '💻', '📍', '⏰', '⭐', '🛠️', '📸', '⭐', '🎯'];
+
   sections.forEach((sec, i) => {
+    const emoji = emojis[i] || '📝';
+    const secNum = String(i + 1).padStart(2, '0');
     html += `<div class="section-card" data-section="${i}">
       <div class="section-header">
-        <div class="section-icon">📝</div>
+        <div class="section-icon" style="position:relative;font-size:24px">${emoji}<span style="position:absolute;bottom:-2px;right:-2px;font-size:14px;font-weight:900;background:#06b6d4;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1">${secNum}</span></div>
         <div class="section-info">
           <h2>${sec.label}</h2>
           <p>${sec.fields.length} campos</p>
