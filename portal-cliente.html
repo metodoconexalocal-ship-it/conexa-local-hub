@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Cliente — GMN Hub</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #a760fd;
+      --accent: #a760fd;
+      --bg: #0f0f0f;
+      --bg-card: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #ffffff;
+      --text-muted: #999999;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .login-container {
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    }
+
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+
+    .login-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .login-logo {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .login-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-size: 14px;
+      transition: all .2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(167,96,253,.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #9649d4;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(167,96,253,.3);
+    }
+
+    .error-msg {
+      background: rgba(239,68,68,.1);
+      color: var(--red);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-msg {
+      background: rgba(16,185,129,.1);
+      color: var(--green);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(167,96,253,.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Portal style */
+    .portal-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .portal-header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .portal-header-title h1 {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .portal-header-client {
+      text-align: right;
+    }
+
+    .portal-header-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .portal-header-company {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .portal-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 16px rgba(167,96,253,.15);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .card-status {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-top: 12px;
+      text-transform: uppercase;
+    }
+
+    .status-pendente {
+      background: rgba(245,158,11,.1);
+      color: var(--yellow);
+    }
+
+    .status-concluido {
+      background: rgba(16,185,129,.1);
+      color: var(--green);
+    }
+
+    .status-em-progresso {
+      background: rgba(167,96,253,.1);
+      color: var(--primary);
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .timeline-item:last-child {
+      border-bottom: none;
+    }
+
+    .timeline-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .timeline-dot.done {
+      background: var(--green);
+    }
+
+    .timeline-dot.pending {
+      background: var(--text-muted);
+    }
+
+    .timeline-content h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .timeline-content p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      .login-box { padding: 28px 20px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .portal-header { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="login-page" class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="login-logo">🎯</div>
+      <div class="login-title">GMN Hub</div>
+      <div class="login-subtitle">Portal do Cliente</div>
+    </div>
+
+    <div id="error-msg" class="error-msg"></div>
+    <div id="success-msg" class="success-msg"></div>
+
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>ID do Cliente</label>
+        <input id="client-id" type="text" placeholder="Ex: cliente_12345" required>
+      </div>
+
+      <div class="form-group">
+        <label>Senha</label>
+        <input id="client-password" type="password" placeholder="Sua senha" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <span id="btn-text">Entrar</span>
+        <span id="btn-spinner" class="spinner" style="display:none"></span>
+      </button>
+    </form>
+
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-size: 12px; color: var(--text-muted)">
+      Você recebeu suas credenciais por e-mail.<br>
+      Não consegue acessar? <a href="#" style="color: var(--primary); text-decoration: none">Solicitar nova senha</a>
+    </div>
+  </div>
+</div>
+
+<div id="portal-page" style="display:none">
+  <div class="portal-header">
+    <div class="portal-header-title">
+      <div style="font-size:24px">🎯</div>
+      <h1>GMN Hub</h1>
+    </div>
+    <div class="portal-header-client">
+      <div class="portal-header-name" id="client-name">Cliente</div>
+      <div class="portal-header-company" id="client-company">Empresa</div>
+      <button onclick="handleLogout()" style="margin-top:8px;padding:6px 12px;background:var(--border);border:none;border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:12px">Sair</button>
+    </div>
+  </div>
+
+  <div class="portal-content" id="portal-content">
+    <!-- Será preenchido por JavaScript -->
+  </div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title">Título</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
+<script>
+  // Usar a mesma configuração do app principal
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBXhI8vV3dQ3o7LnSWw_0QBZx-TZqF1qZA",
+    authDomain: "digitalcreate-db.firebaseapp.com",
+    databaseURL: "https://digitalcreate-db.firebaseio.com",
+    projectId: "digitalcreate-db",
+    storageBucket: "digitalcreate-db.appspot.com",
+    messagingSenderId: "704847539847",
+    appId: "1:704847539847:web:b4054e72f8b8a2cf3df2e4"
+  };
+
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.database();
+
+  // Session storage
+  let _currentClient = null;
+  let _portalData = null;
+
+  // Check if already logged in
+  window.addEventListener('load', () => {
+    const stored = localStorage.getItem('portal_session');
+    if (stored) {
+      try {
+        _currentClient = JSON.parse(stored);
+        renderPortal();
+      } catch (e) {
+        localStorage.removeItem('portal_session');
+        showLoginPage();
+      }
+    } else {
+      showLoginPage();
+    }
+  });
+
+  function showLoginPage() {
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('portal-page').style.display = 'none';
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const clientId = document.getElementById('client-id').value.trim();
+    const password = document.getElementById('client-password').value;
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+    btnSpinner.style.display = 'inline-block';
+    btnText.textContent = 'Verificando...';
+
+    try {
+      // Buscar cliente no Firebase
+      const snap = await db.ref(`clientes/${clientId}`).once('value');
+      const client = snap.val();
+
+      if (!client || client.portalPassword !== password) {
+        throw new Error('ID ou senha incorretos');
+      }
+
+      if (client.portalBloqueado) {
+        throw new Error('Seu acesso foi bloqueado. Contate a agência.');
+      }
+
+      // Login bem-sucedido
+      _currentClient = { id: clientId, ...client };
+      localStorage.setItem('portal_session', JSON.stringify(_currentClient));
+
+      successMsg.textContent = '✓ Acesso concedido!';
+      successMsg.style.display = 'block';
+
+      setTimeout(() => renderPortal(), 500);
+    } catch (err) {
+      errorMsg.textContent = '⚠ ' + (err.message || 'Erro ao fazer login');
+      errorMsg.style.display = 'block';
+    } finally {
+      btnSpinner.style.display = 'none';
+      btnText.textContent = 'Entrar';
+    }
+  }
+
+  async function renderPortal() {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('portal-page').style.display = 'block';
+
+    document.getElementById('client-name').textContent = _currentClient.nome || 'Cliente';
+    document.getElementById('client-company').textContent = _currentClient.empresa || 'Empresa';
+
+    // Carregar dados do cliente e montar portal
+    const html = `
+      <div style="margin-bottom: 32px">
+        <h2 style="font-size:18px;font-weight:800;margin-bottom:8px">Bem-vindo, ${_currentClient.nome}! 👋</h2>
+        <p style="color:var(--text-muted);font-size:13px">Acompanhe o progresso do seu projeto e acesse os formulários necessários</p>
+      </div>
+
+      <!-- Informações do Contrato -->
+      <div class="section-title"><i class="bi bi-file-contract"></i> Seu Contrato</div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:32px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Serviços Contratados</div>
+            <div style="font-size:18px;font-weight:800">${(_currentClient.servicos || []).length || 0}</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Status</div>
+            <div style="font-size:18px;font-weight:800;color:var(--green)">✓ Ativo</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Próximos Passos</div>
+            <div style="font-size:18px;font-weight:800">5</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Próximos Passos (Jornada) -->
+      <div class="section-title"><i class="bi bi-rocket-takeoff"></i> Próximos Passos</div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:32px">
+        <div class="timeline" id="jornada-timeline">
+          <div style="text-align:center;color:var(--text-muted)">Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Formulários Pendentes -->
+      <div class="section-title"><i class="bi bi-clipboard-check"></i> Formulários Pendentes</div>
+      <div class="cards-grid" id="formularios-grid">
+        <div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px">Carregando formulários...</div>
+      </div>
+
+      <!-- Cronograma de Entregas -->
+      <div class="section-title"><i class="bi bi-calendar-event"></i> Cronograma de Entregas</div>
+      <div class="cards-grid" id="cronograma-grid">
+        <div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px">Carregando cronograma...</div>
+      </div>
+
+      <!-- Solicitações -->
+      <div class="section-title"><i class="bi bi-chat-left-plus"></i> Solicitações Extras</div>
+      <div class="cards-grid" id="solicitacoes-grid">
+        <div onclick="openSolicitacaoModal('post-extra')" class="card" style="cursor:pointer">
+          <div class="card-icon">📝</div>
+          <div class="card-title">Solicitar Post Extra</div>
+          <div class="card-desc">Peça um post adicional além do seu plano</div>
+        </div>
+        <div onclick="openSolicitacaoModal('ajuste-design')" class="card" style="cursor:pointer">
+          <div class="card-icon">🎨</div>
+          <div class="card-title">Ajuste de Design</div>
+          <div class="card-desc">Solicite mudanças em peças já criadas</div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('portal-content').innerHTML = html;
+    loadPortalData();
+  }
+
+  async function loadPortalData() {
+    // Aqui você carregaria dados do Firebase
+    // Por enquanto vamos com dados de exemplo
+
+    // Jornada
+    const jornada = [
+      { titulo: 'Assinatura do Contrato', status: 'done', data: '17 jul. 2026' },
+      { titulo: 'Preenchimento do Briefing', status: 'done', data: '20 jul. 2026' },
+      { titulo: 'Estratégia e Planejamento', status: 'in-progress', data: 'Próximas 2 semanas' },
+      { titulo: 'Primeira Campanha', status: 'pending', data: 'Previsto para 04 ago' },
+      { titulo: 'Avaliação de Resultados', status: 'pending', data: 'Fim de agosto' }
+    ];
+
+    document.getElementById('jornada-timeline').innerHTML = jornada.map((item, i) => `
+      <div class="timeline-item">
+        <div class="timeline-dot ${item.status === 'done' ? 'done' : item.status === 'in-progress' ? '' : 'pending'}">
+          ${item.status === 'done' ? '✓' : item.status === 'in-progress' ? '●' : '○'}
+        </div>
+        <div class="timeline-content">
+          <h3>${item.titulo}</h3>
+          <p>${item.data}</p>
+        </div>
+      </div>
+    `).join('');
+
+    // Formulários
+    const formularios = [
+      { id: 'briefing', icon: '📋', titulo: 'Briefing Inicial', desc: 'Informações sobre sua empresa', status: 'concluido' },
+      { id: 'estrategia', icon: '🎯', titulo: 'Estratégia & Posicionamento', desc: 'Aprovação da estratégia de marca', status: 'em-progresso' },
+      { id: 'redes-sociais', icon: '📱', titulo: 'Dados de Redes Sociais', desc: 'Conecte suas contas para agendamento', status: 'pendente' }
+    ];
+
+    document.getElementById('formularios-grid').innerHTML = formularios.map(f => `
+      <div class="card" onclick="openFormulario('${f.id}')">
+        <div class="card-icon">${f.icon}</div>
+        <div class="card-title">${f.titulo}</div>
+        <div class="card-desc">${f.desc}</div>
+        <span class="card-status status-${f.status}">${f.status}</span>
+      </div>
+    `).join('');
+  }
+
+  function openFormulario(formId) {
+    document.getElementById('modal-title').textContent = 'Formulário: ' + formId;
+    document.getElementById('modal-body').innerHTML = '<p>Conteúdo do formulário...</p>';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function openSolicitacaoModal(tipo) {
+    const titulos = {
+      'post-extra': 'Solicitar Post Extra',
+      'ajuste-design': 'Solicitar Ajuste de Design'
+    };
+
+    document.getElementById('modal-title').textContent = titulos[tipo];
+    document.getElementById('modal-body').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Descrição</label>
+          <textarea id="solicitacao-desc" placeholder="Descreva sua solicitação aqui..." style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.05);color:var(--text);font-family:inherit;resize:vertical;min-height:120px"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="enviarSolicitacao('${tipo}')">Enviar Solicitação</button>
+      </div>
+    `;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function enviarSolicitacao(tipo) {
+    const desc = document.getElementById('solicitacao-desc').value;
+    if (!desc.trim()) {
+      alert('Descreva sua solicitação');
+      return;
+    }
+
+    // Aqui você salvaria no Firebase
+    alert('✓ Solicitação enviada! Em breve entraremos em contato.');
+    closeModal();
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function handleLogout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+      localStorage.removeItem('portal_session');
+      _currentClient = null;
+      document.getElementById('login-form').reset();
+      showLoginPage();
+    }
+  }
+</script>
+
+</body>
+</html>
