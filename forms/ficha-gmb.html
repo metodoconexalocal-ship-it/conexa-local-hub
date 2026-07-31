@@ -1,4 +1,3 @@
-<!-- Updated: 2026-07-31 11:42:54 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -47,7 +46,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear
 .field input[type="text"],.field input[type="email"],.field input[type="tel"],.field input[type="date"],.field textarea,.field select{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 .field textarea{min-height:96px}
-.field textarea.tall{min-height:120px}
 .options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
 .option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
 .option-chip input{display:none}
@@ -65,666 +63,222 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear
 .success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
 .success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
 .success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+.loading{text-align:center;padding:60px 20px;color:rgba(255,255,255,.7)}
+.loading-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}}
-.field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
-.field.v-error .options-group .option-chip{border-color:#ef4444}
-.field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
-.sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
-@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-.step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
 </style>
 </head>
 <body>
 
+<div class="header">
+  <div class="header-brand">🔍 Conexa Local</div>
+  <div class="header-sep"></div>
+  <div class="header-title">Briefing Google Meu Negócio</div>
+</div>
+
+<div class="main" id="app">
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <p>Carregando formulário...</p>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
 const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+let formData = {};
+let currentSection = 0;
+let formFields = [];
+
 (async () => {
   try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
-  try {
-    const snap = await getDoc(doc(db, 'ghub_form_config', 'gmb'));
-    const qs = snap.exists() ? (snap.data().questions || []) : [];
-    if (qs.length) {
-      const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
-      if (lastNavBtns) {
-        const div = document.createElement('div');
-        div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
-        div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
-          qs.map(q => {
-            const req = q.required ? ' required' : '';
-            const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
-            const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
-            if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
-            if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
-            if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
-            if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
-            return '';
-          }).join('');
-        lastNavBtns.before(div);
-      }
+
+  // Escutar mudanças em tempo real na cópia editável de GMB
+  onSnapshot(query(collection(db, 'customForms'), where('title', '==', 'Google Meu Negócio (editável)')), (snap) => {
+    if (snap.docs.length) {
+      const form = snap.docs[0].data();
+      formFields = form.fields || [];
+      renderForm();
+    } else {
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário não encontrado</p></div>';
     }
-  } catch(e) { console.warn('Custom questions load:', e); }
+  });
 })();
 
-window._saveBriefing = async (data) => {
-  const payload = { ...data, submittedAt: new Date().toISOString(), type: 'gmb' };
-  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(authErr) { console.warn('Auth:', authErr.code); }
-  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos.')), 15000));
-  await Promise.race([addDoc(collection(db, 'ghub_briefings'), payload), timeout]);
+function renderForm() {
+  if (!formFields.length) return;
+
+  const sections = [];
+  let currentSec = null;
+
+  formFields.forEach(f => {
+    if (f.type === 'section') {
+      if (currentSec) sections.push(currentSec);
+      currentSec = { label: f.label, fields: [] };
+    } else if (currentSec) {
+      currentSec.fields.push(f);
+    }
+  });
+  if (currentSec) sections.push(currentSec);
+
+  const app = document.getElementById('app');
+  let html = `
+    <div class="intro-card">
+      <div class="intro-badge">📋 Formulário Dinâmico</div>
+      <h1>Briefing <span>Google Meu Negócio</span></h1>
+      <p>Preencha as informações da sua empresa para otimizar sua presença no Google Business Profile.</p>
+      <div class="intro-stats">
+        <div class="intro-stat"><strong>${sections.length}</strong><span>Seções</span></div>
+        <div class="intro-stat"><strong>${formFields.filter(f => f.type !== 'section').length}</strong><span>Perguntas</span></div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-count"><span id="progress-num">0</span>% preenchido</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="steps-nav" id="steps-nav"></div>
+  `;
+
+  sections.forEach((sec, i) => {
+    html += `<div class="section-card" data-section="${i}">
+      <div class="section-header">
+        <div class="section-icon">📝</div>
+        <div class="section-info">
+          <h2>${sec.label}</h2>
+          <p>${sec.fields.length} campos</p>
+        </div>
+      </div>
+      <form>`;
+
+    sec.fields.forEach(f => {
+      const fid = 'f_' + (Math.random().toString(36).slice(2));
+      html += renderField(f, fid);
+    });
+
+    html += `</form>
+      <div class="nav-btns">
+        ${i > 0 ? `<button type="button" class="btn btn-back" onclick="goSection(${i-1})">← Anterior</button>` : '<div></div>'}
+        ${i < sections.length - 1 ? `<button type="button" class="btn btn-next" onclick="goSection(${i+1})">Próximo →</button>` : `<button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Briefing ✓</button>`}
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="success-card" id="success-card">
+    <div class="success-icon">✓</div>
+    <h2>Briefing Enviado!</h2>
+    <p>Obrigado por preencher o formulário. Entraremos em contato em breve.</p>
+  </div>`;
+
+  app.innerHTML = html;
+
+  // Render step pills
+  const stepsNav = document.getElementById('steps-nav');
+  sections.forEach((sec, i) => {
+    const pill = document.createElement('button');
+    pill.className = 'step-pill' + (i === 0 ? ' active' : '');
+    pill.textContent = `Seção ${i+1}`;
+    pill.onclick = (e) => { e.preventDefault(); goSection(i); };
+    stepsNav.appendChild(pill);
+  });
+
+  goSection(0);
+}
+
+function renderField(f, id) {
+  if (f.type === 'section') return '';
+
+  const req = f.required ? ' required' : '';
+  const reqMark = f.required ? ' <span class="req">*</span>' : '';
+
+  let html = `<div class="field"><label for="${id}">${f.label}${reqMark}`;
+  if (f.hint) html += `<span class="hint">${f.hint}</span>`;
+  html += `</label>`;
+
+  switch(f.type) {
+    case 'text':
+    case 'email':
+    case 'phone':
+    case 'tel':
+    case 'number':
+    case 'date':
+      html += `<input type="${f.type}" id="${id}" name="${f.label}" value="${formData[f.label] || ''}" onchange="formData['${f.label}'] = this.value"${req}>`;
+      break;
+    case 'textarea':
+      html += `<textarea id="${id}" name="${f.label}" onchange="formData['${f.label}'] = this.value"${req}>${formData[f.label] || ''}</textarea>`;
+      break;
+    case 'select':
+      html += `<select id="${id}" name="${f.label}" onchange="formData['${f.label}'] = this.value"${req}><option value="">Selecione...</option>`;
+      (f.options || []).forEach(opt => {
+        html += `<option value="${opt}" ${formData[f.label] === opt ? 'selected' : ''}>${opt}</option>`;
+      });
+      html += `</select>`;
+      break;
+    case 'radio':
+    case 'checkbox':
+      html += `<div class="options-group">`;
+      (f.options || []).forEach(opt => {
+        const isChecked = f.type === 'radio' ? formData[f.label] === opt : (formData[f.label] || []).includes(opt);
+        html += `<label class="option-chip ${isChecked ? 'selected' : ''}">
+          <input type="${f.type}" name="${f.label}" value="${opt}" ${isChecked ? 'checked' : ''} onchange="handleOption(this, '${f.label}')">
+          <span>${opt}</span>
+        </label>`;
+      });
+      html += `</div>`;
+      break;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+window.goSection = function(i) {
+  document.querySelectorAll('.section-card').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.step-pill').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.section-card')[i].classList.add('active');
+  document.querySelectorAll('.step-pill')[i].classList.add('active');
+  currentSection = i;
+};
+
+window.handleOption = function(el, label) {
+  const type = el.type;
+  if (type === 'radio') {
+    formData[label] = el.value;
+    document.querySelectorAll(`input[name="${label}"]`).forEach(inp => {
+      inp.parentElement.classList.toggle('selected', inp === el);
+    });
+  } else {
+    if (!Array.isArray(formData[label])) formData[label] = [];
+    if (el.checked) {
+      formData[label].push(el.value);
+    } else {
+      formData[label] = formData[label].filter(v => v !== el.value);
+    }
+    el.parentElement.classList.toggle('selected');
+  }
+};
+
+window.submitForm = async function() {
+  try {
+    await addDoc(collection(db, 'ghub_briefings'), { ...formData, submittedAt: new Date().toISOString() });
+    document.querySelectorAll('.section-card').forEach(el => el.style.display = 'none');
+    document.getElementById('success-card').style.display = 'block';
+  } catch(e) {
+    alert('Erro ao enviar: ' + e.message);
+  }
 };
 </script>
 
-<div class="header">
-  <span class="header-brand">Conexa Local</span>
-  <div class="header-sep"></div>
-  <span class="header-title">Briefing Google Empresas</span>
-</div>
-
-<div class="progress-wrap" id="progressWrap">
-  <div class="progress-top">
-    <span class="progress-label">Progresso do preenchimento</span>
-    <span class="progress-count" id="progressCount">Seção 1 de 12</span>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:8%"></div></div>
-</div>
-
-<div class="steps-nav" id="stepsNav">
-  <div class="step-pill active" onclick="goTo(0)">Dados</div>
-  <div class="step-pill" onclick="goTo(1)">Negócio</div>
-  <div class="step-pill" onclick="goTo(2)">Presença</div>
-  <div class="step-pill" onclick="goTo(3)">Localização</div>
-  <div class="step-pill" onclick="goTo(4)">Funcionamento</div>
-  <div class="step-pill" onclick="goTo(5)">Atributos</div>
-  <div class="step-pill" onclick="goTo(6)">Serviços</div>
-  <div class="step-pill" onclick="goTo(7)">Materiais</div>
-  <div class="step-pill" onclick="goTo(8)">Avaliações</div>
-  <div class="step-pill" onclick="goTo(9)">Objetivos</div>
-  <div class="step-pill" onclick="goTo(10)">Conteúdo</div>
-  <div class="step-pill" onclick="goTo(11)">Documentação</div>
-</div>
-
-<div class="main">
-  <div class="intro-card" id="introCard">
-    <div class="intro-badge">Briefing Oficial Conexa Local</div>
-    <h1>Briefing <span>Google Empresas</span></h1>
-    <p>Preencha este formulário com os máximos detalhes possíveis. Quanto mais completo, melhor será a otimização e gestão do seu Perfil da Empresa no Google!</p>
-    <div class="intro-stats">
-      <div class="intro-stat"><strong>12</strong><span>Seções</span></div>
-      <div class="intro-stat"><strong>90+</strong><span>Questões</span></div>
-      <div class="intro-stat"><strong>~30 min</strong><span>Estimado</span></div>
-    </div>
-  </div>
-
-  <form id="briefingForm" onsubmit="return false">
-
-  <!-- SEÇÃO 1: DADOS DA EMPRESA -->
-  <div class="section-card active" id="section-0">
-    <div class="section-header">
-      <div class="section-icon">01</div>
-      <div class="section-info"><h2>Dados da Empresa</h2><p>Informações básicas e legais da sua empresa.</p></div>
-    </div>
-
-    <div class="field"><label>Nome da empresa <span class="req">*</span><span class="hint">Digite exatamente como deseja que o nome apareça no Google.</span></label><input type="text" name="nome_empresa" required></div>
-    <div class="field"><label>Endereço completo <span class="req">*</span><span class="hint">Informe o endereço completo conforme cadastrado no CNPJ, quando aplicável.</span></label><input type="text" name="endereco" required></div>
-    <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" name="email" required></div>
-    <div class="field"><label>Telefone principal <span class="req">*</span></label><input type="tel" name="telefone_principal" required></div>
-    <div class="field"><label>WhatsApp <span class="req">*</span></label><input type="tel" name="whatsapp" required></div>
-    <div class="field"><label>Data de abertura da empresa</label><input type="text" name="data_abertura" placeholder="Ex: Janeiro de 2018"></div>
-    <div class="field"><label>CNPJ <span class="hint">(Opcional)</span></label><input type="text" name="cnpj"></div>
-
-    <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 2: SOBRE O NEGÓCIO -->
-  <div class="section-card" id="section-1">
-    <div class="section-header">
-      <div class="section-icon">02</div>
-      <div class="section-info"><h2>Sobre o Negócio</h2><p>Categorias, especialidades e posicionamento no Google.</p></div>
-    </div>
-
-    <div class="field"><label>Categoria principal do negócio <span class="req">*</span></label><input type="text" name="categoria_principal" required></div>
-    <div class="field"><label>Categorias secundárias</label><input type="text" name="categorias_secundarias"></div>
-    <div class="field"><label>Palavra-chave principal <span class="req">*</span><span class="hint">Qual serviço as pessoas pesquisam para encontrar sua empresa?</span></label><input type="text" name="palavra_chave_principal" required></div>
-    <div class="field"><label>Especialidades da empresa <span class="req">*</span></label><textarea name="especialidades" required></textarea></div>
-    <div class="field"><label>Como um cliente pesquisaria sua empresa no Google? <span class="req">*</span><span class="hint">Exemplos de pesquisas que um cliente faria.</span></label><textarea name="busca_cliente" required></textarea></div>
-    <div class="field"><label>Como sua empresa ajuda o cliente? <span class="req">*</span></label><textarea name="ajuda_cliente" required></textarea></div>
-    <div class="field"><label>Conte a história da empresa <span class="req">*</span></label><textarea name="historia_empresa" required></textarea></div>
-    <div class="field"><label>Quais são os principais diferenciais da empresa? <span class="req">*</span></label><textarea name="diferenciais" required></textarea></div>
-    <div class="field"><label>Quem é o público-alvo? <span class="req">*</span></label><textarea name="publico_alvo" required></textarea></div>
-    <div class="field"><label>Qual serviço é o mais lucrativo da empresa? <span class="req">*</span></label><textarea name="servico_lucrativo" required></textarea></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 3: PRESENÇA DIGITAL -->
-  <div class="section-card" id="section-2">
-    <div class="section-header">
-      <div class="section-icon">03</div>
-      <div class="section-info"><h2>Presença Digital</h2><p>Seus canais online e infraestrutura digital.</p></div>
-    </div>
-
-    <div class="field"><label>Site</label><input type="text" name="site"></div>
-    <div class="field"><label>Perfil atual do Google</label><input type="text" name="google_profile"></div>
-    <div class="field"><label>Instagram</label><input type="text" name="instagram"></div>
-    <div class="field"><label>Facebook</label><input type="text" name="facebook"></div>
-    <div class="field"><label>LinkedIn</label><input type="text" name="linkedin"></div>
-    <div class="field"><label>Outras redes sociais</label><input type="text" name="outras_redes"></div>
-
-    <div class="field"><label>Possui site? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="tem_site" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="tem_site" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Possui WhatsApp Business? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="whatsapp_business" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="whatsapp_business" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Link do WhatsApp</label><input type="text" name="link_whatsapp"></div>
-
-    <div class="field"><label>Possui catálogo virtual? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="catalogo_virtual" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="catalogo_virtual" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Possui identidade visual? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="identidade_visual" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="identidade_visual" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Possui fotos profissionais? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="fotos_profissionais" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="fotos_profissionais" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Possui vídeos profissionais? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="videos_profissionais" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="videos_profissionais" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Principais concorrentes</label><textarea name="concorrentes"></textarea></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 4: LOCALIZAÇÃO E ÁREA DE ATENDIMENTO -->
-  <div class="section-card" id="section-3">
-    <div class="section-header">
-      <div class="section-icon">04</div>
-      <div class="section-info"><h2>Localização e Área de Atendimento</h2><p>Onde você está e onde você atende.</p></div>
-    </div>
-
-    <div class="field"><label>Localização exata <span class="req">*</span></label><input type="text" name="localizacao_exata" required></div>
-    <div class="field"><label>Áreas de cobertura <span class="req">*</span></label><textarea name="areas_cobertura" required></textarea></div>
-
-    <div class="field"><label>O cliente vai até sua empresa? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="cliente_vem" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="cliente_vem" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>A empresa atende no endereço do cliente? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="atende_cliente" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="atende_cliente" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Existe cobrança de deslocamento?</label><input type="text" name="cobranca_deslocamento"></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 5: FUNCIONAMENTO -->
-  <div class="section-card" id="section-4">
-    <div class="section-header">
-      <div class="section-icon">05</div>
-      <div class="section-info"><h2>Funcionamento</h2><p>Horários, agendamento e atendimento.</p></div>
-    </div>
-
-    <div class="field"><label>Horário de funcionamento <span class="req">*</span></label><input type="text" name="horario_funcionamento" required></div>
-    <div class="field"><label>Horários especiais e feriados</label><input type="text" name="horarios_especiais"></div>
-
-    <div class="field"><label>Atendimento somente com agendamento? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="agendamento_obrigatorio" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="agendamento_obrigatorio" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Possui agendamento online? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="agendamento_online" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="agendamento_online" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Link de agendamento</label><input type="text" name="link_agendamento"></div>
-    <div class="field"><label>Idiomas de atendimento</label><input type="text" name="idiomas_atendimento"></div>
-
-    <div class="field"><label>Atendimento aos finais de semana? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="fim_de_semana" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="fim_de_semana" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Atendimento emergencial? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="atendimento_emergencial" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="atendimento_emergencial" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 6: ATRIBUTOS DA EMPRESA -->
-  <div class="section-card" id="section-5">
-    <div class="section-header">
-      <div class="section-icon">06</div>
-      <div class="section-info"><h2>Atributos da Empresa</h2><p>Recursos e facilidades disponíveis.</p></div>
-    </div>
-
-    <div class="field"><label>Quais atributos sua empresa possui? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Wi-Fi" onchange="toggleCheckChip(this)"><span>Wi-Fi</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro" onchange="toggleCheckChip(this)"><span>Banheiro</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro unissex" onchange="toggleCheckChip(this)"><span>Banheiro unissex</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Ar-condicionado" onchange="toggleCheckChip(this)"><span>Ar-condicionado</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Ambiente climatizado" onchange="toggleCheckChip(this)"><span>Ambiente climatizado</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Pet Friendly" onchange="toggleCheckChip(this)"><span>Pet Friendly</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em português" onchange="toggleCheckChip(this)"><span>Atendimento em português</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em inglês" onchange="toggleCheckChip(this)"><span>Atendimento em inglês</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento em espanhol" onchange="toggleCheckChip(this)"><span>Atendimento em espanhol</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita Pix" onchange="toggleCheckChip(this)"><span>Aceita Pix</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita cartão" onchange="toggleCheckChip(this)"><span>Aceita cartão</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Aceita dinheiro" onchange="toggleCheckChip(this)"><span>Aceita dinheiro</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Pagamento por aproximação (NFC)" onchange="toggleCheckChip(this)"><span>Pagamento por aproximação (NFC)</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Entrada acessível" onchange="toggleCheckChip(this)"><span>Entrada acessível</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Banheiro acessível" onchange="toggleCheckChip(this)"><span>Banheiro acessível</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Assento para cadeirantes" onchange="toggleCheckChip(this)"><span>Assento para cadeirantes</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento" onchange="toggleCheckChip(this)"><span>Estacionamento</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento gratuito" onchange="toggleCheckChip(this)"><span>Estacionamento gratuito</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Estacionamento coberto" onchange="toggleCheckChip(this)"><span>Estacionamento coberto</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento presencial" onchange="toggleCheckChip(this)"><span>Atendimento presencial</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Atendimento online" onchange="toggleCheckChip(this)"><span>Atendimento online</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Retirada no local" onchange="toggleCheckChip(this)"><span>Retirada no local</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Delivery" onchange="toggleCheckChip(this)"><span>Delivery</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Drive-thru" onchange="toggleCheckChip(this)"><span>Drive-thru</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Empresa liderada por mulheres" onchange="toggleCheckChip(this)"><span>Empresa liderada por mulheres</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Espaço para crianças" onchange="toggleCheckChip(this)"><span>Espaço para crianças</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Outro" onchange="toggleCheckChip(this); document.getElementById('outro_atributo_field').style.display = this.checked ? 'block' : 'none'"><span>Outro</span></label>
-      </div>
-    </div>
-
-    <div class="field" id="outro_atributo_field" style="display:none;"><label>Especifique outros atributos</label><input type="text" name="outro_atributo"></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 7: SERVIÇOS -->
-  <div class="section-card" id="section-6">
-    <div class="section-header">
-      <div class="section-icon">07</div>
-      <div class="section-info"><h2>Serviços</h2><p>Focar na demanda e oportunidades.</p></div>
-    </div>
-
-    <div class="field"><label>Qual é o produto/serviço mais vendido? <span class="req">*</span></label><textarea name="produto_mais_vendido" required></textarea></div>
-    <div class="field"><label>Quais serviços você deseja aumentar a demanda? <span class="req">*</span></label><textarea name="servicos_aumentar_demanda" required></textarea></div>
-    <div class="field"><label>Quais serviços NÃO deseja aumentar? <span class="req">*</span></label><textarea name="servicos_nao_aumentar_demanda" required></textarea></div>
-    <div class="field"><label>Quais são os serviços mais procurados? <span class="req">*</span></label><textarea name="servicos_mais_procurados" required></textarea></div>
-    <div class="field"><label>Quais produtos ou serviços deseja destacar no Google? <span class="req">*</span></label><textarea name="produtos_destacar" required></textarea></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 8: FOTOS E MATERIAIS -->
-  <div class="section-card" id="section-7">
-    <div class="section-header">
-      <div class="section-icon">08</div>
-      <div class="section-info"><h2>Fotos e Materiais</h2><p>Conteúdo visual disponível.</p></div>
-    </div>
-
-    <div class="field"><label>Quais materiais você possui? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Logo" onchange="toggleCheckChip(this)"><span>Logo</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto da fachada" onchange="toggleCheckChip(this)"><span>Foto da fachada</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto interna" onchange="toggleCheckChip(this)"><span>Foto interna</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto da equipe" onchange="toggleCheckChip(this)"><span>Foto da equipe</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto dos produtos" onchange="toggleCheckChip(this)"><span>Foto dos produtos</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Foto dos serviços" onchange="toggleCheckChip(this)"><span>Foto dos serviços</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Antes e depois" onchange="toggleCheckChip(this)"><span>Antes e depois</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Vídeos" onchange="toggleCheckChip(this)"><span>Vídeos</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Identidade visual" onchange="toggleCheckChip(this)"><span>Identidade visual</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Cardápio" onchange="toggleCheckChip(this)"><span>Cardápio</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Catálogo" onchange="toggleCheckChip(this)"><span>Catálogo</span></label>
-        <label class="option-chip"><input type="checkbox" name="materiais" value="Outro" onchange="toggleCheckChip(this)"><span>Outro</span></label>
-      </div>
-    </div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 9: AVALIAÇÕES -->
-  <div class="section-card" id="section-8">
-    <div class="section-header">
-      <div class="section-icon">09</div>
-      <div class="section-info"><h2>Avaliações</h2><p>Reputação e feedback dos clientes.</p></div>
-    </div>
-
-    <div class="field"><label>Atualmente possui avaliações no Google? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="tem_avaliacoes" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="tem_avaliacoes" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Aproximadamente quantas avaliações?</label><input type="text" name="quantidade_avaliacoes"></div>
-
-    <div class="field"><label>Costuma solicitar avaliações aos clientes? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="solicita_avaliacoes" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="solicita_avaliacoes" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Responde às avaliações? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Sempre" onchange="selectChip(this)" required><span>Sempre</span></label>
-        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Às vezes" onchange="selectChip(this)"><span>Às vezes</span></label>
-        <label class="option-chip"><input type="radio" name="responde_avaliacoes" value="Nunca" onchange="selectChip(this)"><span>Nunca</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Existe algum cliente que possa avaliar sua empresa imediatamente?</label><textarea name="cliente_avaliar"></textarea></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 10: OBJETIVOS -->
-  <div class="section-card" id="section-9">
-    <div class="section-header">
-      <div class="section-icon">10</div>
-      <div class="section-info"><h2>Objetivos</h2><p>Metas e resultados esperados.</p></div>
-    </div>
-
-    <div class="field"><label>Principal objetivo com o Perfil da Empresa no Google <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Aumentar visibilidade" onchange="selectChip(this)" required><span>Aumentar visibilidade</span></label>
-        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Gerar mais leads" onchange="selectChip(this)"><span>Gerar mais leads</span></label>
-        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Aumentar vendas" onchange="selectChip(this)"><span>Aumentar vendas</span></label>
-        <label class="option-chip"><input type="radio" name="objetivo_principal" value="Reputação online" onchange="selectChip(this)"><span>Reputação online</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Meta de leads/vendas nos próximos 3 meses</label><input type="text" name="meta_3meses"></div>
-    <div class="field"><label>Qual seria um número de avaliações considerado sucesso?</label><input type="text" name="meta_avaliacoes"></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 11: CONTEÚDO E DIFERENCIAIS -->
-  <div class="section-card" id="section-10">
-    <div class="section-header">
-      <div class="section-icon">11</div>
-      <div class="section-info"><h2>Conteúdo e Diferenciais</h2><p>Estratégia de conteúdo e posicionamento único.</p></div>
-    </div>
-
-    <div class="field"><label>Qual a principal vantagem competitiva? <span class="req">*</span></label><textarea name="vantagem_competitiva" required></textarea></div>
-    <div class="field"><label>Qual é o diferencial que te torna único no mercado? <span class="req">*</span></label><textarea name="diferencial_unico" required></textarea></div>
-    <div class="field"><label>Qual tipo de conteúdo você produz? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Posts nas redes sociais" onchange="toggleCheckChip(this)"><span>Posts nas redes sociais</span></label>
-        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Vídeos" onchange="toggleCheckChip(this)"><span>Vídeos</span></label>
-        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Blog/Artigos" onchange="toggleCheckChip(this)"><span>Blog/Artigos</span></label>
-        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Stories/Reels" onchange="toggleCheckChip(this)"><span>Stories/Reels</span></label>
-        <label class="option-chip"><input type="checkbox" name="tipo_conteudo" value="Nenhum" onchange="toggleCheckChip(this)"><span>Nenhum</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Com qual frequência você publica conteúdo?</label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Diariamente" onchange="selectChip(this)"><span>Diariamente</span></label>
-        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="3-4 vezes na semana" onchange="selectChip(this)"><span>3-4 vezes na semana</span></label>
-        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="1-2 vezes na semana" onchange="selectChip(this)"><span>1-2 vezes na semana</span></label>
-        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Raramente" onchange="selectChip(this)"><span>Raramente</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Está disposto a investir em conteúdo profissional? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-        <label class="option-chip"><input type="radio" name="investir_conteudo" value="Talvez" onchange="selectChip(this)"><span>Talvez</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Orçamento aproximado para conteúdo/fotos profissionais</label><input type="text" name="orcamento_conteudo"></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
-  </div>
-
-  <!-- SEÇÃO 12: DOCUMENTAÇÃO -->
-  <div class="section-card" id="section-11">
-    <div class="section-header">
-      <div class="section-icon">12</div>
-      <div class="section-info"><h2>Documentação</h2><p>Informações adicionais e observações importantes.</p></div>
-    </div>
-
-    <div class="field"><label>Possui certificados ou reconhecimentos? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="tem_certificados" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="tem_certificados" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Descreva os certificados/reconhecimentos</label><textarea name="certificados_descricao"></textarea></div>
-
-    <div class="field"><label>Participou de campanhas no Google Ads antes? <span class="req">*</span></label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="tem_google_ads" value="Sim" onchange="selectChip(this)" required><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="tem_google_ads" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
-
-    <div class="field"><label>Qual foi o resultado do Google Ads?</label><textarea name="resultado_google_ads"></textarea></div>
-
-    <div class="field"><label>Orçamento mensal disponível para marketing online</label><input type="text" name="orcamento_mensal_marketing"></div>
-
-    <div class="field"><label>Alguma informação importante que a gente não perguntou? <span class="req">*</span></label><textarea name="informacoes_adicionais" required></textarea></div>
-
-    <div class="field"><label>Qual é a melhor forma de entrar em contato?</label><input type="text" name="melhor_contato"></div>
-
-    <div class="field"><label>Alguém específico para acompanhar este projeto? <span class="req">*</span></label><textarea name="responsavel_projeto" required></textarea></div>
-
-    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Briefing Completo ✓</button></div>
-  </div>
-
-  </form>
-
-  <div class="success-card" id="successCard">
-    <div class="success-icon">✓</div>
-    <h2>Briefing enviado com sucesso!</h2>
-    <p>Recebemos todas as informações. A equipe Conexa Local vai otimizar seu Perfil da Empresa no Google e entrar em contato em breve!</p>
-    <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
-      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia de suas respostas:</strong></p>
-      <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
-    </div>
-  </div>
-</div>
-
-<script>
-let current = 0;
-const total = 12;
-
-function updateUI() {
-  const pct = Math.round(((current + 1) / total) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
-  document.querySelectorAll('.step-pill').forEach((p, i) => {
-    p.classList.remove('active','done');
-    if (i === current) p.classList.add('active');
-    else if (i < current) p.classList.add('done');
-  });
-  document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
-}
-
-function goTo(idx) {
-  document.getElementById(`section-${current}`).classList.remove('active');
-  current = Math.max(0, Math.min(total - 1, idx));
-  document.getElementById(`section-${current}`).classList.add('active');
-  updateUI();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-const _secTitles = ['Dados da Empresa','Sobre o Negócio','Presença Digital','Localização e Área de Atendimento','Funcionamento','Atributos da Empresa','Serviços','Fotos e Materiais','Avaliações','Objetivos','Conteúdo e Diferenciais','Documentação'];
-
-function _clearErrors() {
-  document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
-  document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
-  document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
-}
-
-function _markError(field, msg) {
-  field.classList.add('v-error');
-  if (!field.querySelector('.field-err-msg')) {
-    const el = document.createElement('div');
-    el.className = 'field-err-msg';
-    el.innerHTML = '⚠ ' + msg;
-    field.appendChild(el);
-  }
-}
-
-function _validateSection(idx) {
-  const sec = document.getElementById('section-' + idx);
-  if (!sec) return true;
-  const errFields = [];
-  sec.querySelectorAll('.field').forEach(field => {
-    const inputs = field.querySelectorAll('input,textarea,select');
-    let required = false;
-    inputs.forEach(inp => { if (inp.required) required = true; });
-    if (!required) return;
-    let filled = false;
-    const radios = field.querySelectorAll('input[type=radio]');
-    const checks = field.querySelectorAll('input[type=checkbox]');
-    if (radios.length) {
-      filled = [...radios].some(r => r.checked);
-    } else if (checks.length && checks[0].required) {
-      filled = [...checks].some(c => c.checked);
-    } else {
-      const inp = field.querySelector('input:not([type=radio]):not([type=checkbox]),textarea,select');
-      filled = inp && inp.value.trim() !== '';
-    }
-    if (!filled) {
-      const lbl = field.querySelector('label')?.childNodes[0]?.textContent?.trim() || 'Campo obrigatório';
-      _markError(field, lbl + ' é obrigatório');
-      errFields.push(lbl);
-    }
-  });
-  if (errFields.length) {
-    const pill = document.querySelectorAll('.step-pill')[idx];
-    if (pill) pill.classList.add('has-err');
-    if (!sec.querySelector('.sec-err-banner')) {
-      const banner = document.createElement('div');
-      banner.className = 'sec-err-banner';
-      banner.innerHTML = '⚠️ <div><strong>Seção ' + (idx+1) + ': ' + (_secTitles[idx]||'') + '</strong> — Preencha os campos obrigatórios:<br><span style="font-weight:400">' + errFields.join(', ') + '</span></div>';
-      sec.insertBefore(banner, sec.querySelector('.section-header') || sec.firstChild);
-    }
-    return false;
-  }
-  return true;
-}
-
-function _validateAll() {
-  _clearErrors();
-  let firstErr = -1;
-  for (let i = 0; i < total; i++) {
-    const ok = _validateSection(i);
-    if (!ok && firstErr === -1) firstErr = i;
-  }
-  if (firstErr !== -1) { goTo(firstErr); return false; }
-  return true;
-}
-
-function nextSection() { if (_validateSection(current)) goTo(current + 1); }
-function prevSection() { goTo(current - 1); }
-
-function selectChip(radio) {
-  radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
-  radio.closest('.option-chip').classList.add('selected');
-}
-function toggleCheckChip(cb) { cb.closest('.option-chip').classList.toggle('selected', cb.checked); }
-
-async function submitForm() {
-  const form = document.getElementById('briefingForm');
-  if (!_validateAll()) return;
-  const btn = form.querySelector('.btn-submit');
-  btn.textContent = 'Enviando...'; btn.disabled = true;
-  const fd = new FormData(form);
-  const data = {};
-  fd.forEach((v, k) => { data[k] = data[k] ? data[k] + ', ' + v : v; });
-  const cqSeen = {};
-  document.querySelectorAll('[name^="cq_"]').forEach(inp => {
-    if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
-    else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
-    else data[inp.name]=inp.value;
-  });
-  Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
-  try {
-    await window._saveBriefing(data);
-    ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-    document.getElementById('successCard').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } catch(e) {
-    btn.textContent = 'Enviar Briefing Completo ✓'; btn.disabled = false;
-    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a Conexa Local.' : (e?.message || String(e));
-    alert('Erro ao enviar:\n' + msg);
-  }
-}
-
-updateUI();
-
-function downloadFormPDF() {
-  const win = window.open('', '_blank', 'width=800,height=700');
-  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
-  const form = document.getElementById('briefingForm');
-  const rows = [];
-  if (form) {
-    form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
-      const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
-      let val = '';
-      if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
-      else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
-      else val = el.value;
-      if (!val || !label) return;
-      rows.push({ label, val });
-    });
-  }
-  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Briefing – Google Empresas</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Briefing – Google Empresas (Conexa Local)</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">Conexa Local • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
-  win.document.close();
-  setTimeout(() => { win.focus(); win.print(); }, 400);
-}
-</script>
 </body>
 </html>
