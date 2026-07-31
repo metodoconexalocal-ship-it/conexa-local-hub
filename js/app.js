@@ -8206,8 +8206,10 @@ async function renderCustomFormsPage() {
 
   // Auto-fix: atualizar cópia antiga de GMB com 74 campos novos
   (async () => {
-    const oldForm = _cfForms.find(f => f.title?.includes('Google Meu Negócio') && f.title?.includes('editável') && f.fields?.length < 70);
-    if (oldForm && FORM_CONFIGS?.gmb) {
+    try {
+      const oldForm = _cfForms?.find(f => f.title?.includes('Google Meu Negócio') && f.title?.includes('editável') && f.fields?.length < 70);
+      if (!oldForm || !FORM_CONFIGS?.gmb) return;
+
       const cfg = FORM_CONFIGS.gmb;
       const fields = [];
       let i = 0;
@@ -8218,10 +8220,15 @@ async function renderCustomFormsPage() {
           fields.push({ id: 'f' + (++i), type: typeMap[f.type] || 'text', label: f.label, hint: f.hint || '', required: f.required || false, options: (typeMap[f.type] === 'radio' && (f.type === 'stars' || f.type === 'rating')) ? ['1', '2', '3', '4', '5'] : (f.options || []) });
         });
       });
+
       if (window.saveCustomForm) {
-        await window.saveCustomForm({ ...oldForm, fields });
-        _cfForms = await window.loadCustomForms?.();
+        const updated = await window.saveCustomForm({ ...oldForm, fields });
+        if (updated) {
+          _cfForms = await window.loadCustomForms?.();
+        }
       }
+    } catch (e) {
+      console.error('[auto-fix] Erro ao atualizar GMB:', e);
     }
   })();
 
