@@ -8442,7 +8442,15 @@ function _cfFieldCard(f, i) {
       onchange="_cfFieldProp('${f.id}','hint',this.value)"
       style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;background:var(--bg-card);color:var(--text-muted);font-family:var(--font);font-size:12px;outline:none;margin-bottom:${hasOptions?'8px':'0'};box-sizing:border-box">
     ${hasOptions ? `
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;font-weight:600">Opções:</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600">📋 Pré-visualização (como o cliente verá):</div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px">
+        ${(f.options||[]).map(o => `
+          <div style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:2px solid var(--border);border-radius:7px;cursor:pointer;font-size:12px;background:#fff;color:var(--text-primary);transition:all .2s">
+            ${f.type === 'checkbox' ? '<input type="checkbox" style="cursor:pointer" disabled>' : f.type === 'radio' ? '<input type="radio" style="cursor:pointer" disabled>' : ''}
+            <span>${o}</span>
+          </div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;font-weight:600">✏️ Editar opções:</div>
       <div id="cff-opts-${f.id}">
         ${(f.options||[]).map((o,oi) => `
           <div style="display:flex;gap:6px;margin-bottom:5px">
