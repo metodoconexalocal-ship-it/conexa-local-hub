@@ -8628,14 +8628,9 @@ async function _cfSave() {
 
 function _cfCopyLink(id) {
   const form = _cfForms.find(f => f.id === id);
-  let url;
 
-  // Se for a cópia de Google Meu Negócio/Briefing Conexa Local, usar o link do ficha-gmb.html
-  if (form?.title?.includes('Conexa Local') || form?.title?.includes('Google Meu Negócio')) {
-    url = 'https://conexa-local-hub.vercel.app/forms/ficha-gmb.html';
-  } else {
-    url = window.location.origin + '/forms/form.html?id=' + id;
-  }
+  // SEMPRE usar ficha-custom.html com o ID do formulário
+  const url = 'https://conexa-local-hub.vercel.app/forms/ficha-custom.html?formId=' + id;
 
   navigator.clipboard.writeText(url).then(() => {
     alert('Link copiado!\n\n' + url + '\n\nCompartilhe com o cliente.');

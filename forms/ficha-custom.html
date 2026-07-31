@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário | Conexa Local</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+.progress-wrap{background:rgba(255,255,255,.05);padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{color:rgba(255,255,255,.6);font-size:12px}
+.progress-count{color:#fff;font-size:12px;font-weight:600}
+.progress-bar{height:4px;background:rgba(255,255,255,.13);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#a855f7);border-radius:2px;transition:width .4s ease}
+.steps-nav{display:flex;gap:6px;padding:10px 24px;overflow-x:auto;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}
+.steps-nav::-webkit-scrollbar{display:none}
+.step-pill{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.45);background:transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.step-pill.active{background:linear-gradient(135deg,#06b6d4,#0ea5e9);color:#fff;border-color:transparent}
+.step-pill.done{background:rgba(168,85,247,.18);color:rgba(255,255,255,.75);border-color:rgba(168,85,247,.35)}
+.main{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:27px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.2}
+.intro-card h1 span{background:linear-gradient(135deg,#06b6d4,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:480px;margin:0 auto 24px}
+.intro-stats{display:flex;justify-content:center;gap:36px;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)}
+.intro-stat strong{display:block;font-size:24px;font-weight:800;background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-stat span{font-size:11px;color:var(--gray-600)}
+.section-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);display:none !important;animation:fadeIn .35s ease}
+.section-card.active{display:block !important}
+.intro-card{display:block !important}
+.success-card{display:none !important}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.section-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#06b6d4,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-weight:700;color:#fff;position:relative}
+.section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+.field{margin-bottom:22px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:6px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field label .hint{display:block;font-size:11.5px;font-weight:400;color:var(--gray-600);margin-top:2px;line-height:1.4}
+.field input[type="text"],.field input[type="email"],.field input[type="tel"],.field input[type="date"],.field textarea,.field select{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-back{background:var(--gray-100);color:var(--gray-700)}
+.btn-back:hover{background:var(--gray-200)}
+.btn-next{background:linear-gradient(135deg,#06b6d4,#0ea5e9);color:#fff;box-shadow:0 4px 14px rgba(6,182,212,.35)}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(6,182,212,.45)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 32px;font-size:14px;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(6,182,212,.45)}
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#0ea5e9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+.loading{text-align:center;padding:60px 20px;color:rgba(255,255,255,.7)}
+.loading-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand" style="font-size:16px;font-weight:700;background:linear-gradient(135deg,#06b6d4,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">CONEXA LOCAL</div>
+  <div class="header-sep"></div>
+  <div class="header-title" id="header-title">Formulário</div>
+</div>
+
+<div class="main" id="app">
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <p>Carregando formulário...</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let formData = {};
+let currentSection = 0;
+let formFields = [];
+
+(async () => {
+  try {
+    if (!auth.currentUser) await signInAnonymously(auth);
+  } catch(e) {
+    console.warn('Autenticação falhou:', e.message);
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const formId = params.get('formId') || params.get('id');
+
+  if (!formId) {
+    document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Nenhum formulário especificado. Adicione ?formId=xxxxx na URL</p></div>';
+    return;
+  }
+
+  console.log('Carregando formulário:', formId);
+
+  // Tentar carregar de múltiplas coleções
+  const collections = ['ghub_custom_forms', 'crm_custom_forms', 'customForms'];
+  let form = null;
+
+  for (const colName of collections) {
+    try {
+      const docRef = doc(db, colName, formId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        form = snap.data();
+        console.log('✅ Formulário encontrado em', colName);
+        break;
+      }
+    } catch (e) {
+      console.error(`Erro ao buscar em ${colName}:`, e.message);
+    }
+  }
+
+  if (!form) {
+    document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário não encontrado</p></div>';
+    return;
+  }
+
+  document.getElementById('header-title').textContent = form.title || 'Formulário';
+  formFields = form.fields || [];
+  renderForm();
+})();
+
+function renderForm() {
+  if (!formFields.length) return;
+
+  const sections = [];
+  let currentSec = null;
+
+  formFields.forEach(f => {
+    if (f.type === 'section') {
+      if (currentSec) sections.push(currentSec);
+      currentSec = { label: f.label, fields: [] };
+    } else if (currentSec) {
+      currentSec.fields.push(f);
+    }
+  });
+  if (currentSec) sections.push(currentSec);
+
+  const app = document.getElementById('app');
+  const icons = ['bi-building', 'bi-bar-chart', 'bi-laptop', 'bi-geo-alt', 'bi-clock', 'bi-star', 'bi-tools', 'bi-camera', 'bi-star', 'bi-target'];
+
+  let html = `
+    <div class="intro-card">
+      <div style="width:60px;height:60px;background:linear-gradient(135deg,#06b6d4,#0ea5e9);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;color:#fff;font-weight:700">C</div>
+      <div class="intro-badge">📋 Formulário Oficial Conexa Local</div>
+      <h1>${(document.getElementById('header-title').textContent || 'Formulário').split('|')[0].trim()}</h1>
+      <p>Preencha todas as informações solicitadas com atenção. Quanto mais completo, melhor poderemos ajudá-lo!</p>
+      <div class="intro-stats">
+        <div class="intro-stat"><strong>${sections.length}</strong><span>Seções</span></div>
+        <div class="intro-stat"><strong>${formFields.filter(f => f.type !== 'section').length}</strong><span>Campos</span></div>
+        <div class="intro-stat"><strong>~30 min</strong><span>Tempo</span></div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-count"><span id="progress-num">0</span>% preenchido</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="steps-nav" id="steps-nav"></div>
+  `;
+
+  sections.forEach((sec, i) => {
+    const icon = icons[i] || 'bi-pencil-square';
+    const secNum = String(i + 1).padStart(2, '0');
+    html += `<div class="section-card" data-section="${i}">
+      <div class="section-header">
+        <div class="section-icon"><i class="bi ${icon}" style="font-size:26px"></i><span style="position:absolute;bottom:-4px;right:-4px;font-size:12px;font-weight:900;background:#ef4444;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;border:2px solid #06b6d4;box-shadow:0 2px 8px rgba(0,0,0,.3)">${secNum}</span></div>
+        <div class="section-info">
+          <h2>${sec.label}</h2>
+          <p>${sec.fields.length} campos</p>
+        </div>
+      </div>
+      <form>`;
+
+    sec.fields.forEach(f => {
+      const fid = 'f_' + (Math.random().toString(36).slice(2));
+      html += renderField(f, fid);
+    });
+
+    html += `</form>
+      <div class="nav-btns">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af">Seção ${secNum}/${String(sections.length).padStart(2, '0')}</div>
+        <div style="display:flex;gap:10px">
+          ${i > 0 ? `<button type="button" class="btn btn-back" onclick="goSection(${i-1})">← Anterior</button>` : ''}
+          ${i < sections.length - 1 ? `<button type="button" class="btn btn-next" onclick="goSection(${i+1})">Próximo →</button>` : `<button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Formulário ✓</button>`}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  while (app.firstChild) app.removeChild(app.firstChild);
+  app.innerHTML = html;
+
+  sections.forEach((_, i) => {
+    const navHtml = `<button class="step-pill" onclick="goSection(${i})" data-sec="${i}">Seção ${String(i+1).padStart(2,'0')}</button>`;
+    document.getElementById('steps-nav').insertAdjacentHTML('beforeend', navHtml);
+  });
+
+  goSection(0);
+}
+
+function renderField(f, fid) {
+  const required = f.required ? '<span class="req">*</span>' : '';
+  const hint = f.hint ? `<span class="hint">${f.hint}</span>` : '';
+  return `<div class="field">
+    <label for="${fid}">${f.label}${required}${hint}</label>
+    ${f.type === 'textarea' ? `<textarea id="${fid}" onchange="formData['${f.label}'] = this.value"></textarea>` : `<input type="${f.type || 'text'}" id="${fid}" onchange="formData['${f.label}'] = this.value">`}
+  </div>`;
+}
+
+window.goSection = function(n) {
+  currentSection = n;
+  document.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.step-pill').forEach(p => p.classList.remove('active', 'done'));
+  document.querySelector(`[data-section="${n}"]`)?.classList.add('active');
+  document.querySelectorAll('.step-pill').forEach((p, i) => {
+    if (i === n) p.classList.add('active');
+    else if (i < n) p.classList.add('done');
+  });
+};
+
+window.submitForm = async function() {
+  const params = new URLSearchParams(window.location.search);
+  const formId = params.get('formId') || params.get('id');
+  try {
+    const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await addDoc(collection(db, 'ghub_briefings'), { ...formData, formId, formTitle: document.getElementById('header-title').textContent, submittedAt: new Date().toISOString() });
+    alert('✅ Formulário enviado com sucesso!');
+    location.reload();
+  } catch(e) {
+    alert('❌ Erro ao enviar: ' + e.message);
+  }
+};
+</script>
+</body>
+</html>
