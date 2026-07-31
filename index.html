@@ -232,9 +232,6 @@
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <span class="nav-icon"><i class="bi bi-gear-fill"></i></span> Configurações
       </div>
-      <div class="nav-item" id="nav-categorias-google" onclick="showPage('categorias-google')">
-        <span class="nav-icon"><i class="bi bi-tags"></i></span> Categorias Google
-      </div>
     </div>
   </aside>
 
@@ -1187,9 +1184,10 @@
       <div class="form-grid">
         <div class="form-row"><label>Segmento / Nicho</label><input id="c-segmento" type="text"></div>
         <div class="form-row form-full"><label>Categoria Google Business <span style="color:var(--text-muted);font-size:10px">(para identificar oportunidades)</span></label>
-          <select id="c-categoria-google" onchange="updateCategoriaGoogleField()">
-            <option value="">— Selecionar categoria —</option>
-          </select>
+          <div style="position:relative">
+            <input id="c-categoria-google" type="text" placeholder="Digitar categoria (ex: Restaurante, Salão de beleza...)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px" oninput="filterGoogleCategories(this.value)" onblur="setTimeout(()=>document.getElementById('cat-dropdown').style.display='none',150)">
+            <div id="cat-dropdown" style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;display:none;z-index:1000"></div>
+          </div>
         </div>
         <div class="form-row form-full"><label>Principais serviços / produtos</label><textarea id="c-servicos-emp" rows="2"></textarea></div>
         <div class="form-row"><label>Ticket médio</label><input id="c-ticket" type="text" placeholder="R$ 0,00"></div>
