@@ -2020,9 +2020,10 @@ function showPage(page) {
     'gmn-postagens':      '<span>GMN</span> — Postagens',
     'gmn-avaliacoes':     '<span>GMN</span> — Avaliações',
     'gmn-ranking':        '<span>GMN</span> — Ranking no Mapa',
+    'categorias-google':  '<span>Categorias</span> — Google Business',
   };
   document.getElementById('page-title').innerHTML = titles[page] || page;
-  const hiddenNew = ['financeiro','prospeccao','clients','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','form-editor','docs','doc-editor','files','custom-forms','custom-form-editor','dashboard','jornada','lembretes','ia','contratos-ia','settings','calendario','metricas','conteudo-geral','conteudo-clientes','minha-agenda','leads-portal','mapas','gmn-dashboard','gmn-perfis','gmn-postagens','gmn-avaliacoes','gmn-ranking'];
+  const hiddenNew = ['financeiro','prospeccao','clients','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','form-editor','docs','doc-editor','files','custom-forms','custom-form-editor','dashboard','jornada','lembretes','ia','contratos-ia','settings','calendario','metricas','conteudo-geral','conteudo-clientes','minha-agenda','leads-portal','mapas','gmn-dashboard','gmn-perfis','gmn-postagens','gmn-avaliacoes','gmn-ranking','categorias-google'];
   document.getElementById('top-new-btn').style.display = hiddenNew.includes(page) ? 'none' : '';
   document.getElementById('top-new-btn').onclick = openNewModal;
   if (page === 'crm') { renderTeamNav(); renderCRM(); }
@@ -2052,6 +2053,7 @@ function showPage(page) {
   else if (page === 'minha-agenda')        renderMinhaAgenda();
   else if (page === 'leads-portal')        renderLeadsPortalPage();
   else if (page === 'mapas')               renderMapasPage();
+  else if (page === 'categorias-google')   renderCategoriasGooglePage();
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   // Nav map: now first section has 4 items (Dashboard, CRM, Jornada, Lembretes)
@@ -2551,6 +2553,7 @@ function openClientReg(clientId) {
 
   updateClientStepUI();
   document.getElementById('modal-client-reg').classList.add('open');
+  populateCategorySelect();  // Popular select de categorias Google
 }
 
 function closeClientReg() {
@@ -2925,6 +2928,35 @@ function deleteClientFull(clientId) {
   clientsData = clientsData.filter(x => x.id !== clientId);
   saveState();
   renderClients();
+}
+
+// ─── CATEGORIAS GOOGLE ────────────────────────────────────────────────────
+window._categorias_google = [];
+
+function loadCategoriasGoogle() {
+  try {
+    window._categorias_google = JSON.parse(localStorage.getItem('categorias_google') || '[]');
+  } catch(e) {
+    window._categorias_google = [];
+  }
+}
+
+function saveCategoriasGoogle() {
+  localStorage.setItem('categorias_google', JSON.stringify(window._categorias_google));
+  populateCategorySelect();
+}
+
+function populateCategorySelect() {
+  const select = document.getElementById('c-categoria-google');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="">— Selecionar categoria —</option>' +
+    (window._categorias_google || []).map(c => `<option value="${c}">${c}</option>`).join('');
+  if (current) select.value = current;
+}
+
+function updateCategoriaGoogleField() {
+  // Atualiza campo quando categoria é selecionada
 }
 
 // ─── PLANO CUSTOMIZADO ────────────────────────────────────────────────────────
@@ -5659,6 +5691,7 @@ window.deleteSubitem = function(boardKey, groupId, itemId, subId, e) {
     }
     loadNotifications();
     loadLabels();
+    loadCategoriasGoogle();  // Carregar categorias Google
     checkDeadlineAlerts();   // #1 alerta de prazo
     checkRecurringTasks();   // #4 tarefas recorrentes
     checkWeeklySummary();    // #6 resumo semanal
@@ -11733,6 +11766,86 @@ function _settingsToggle(key, role, val) {
     if (ok) addNotif('Configurações salvas!', 'success');
     else addNotif('Erro ao salvar configurações', 'error');
   }, 800);
+}
+
+// ─── GERENCIAR CATEGORIAS GOOGLE ───────────────────────────────────────────
+async function renderCategoriasGooglePage() {
+  if (window.currentRole !== 'admin') {
+    document.getElementById('main-content').innerHTML =
+      '<div class="page-wrap"><p style="color:var(--text-muted)">Acesso restrito.</p></div>';
+    return;
+  }
+
+  loadCategoriasGoogle();
+
+  document.getElementById('main-content').innerHTML =
+    '<div class="page-wrap"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">' +
+    '<div style="width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px"><i class="bi bi-tags"></i></div>' +
+    '<div><div style="font-size:18px;font-weight:700">Categorias Google Business</div>' +
+    '<div style="font-size:12px;color:var(--text-muted)">Gerenciar categorias para identificar oportunidades nos clientes</div></div></div>' +
+    '<div id="categorias-content"></div></div>';
+
+  let html = `<div style="display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Adicionar / Editar Categorias</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Digite uma categoria por linha. O sistema usará essas categorias no formulário de novo cliente.</div>
+      <textarea id="cat-textarea" style="width:100%;min-height:200px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:12px;background:var(--bg-input);color:var(--text);resize:vertical" placeholder="Categoria 1
+Categoria 2
+Categoria 3"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-primary" onclick="saveCategoriasGoogleFromTextarea()">💾 Salvar Categorias</button>
+        <button class="btn btn-ghost" onclick="resetCategoriasTextarea()">↻ Recarregar</button>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Categorias Salvas (${window._categorias_google.length})</div>
+      <div id="categorias-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>`;
+
+  document.getElementById('categorias-content').innerHTML = html;
+  document.getElementById('cat-textarea').value = (window._categorias_google || []).join('\n');
+  renderCategoriasLista();
+}
+
+function renderCategoriasLista() {
+  const lista = document.getElementById('categorias-list');
+  if (!lista) return;
+  if (!window._categorias_google || window._categorias_google.length === 0) {
+    lista.innerHTML = '<div style="color:var(--text-muted);font-size:12px">Nenhuma categoria salva ainda. Adicione acima.</div>';
+    return;
+  }
+  lista.innerHTML = (window._categorias_google || []).map((cat, i) =>
+    `<div style="background:var(--accent-soft);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:12px">
+      <span>${escapeHtml(cat)}</span>
+      <button onclick="deleteCategoria(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px" title="Deletar"><i class="bi bi-x"></i></button>
+    </div>`
+  ).join('');
+}
+
+function resetCategoriasTextarea() {
+  loadCategoriasGoogle();
+  document.getElementById('cat-textarea').value = (window._categorias_google || []).join('\n');
+}
+
+function saveCategoriasGoogleFromTextarea() {
+  const textarea = document.getElementById('cat-textarea');
+  const text = textarea.value.trim();
+  const linhas = text.split('\n').map(l => l.trim()).filter(l => l);
+  window._categorias_google = linhas;
+  saveCategoriasGoogle();
+  renderCategoriasLista();
+  addNotif(`${linhas.length} categorias salvas!`, 'success');
+}
+
+function deleteCategoria(idx) {
+  if (!confirm('Deletar essa categoria?')) return;
+  window._categorias_google.splice(idx, 1);
+  saveCategoriasGoogle();
+  renderCategoriasLista();
+  document.getElementById('cat-textarea').value = (window._categorias_google || []).join('\n');
+  addNotif('Categoria deletada', 'info');
 }
 
 

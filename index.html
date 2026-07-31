@@ -232,6 +232,9 @@
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <span class="nav-icon"><i class="bi bi-gear-fill"></i></span> Configurações
       </div>
+      <div class="nav-item" id="nav-categorias-google" onclick="showPage('categorias-google')">
+        <span class="nav-icon"><i class="bi bi-tags"></i></span> Categorias Google
+      </div>
     </div>
   </aside>
 
@@ -1183,7 +1186,11 @@
       <div class="step-section-title">Informações do Negócio</div>
       <div class="form-grid">
         <div class="form-row"><label>Segmento / Nicho</label><input id="c-segmento" type="text"></div>
-        <div class="form-row"><label>Categoria principal</label><input id="c-categoria" type="text"></div>
+        <div class="form-row form-full"><label>Categoria Google Business <span style="color:var(--text-muted);font-size:10px">(para identificar oportunidades)</span></label>
+          <select id="c-categoria-google" onchange="updateCategoriaGoogleField()">
+            <option value="">— Selecionar categoria —</option>
+          </select>
+        </div>
         <div class="form-row form-full"><label>Principais serviços / produtos</label><textarea id="c-servicos-emp" rows="2"></textarea></div>
         <div class="form-row"><label>Ticket médio</label><input id="c-ticket" type="text" placeholder="R$ 0,00"></div>
         <div class="form-row"><label>Região de atuação</label><input id="c-regiao" type="text"></div>
