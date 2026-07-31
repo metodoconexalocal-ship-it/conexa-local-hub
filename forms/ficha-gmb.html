@@ -100,16 +100,31 @@ let formFields = [];
 (async () => {
   try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
 
-  // Escutar mudanças em tempo real na cópia editável de GMB
-  onSnapshot(query(collection(db, 'customForms'), where('title', 'in', ['Google Meu Negócio (editável)', 'Briefing Conexa Local | Google Empresas'])), (snap) => {
-    if (snap.docs.length) {
-      const form = snap.docs[0].data();
-      formFields = form.fields || [];
-      renderForm();
-    } else {
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário não encontrado</p></div>';
+  let foundForm = false;
+  const timeout = setTimeout(() => {
+    if (!foundForm) {
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro ao carregar formulário (timeout)</p></div>';
     }
-  });
+  }, 8000);
+
+  onSnapshot(
+    query(collection(db, 'customForms'), where('title', 'in', ['Google Meu Negócio (editável)', 'Briefing Conexa Local | Google Empresas'])),
+    (snap) => {
+      clearTimeout(timeout);
+      foundForm = true;
+      if (snap.docs.length) {
+        const form = snap.docs[0].data();
+        formFields = form.fields || [];
+        renderForm();
+      } else {
+        document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário não encontrado (0 docs)</p></div>';
+      }
+    },
+    (error) => {
+      clearTimeout(timeout);
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro Firebase: ' + error.message + '</p></div>';
+    }
+  );
 })();
 
 function renderForm() {
