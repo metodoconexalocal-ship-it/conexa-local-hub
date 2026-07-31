@@ -103,28 +103,60 @@ let formFields = [];
   let foundForm = false;
   const timeout = setTimeout(() => {
     if (!foundForm) {
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro ao carregar formulário (timeout)</p></div>';
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro ao carregar formulário (timeout conexão)</p></div>';
     }
-  }, 8000);
+  }, 10000);
 
-  onSnapshot(
-    query(collection(db, 'customForms'), where('title', 'in', ['Google Meu Negócio (editável)', 'Briefing Conexa Local | Google Empresas'])),
-    (snap) => {
+  // Tentar múltiplas queries para encontrar o formulário
+  const queries = [
+    query(collection(db, 'customForms'), where('title', '==', 'Briefing Conexa Local | Google Empresas')),
+    query(collection(db, 'customForms'), where('title', '==', 'Google Meu Negócio (editável)')),
+    query(collection(db, 'customForms'))
+  ];
+
+  let currentQuery = 0;
+
+  const tryNextQuery = () => {
+    if (currentQuery >= queries.length) {
       clearTimeout(timeout);
-      foundForm = true;
-      if (snap.docs.length) {
-        const form = snap.docs[0].data();
-        formFields = form.fields || [];
-        renderForm();
-      } else {
-        document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Formulário não encontrado (0 docs)</p></div>';
-      }
-    },
-    (error) => {
-      clearTimeout(timeout);
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Erro Firebase: ' + error.message + '</p></div>';
+      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Nenhum formulário encontrado</p></div>';
+      return;
     }
-  );
+
+    onSnapshot(
+      queries[currentQuery],
+      (snap) => {
+        foundForm = true;
+        clearTimeout(timeout);
+
+        let form = null;
+        if (currentQuery < 2) {
+          // Se era uma query específica, usar o primeiro documento
+          if (snap.docs.length) form = snap.docs[0].data();
+        } else {
+          // Se era a query geral, procurar pelos títulos
+          form = snap.docs.find(doc => {
+            const title = doc.data().title || '';
+            return title.includes('Briefing Conexa Local') || title.includes('Google Meu Negócio');
+          })?.data();
+        }
+
+        if (form) {
+          formFields = form.fields || [];
+          renderForm();
+        } else {
+          currentQuery++;
+          tryNextQuery();
+        }
+      },
+      (error) => {
+        currentQuery++;
+        tryNextQuery();
+      }
+    );
+  };
+
+  tryNextQuery();
 })();
 
 function renderForm() {
