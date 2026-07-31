@@ -92,7 +92,7 @@ Google Meu Negócio (editável)
 
 Após o rebuild, teste no formulário público:
 
-**URL:** https://gmn-hub.vercel.app/forms/ficha-gmb.html
+**URL:** https://conexa-local-hub.vercel.app/forms/ficha-gmb.html
 
 **Checklist:**
 - [ ] Seção 06 mostra "Outro" com input

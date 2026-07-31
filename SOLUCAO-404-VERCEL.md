@@ -24,7 +24,7 @@ Ctrl + Shift + R
 ```
 
 ### Passo 3: Teste
-- Abra: https://gmn-hub.vercel.app/forms/ficha-gmb.html
+- Abra: https://conexa-local-hub.vercel.app/forms/ficha-gmb.html
 - Deve aparecer a seção 07 com "Produto mais vendido"
 
 ---
@@ -36,7 +36,7 @@ Ctrl + Shift + R
 ```
 ┌─────────────────────────────────────────┐
 │ CLIENTE (Público)                       │
-│ https://gmn-hub.vercel.app/forms/      │
+│ https://conexa-local-hub.vercel.app/forms/      │
 │         ficha-gmb.html                  │
 │                                         │
 │ 12 Seções                              │

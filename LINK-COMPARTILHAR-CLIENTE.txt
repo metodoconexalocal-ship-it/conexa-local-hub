@@ -3,7 +3,7 @@
 
 Use ESTE link para compartilhar o formulário com o cliente:
 
-https://gmn-hub.vercel.app/forms/ficha-gmb.html
+https://conexa-local-hub.vercel.app/forms/ficha-gmb.html
 
 ⚠️ NÃO use o link gerado pelo botão "Copiar link" em Meus Formulários
    (esse é para o formulário editável no CRM, não para o cliente)

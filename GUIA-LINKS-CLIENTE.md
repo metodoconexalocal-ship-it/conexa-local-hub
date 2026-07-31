@@ -3,7 +3,7 @@
 ## ✅ Link CORRETO para Cliente Responder
 
 ```
-https://gmn-hub.vercel.app/forms/ficha-gmb.html
+https://conexa-local-hub.vercel.app/forms/ficha-gmb.html
 ```
 
 **Este é o link que o cliente deve usar para preencher o formulário.**
@@ -11,7 +11,7 @@ https://gmn-hub.vercel.app/forms/ficha-gmb.html
 ### Como compartilhar:
 
 **Opção 1: Copiar direto e enviar**
-- Copie: `https://gmn-hub.vercel.app/forms/ficha-gmb.html`
+- Copie: `https://conexa-local-hub.vercel.app/forms/ficha-gmb.html`
 - Envie por WhatsApp, Email, etc
 
 **Opção 2: No CRM**
@@ -172,7 +172,7 @@ CRM mostra → Formulários → Respostas
 
 ## 🧪 Teste Completo
 
-1. **Abra o link:** https://gmn-hub.vercel.app/forms/ficha-gmb.html
+1. **Abra o link:** https://conexa-local-hub.vercel.app/forms/ficha-gmb.html
 2. **Pressione:** Ctrl+Shift+R (hard refresh)
 3. **Deve aparecer:**
    - Seção 07 com "Produto mais vendido" como primeira pergunta
@@ -186,7 +186,7 @@ CRM mostra → Formulários → Respostas
 
 ## 📞 Checklist de Compartilhamento
 
-- [ ] Link correto: `https://gmn-hub.vercel.app/forms/ficha-gmb.html`
+- [ ] Link correto: `https://conexa-local-hub.vercel.app/forms/ficha-gmb.html`
 - [ ] Cliente consegue abrir sem erro
 - [ ] Cliente vê 12 seções completas
 - [ ] Cliente consegue preencher e enviar
