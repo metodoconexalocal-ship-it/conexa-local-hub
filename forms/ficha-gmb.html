@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Briefing Google Empresas | Conexa Local</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
 :root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -304,14 +305,14 @@ function renderForm() {
     <div class="steps-nav" id="steps-nav"></div>
   `;
 
-  const emojis = ['🏢', '📊', '💻', '📍', '⏰', '⭐', '🛠️', '📸', '⭐', '🎯'];
+  const icons = ['bi-building', 'bi-bar-chart', 'bi-laptop', 'bi-geo-alt', 'bi-clock', 'bi-star', 'bi-tools', 'bi-camera', 'bi-star', 'bi-target'];
 
   sections.forEach((sec, i) => {
-    const emoji = emojis[i] || '📝';
+    const icon = icons[i] || 'bi-pencil-square';
     const secNum = String(i + 1).padStart(2, '0');
     html += `<div class="section-card" data-section="${i}">
       <div class="section-header">
-        <div class="section-icon" style="position:relative;font-size:24px">${emoji}<span style="position:absolute;bottom:-2px;right:-2px;font-size:14px;font-weight:900;background:#06b6d4;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1">${secNum}</span></div>
+        <div class="section-icon" style="position:relative;font-size:26px;display:flex;align-items:center;justify-content:center;color:#fff"><i class="bi ${icon}" style="font-size:26px"></i><span style="position:absolute;bottom:-4px;right:-4px;font-size:12px;font-weight:900;background:#ef4444;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;border:2px solid #06b6d4;box-shadow:0 2px 8px rgba(0,0,0,.3)">${secNum}</span></div>
         <div class="section-info">
           <h2>${sec.label}</h2>
           <p>${sec.fields.length} campos</p>
