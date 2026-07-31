@@ -114,7 +114,14 @@ let formFields = [];
   }, 15000);
 
   // Tentar múltiplas coleções em sequência (priorizar ghub_custom_forms onde são salvos)
-  const collections = ['ghub_custom_forms', 'customForms', 'crm_custom_forms'];
+  const collections = ['ghub_custom_forms', 'crm_custom_forms', 'customForms'];
+
+  // DEBUG: fazer uma busca rápida com getDocs para ver quais coleções existem
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({getDocs, collection: coll}) => {
+    Promise.all(collections.map(c => getDocs(coll(db, c)).then(s => ({col: c, count: s.docs.length})))).then(results => {
+      console.log('Coleções disponíveis:', results);
+    }).catch(e => console.error('Erro ao listar coleções:', e));
+  });
   let collectionIndex = 0;
 
   const tryNextCollection = () => {
