@@ -154,6 +154,11 @@ service cloud.firestore {
       allow write: if isAuth();                         // só internos criam/editam
     }
 
+    match /customForms/{docId} {
+      allow read: if true;                              // leitura pública para clientes
+      allow write: if isAuth();                         // só internos criam/editam
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  GMN HUB — espelhos ghub_* (sistema GMN Hub, dados separados do CRM)
     //  Somente as coleções com acesso público precisam de regra explícita;
