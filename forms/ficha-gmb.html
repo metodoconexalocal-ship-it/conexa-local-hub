@@ -271,6 +271,11 @@ function renderForm() {
   // Success card será criada dinamicamente quando o formulário for enviado
   // html += `<div class="success-card" id="success-card">...</div>`;
 
+  // Limpar completamente antes de adicionar novo conteúdo
+  while (app.firstChild) {
+    app.removeChild(app.firstChild);
+  }
+
   app.innerHTML = html;
 
   // Render step pills
