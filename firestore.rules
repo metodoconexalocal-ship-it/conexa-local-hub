@@ -193,8 +193,8 @@ service cloud.firestore {
     }
 
     match /ghub_custom_forms/{docId} {
-      allow read: if true;
-      allow write: if isAuth();
+      allow read: if true;                              // leitura pública para clientes
+      allow write: if isAuth();                         // só internos criam/editam
     }
 
     // ══════════════════════════════════════════════════════════════════════
