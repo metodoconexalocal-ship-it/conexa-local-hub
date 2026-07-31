@@ -120,7 +120,9 @@ let formFields = [];
   const tryNextCollection = () => {
     if (collectionIndex >= collections.length) {
       clearTimeout(timeout);
-      document.getElementById('app').innerHTML = '<div class="loading"><p>❌ Nenhum formulário encontrado em nenhuma coleção</p></div>';
+      const msg = `❌ Nenhum formulário encontrado em: ${collections.join(', ')}`;
+      console.error(msg);
+      document.getElementById('app').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
       return;
     }
 
@@ -165,6 +167,7 @@ let formFields = [];
       },
       (error) => {
         // Erro nesta coleção, tentar a próxima
+        console.error(`Erro em ${currentCollection}:`, error.message);
         tryNextCollection();
       }
     );
