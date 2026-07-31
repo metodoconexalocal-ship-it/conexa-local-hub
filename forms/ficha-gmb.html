@@ -98,10 +98,12 @@ let currentSection = 0;
 let formFields = [];
 
 (async () => {
+  // Tentar autenticar mas não falhar se não conseguir - as regras são públicas anyway
   try {
     if (!auth.currentUser) await signInAnonymously(auth);
   } catch(e) {
     console.warn('Autenticação anônima falhou:', e.message);
+    // Continuar mesmo sem autenticação - as regras de Firestore permitem leitura pública
   }
 
   let foundForm = false;
