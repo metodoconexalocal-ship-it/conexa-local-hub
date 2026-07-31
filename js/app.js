@@ -8790,7 +8790,7 @@ async function renderDashboard() {
     <!-- Performance da equipe -->
     ${(() => {
       const memberStats = {};
-      Object.values(boards||{}).forEach(b => {
+      Object.values(state||{}).forEach(b => {
         (b.groups||[]).forEach(g => {
           (g.items||[]).forEach(i => {
             const members = [];

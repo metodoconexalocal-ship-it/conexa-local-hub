@@ -198,7 +198,7 @@ body.light #sidebar-logo-dark.logo-invert-fallback { display: block !important; 
 .nav-item.active { background: var(--accent-soft); color: var(--accent); }
 .nav-item .nav-icon { width: 16px; text-align: center; font-size: 14px; }
 .nav-badge { margin-left: auto; font-size: 10px; background: var(--accent); color: #fff; border-radius: 99px; padding: 1px 7px; font-weight: 600; }
-.sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid var(--border); }
+.sidebar-bottom { padding: 16px 12px; border-top: 1px solid var(--border); margin-top: auto; }
 .user-pill { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .user-pill:hover { background: var(--bg-hover); }
 .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
