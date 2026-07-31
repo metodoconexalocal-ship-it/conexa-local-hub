@@ -2931,6 +2931,47 @@ function deleteClientFull(clientId) {
   renderClients();
 }
 
+// ─── TOGGLE MENU SECTIONS ─────────────────────────────────────────────────
+function toggleSection(element) {
+  const section = element.closest('.sidebar-section');
+  const icon = element.querySelector('.toggle-icon');
+  const items = section.querySelectorAll('.nav-item, .add-group-btn');
+
+  // Toggle visibility
+  items.forEach(item => {
+    item.style.display = item.style.display === 'none' ? '' : 'none';
+  });
+
+  // Rotate icon
+  if (icon) {
+    icon.style.transform = icon.style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)';
+    icon.style.transition = 'transform 0.3s ease';
+  }
+
+  // Salvar estado no localStorage
+  const sectionId = section.className;
+  const collapsed = items[0]?.style.display === 'none';
+  const state = JSON.parse(localStorage.getItem('menu_state') || '{}');
+  state[sectionId] = collapsed;
+  localStorage.setItem('menu_state', JSON.stringify(state));
+}
+
+// Restaurar estado dos menus ao carregar
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const state = JSON.parse(localStorage.getItem('menu_state') || '{}');
+    document.querySelectorAll('.sidebar-section').forEach(section => {
+      const sectionId = section.className;
+      if (state[sectionId]) {
+        const items = section.querySelectorAll('.nav-item, .add-group-btn');
+        const icon = section.querySelector('.toggle-icon');
+        items.forEach(item => item.style.display = 'none');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      }
+    });
+  }, 100);
+});
+
 // ─── CATEGORIAS GOOGLE ────────────────────────────────────────────────────
 window._google_categories_list = [
   'Restaurante', 'Salão de Beleza', 'Clínica Médica', 'Consultório Odontológico', 'Academia de Ginástica',
