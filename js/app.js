@@ -6078,24 +6078,6 @@ const GMB_SECTIONS = [
     { key: 'meta_3meses',       label: 'Meta próximos 3 meses' },
     { key: 'meta_avaliacoes',   label: 'Meta de avaliações' },
   ]},
-  { label: '11 — Conteúdo e Diferenciais', fields: [
-    { key: 'vantagem_competitiva',label: 'Vantagem competitiva' },
-    { key: 'diferencial_unico',   label: 'Diferencial único' },
-    { key: 'tipo_conteudo',       label: 'Tipo de conteúdo' },
-    { key: 'frequencia_conteudo', label: 'Frequência conteúdo' },
-    { key: 'investir_conteudo',   label: 'Investir conteúdo profissional' },
-    { key: 'orcamento_conteudo',  label: 'Orçamento conteúdo' },
-  ]},
-  { label: '12 — Documentação', fields: [
-    { key: 'tem_certificados',    label: 'Possui certificados' },
-    { key: 'certificados_descricao',label: 'Descrição certificados' },
-    { key: 'tem_google_ads',      label: 'Participou Google Ads' },
-    { key: 'resultado_google_ads',label: 'Resultado Google Ads' },
-    { key: 'orcamento_mensal_marketing',label: 'Orçamento mensal marketing' },
-    { key: 'informacoes_adicionais',label: 'Informações adicionais' },
-    { key: 'melhor_contato',      label: 'Melhor forma contato' },
-    { key: 'responsavel_projeto', label: 'Responsável projeto' },
-  ]},
 ];
 
 const CONTRATO_SECTIONS = [
