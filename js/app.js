@@ -8204,31 +8204,19 @@ async function renderCustomFormsPage() {
   el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted)"><i class="bi bi-hourglass-split"></i> Carregando...</div>';
   _cfForms = window.loadCustomForms ? (await window.loadCustomForms()) : [];
 
-  // Auto-fix: atualizar cópia antiga de GMB com 74 campos novos
+  // Auto-delete: remover cópia antiga de GMB com < 70 campos
   (async () => {
     try {
       const oldForm = _cfForms?.find(f => f.title?.includes('Google Meu Negócio') && f.title?.includes('editável') && f.fields?.length < 70);
-      if (!oldForm || !FORM_CONFIGS?.gmb) return;
+      if (!oldForm) return;
 
-      const cfg = FORM_CONFIGS.gmb;
-      const fields = [];
-      let i = 0;
-      cfg.sections.forEach(sec => {
-        fields.push({ id: 'f' + (++i), type: 'section', label: sec.label, hint: '', required: false, options: [] });
-        sec.fields.forEach(f => {
-          const typeMap = { text: 'text', textarea: 'textarea', longtext: 'textarea', email: 'email', phone: 'phone', tel: 'phone', number: 'number', date: 'date', radio: 'radio', checkbox: 'checkbox', select: 'select', stars: 'radio', rating: 'radio' };
-          fields.push({ id: 'f' + (++i), type: typeMap[f.type] || 'text', label: f.label, hint: f.hint || '', required: f.required || false, options: (typeMap[f.type] === 'radio' && (f.type === 'stars' || f.type === 'rating')) ? ['1', '2', '3', '4', '5'] : (f.options || []) });
-        });
-      });
-
-      if (window.saveCustomForm) {
-        const updated = await window.saveCustomForm({ ...oldForm, fields });
-        if (updated) {
-          _cfForms = await window.loadCustomForms?.();
-        }
+      // Tentar deletar via window.deleteCustomForm
+      if (window.deleteCustomForm) {
+        await window.deleteCustomForm(oldForm.id);
+        _cfForms = await window.loadCustomForms?.();
       }
     } catch (e) {
-      console.error('[auto-fix] Erro ao atualizar GMB:', e);
+      console.error('[auto-delete] Erro ao deletar:', e);
     }
   })();
 
