@@ -8216,10 +8216,16 @@ function _renderCustomFormsList() {
         <div style="font-size:20px;font-weight:700;color:var(--text-primary)"><i class="bi bi-ui-checks-grid"></i> Meus Formulários</div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${_cfForms.length} formulário${_cfForms.length!==1?'s':''} criado${_cfForms.length!==1?'s':''}</div>
       </div>
-      <button onclick="_cfOpenEditor(null)"
-        style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">
-        <i class="bi bi-plus-circle"></i> Criar novo formulário
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="_viewAllBriefings()"
+          style="padding:10px 20px;background:#10b981;color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">
+          <i class="bi bi-envelope-open"></i> Briefings Recebidos
+        </button>
+        <button onclick="_cfOpenEditor(null)"
+          style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">
+          <i class="bi bi-plus-circle"></i> Criar novo formulário
+        </button>
+      </div>
     </div>
     ${_cfForms.length === 0 ? `
       <div style="text-align:center;padding:64px 20px;color:var(--text-muted)">
@@ -8684,6 +8690,64 @@ async function _cfDelete(id) {
   await window.deleteCustomForm(id);
   _cfForms = _cfForms.filter(x => x.id !== id);
   _renderCustomFormsList();
+}
+
+async function _viewAllBriefings() {
+  const el = document.getElementById('main-content');
+  el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted)"><i class="bi bi-hourglass-split"></i> Carregando briefings...</div>';
+
+  try {
+    const { collection, query, getDocs, getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const db = getFirestore();
+
+    const snap = await getDocs(collection(db, 'ghub_briefings'));
+    const briefings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+    el.innerHTML = `
+    <div class="page-wrap">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <button onclick="showPage('custom-forms')"
+          style="padding:7px 14px;background:var(--bg-card2);border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:12px;cursor:pointer;color:var(--text-primary)">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </button>
+        <div>
+          <div style="font-size:18px;font-weight:700"><i class="bi bi-envelope-open"></i> Briefings Recebidos — Google Meu Negócio</div>
+          <div style="font-size:12px;color:var(--text-muted)">${briefings.length} briefing${briefings.length!==1?'s':''} recebido${briefings.length!==1?'s':''}</div>
+        </div>
+      </div>
+      ${briefings.length === 0 ? `
+        <div style="text-align:center;padding:48px;color:var(--text-muted)">
+          <div style="font-size:36px;margin-bottom:12px"><i class="bi bi-inbox"></i></div>
+          <div>Nenhum briefing recebido ainda.</div>
+          <div style="font-size:12px;margin-top:6px">Compartilhe o link do formulário com os clientes.</div>
+        </div>
+      ` : briefings.map((b, i) => `
+        <div style="background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--text-primary)">#${briefings.length - i} — ${b.nome_empresa || 'Empresa sem nome'}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">📅 ${new Date(b.submittedAt).toLocaleString('pt-BR')}</div>
+            </div>
+            <button onclick="this.closest('[data-brief]').querySelector('[data-content]').style.display = this.closest('[data-brief]').querySelector('[data-content]').style.display === 'none' ? 'block' : 'none'"
+              style="padding:6px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600">
+              <i class="bi bi-eye"></i> Ver detalhes
+            </button>
+          </div>
+          <div data-content style="display:none;max-height:400px;overflow-y:auto">
+            ${Object.entries(b).filter(([k]) => !['id','submittedAt','nome_empresa'].includes(k)).map(([k, v]) => `
+              <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-light)">
+                <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">${_esc(k)}</div>
+                <div style="font-size:13px;color:var(--text-primary);white-space:pre-wrap;line-height:1.5">${_esc(String(v||'—'))}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  } catch (e) {
+    console.error('Erro ao carregar briefings:', e);
+    el.innerHTML = `<div style="padding:32px;color:var(--accent-danger)"><i class="bi bi-exclamation-triangle"></i> Erro ao carregar briefings: ${e.message}</div>`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
