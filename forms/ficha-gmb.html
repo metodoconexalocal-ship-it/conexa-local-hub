@@ -254,11 +254,8 @@ function renderForm() {
     </div>`;
   });
 
-  html += `<div class="success-card" id="success-card">
-    <div class="success-icon">✓</div>
-    <h2>Briefing Enviado!</h2>
-    <p>Obrigado por preencher o formulário. Entraremos em contato em breve.</p>
-  </div>`;
+  // Success card será criada dinamicamente quando o formulário for enviado
+  // html += `<div class="success-card" id="success-card">...</div>`;
 
   app.innerHTML = html;
 
@@ -352,7 +349,20 @@ window.submitForm = async function() {
   try {
     await addDoc(collection(db, 'ghub_briefings'), { ...formData, submittedAt: new Date().toISOString() });
     document.querySelectorAll('.section-card').forEach(el => el.style.display = 'none');
-    document.getElementById('success-card').style.display = 'block';
+    document.querySelectorAll('.intro-card').forEach(el => el.style.display = 'none');
+
+    // Criar success card dinamicamente
+    const app = document.getElementById('app');
+    const successCard = document.createElement('div');
+    successCard.className = 'success-card';
+    successCard.id = 'success-card';
+    successCard.innerHTML = `
+      <div class="success-icon">✓</div>
+      <h2>Briefing Enviado!</h2>
+      <p>Obrigado por preencher o formulário. Entraremos em contato em breve.</p>
+    `;
+    app.innerHTML = '';
+    app.appendChild(successCard);
   } catch(e) {
     alert('Erro ao enviar: ' + e.message);
   }
