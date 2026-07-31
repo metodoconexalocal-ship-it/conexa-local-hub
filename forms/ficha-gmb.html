@@ -129,9 +129,26 @@ let formFields = [];
   const tryNextCollection = () => {
     if (collectionIndex >= collections.length) {
       clearTimeout(timeout);
-      const msg = `❌ Nenhum formulário encontrado em: ${collections.join(', ')}`;
-      console.error(msg);
-      document.getElementById('app').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
+      // Fallback: usar formulário padrão
+      console.log('⚠️ Firestore bloqueado, usando fallback com 7 seções');
+      formFields = [
+        {type: 'section', label: '01. Dados Básicos da Empresa'},
+        {type: 'text', label: 'Nome da Empresa', required: true},
+        {type: 'email', label: 'E-mail', required: true},
+        {type: 'section', label: '02. Sobre o Negócio'},
+        {type: 'textarea', label: 'Descrição', required: true},
+        {type: 'section', label: '03. Localização'},
+        {type: 'text', label: 'Endereço'},
+        {type: 'section', label: '04. Produtos e Serviços'},
+        {type: 'text', label: 'Principais produtos/serviços'},
+        {type: 'section', label: '05. Horários'},
+        {type: 'text', label: 'Horário de funcionamento'},
+        {type: 'section', label: '06. Redes Sociais'},
+        {type: 'text', label: 'Redes sociais'},
+        {type: 'section', label: '07. Observações'},
+        {type: 'textarea', label: 'Observações gerais'}
+      ];
+      renderForm();
       return;
     }
 
