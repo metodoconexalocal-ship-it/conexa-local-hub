@@ -2022,9 +2022,10 @@ function showPage(page) {
     'gmn-postagens':      '<span>GMN</span> — Postagens',
     'gmn-avaliacoes':     '<span>GMN</span> — Avaliações',
     'gmn-ranking':        '<span>GMN</span> — Ranking no Mapa',
+    'portal-access':      '<span>Portal</span> — Gerenciar Acessos',
   };
   document.getElementById('page-title').innerHTML = titles[page] || page;
-  const hiddenNew = ['financeiro','prospeccao','clients','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','form-editor','docs','doc-editor','files','custom-forms','custom-form-editor','dashboard','jornada','lembretes','ia','contratos-ia','settings','calendario','metricas','conteudo-geral','conteudo-clientes','minha-agenda','leads-portal','mapas','gmn-dashboard','gmn-perfis','gmn-postagens','gmn-avaliacoes','gmn-ranking'];
+  const hiddenNew = ['financeiro','prospeccao','clients','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','form-editor','docs','doc-editor','files','custom-forms','custom-form-editor','dashboard','jornada','lembretes','ia','contratos-ia','settings','calendario','metricas','conteudo-geral','conteudo-clientes','minha-agenda','leads-portal','mapas','gmn-dashboard','gmn-perfis','gmn-postagens','gmn-avaliacoes','gmn-ranking','portal-access'];
   document.getElementById('top-new-btn').style.display = hiddenNew.includes(page) ? 'none' : '';
   document.getElementById('top-new-btn').onclick = openNewModal;
   if (page === 'crm') { renderTeamNav(); renderCRM(); }
@@ -2054,6 +2055,7 @@ function showPage(page) {
   else if (page === 'minha-agenda')        renderMinhaAgenda();
   else if (page === 'leads-portal')        renderLeadsPortalPage();
   else if (page === 'mapas')               renderMapasPage();
+  else if (page === 'portal-access')       renderPortalAccessPage();
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   // Nav map: now first section has 4 items (Dashboard, CRM, Jornada, Lembretes)
@@ -11845,6 +11847,133 @@ function _settingsToggle(key, role, val) {
     if (ok) addNotif('Configurações salvas!', 'success');
     else addNotif('Erro ao salvar configurações', 'error');
   }, 800);
+}
+
+// ─── GERENCIAR ACESSOS DO PORTAL ───────────────────────────────────────────
+function renderPortalAccessPage() {
+  if (window.currentRole !== 'admin') {
+    document.getElementById('main-content').innerHTML =
+      '<div class="page-wrap"><p style="color:var(--text-muted)">Acesso restrito a administradores.</p></div>';
+    return;
+  }
+
+  document.getElementById('main-content').innerHTML =
+    '<div class="page-wrap"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">' +
+    '<div style="width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px"><i class="bi bi-shield-lock"></i></div>' +
+    '<div><div style="font-size:18px;font-weight:700">Gerenciar Acessos ao Portal</div>' +
+    '<div style="font-size:12px;color:var(--text-muted)">Ative/desative acesso dos clientes ao portal privado</div></div></div>' +
+    '<div id="portal-access-content"></div></div>';
+
+  const accessContent = document.getElementById('portal-access-content');
+
+  if (!clientsData || clientsData.length === 0) {
+    accessContent.innerHTML = '<p style="color:var(--text-muted)">Nenhum cliente cadastrado.</p>';
+    return;
+  }
+
+  let html = `<div style="display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--bg-sidebar)">
+            <th style="padding:12px 16px;text-align:left;font-size:12px;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">Cliente</th>
+            <th style="padding:12px 16px;text-align:center;font-size:12px;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">Status</th>
+            <th style="padding:12px 16px;text-align:center;font-size:12px;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);width:200px">Ações</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+  clientsData.forEach((c, i) => {
+    const isActive = !c.portalBloqueado;
+    const hasPassword = !!c.portalPassword;
+    const rowBg = i % 2 === 0 ? '' : 'background:rgba(255,255,255,.02)';
+
+    html += `<tr style="${rowBg}">
+      <td style="padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)">
+        <div style="font-weight:600">${c.nome || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${c.empresa || '—'}</div>
+      </td>
+      <td style="padding:12px 16px;text-align:center;border-bottom:1px solid var(--border)">
+        <span style="display:inline-block;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700;${isActive ? 'background:rgba(16,185,129,.1);color:var(--green)' : 'background:rgba(239,68,68,.1);color:var(--red)'}">${isActive ? 'ATIVO' : 'BLOQUEADO'}</span>
+      </td>
+      <td style="padding:12px 16px;text-align:center;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:6px;justify-content:center">
+        <button onclick="generatePortalPassword('${c.id}')" style="padding:6px 12px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Gerar nova senha">${hasPassword ? '🔄 Nova Senha' : '🔐 Ativar'}</button>
+        <button onclick="togglePortalAccess('${c.id}',${!isActive})" style="padding:6px 12px;background:${isActive ? 'rgba(239,68,68,.2)' : 'rgba(16,185,129,.2)'};color:${isActive ? 'var(--red)' : 'var(--green)'};border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">${isActive ? '🚫 Bloquear' : '✓ Desbloquear'}</button>
+        <button onclick="copyPortalLink('${c.id}')" style="padding:6px 12px;background:var(--text-muted);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;opacity:0.7" title="Copiar link">🔗</button>
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>
+
+    <div style="background:var(--accent-soft);padding:12px 16px;border-radius:12px;font-size:12px;color:var(--text)">
+      <strong style="color:var(--primary)">💡 Como funciona:</strong><br>
+      Clique em "Ativar" para gerar a senha do portal. O cliente receberá um e-mail com suas credenciais.
+      Use "Nova Senha" para reenviar ou redefinir. Clique em "Bloquear" para revogar acesso temporariamente.
+    </div>
+  </div>`;
+
+  accessContent.innerHTML = html;
+}
+
+function generatePortalPassword(clientId) {
+  const client = clientsData.find(c => c.id === clientId);
+  if (!client) return;
+
+  const password = Math.random().toString(36).slice(2, 10);
+
+  // Atualizar no Firebase
+  window.db.ref(`clientes/${clientId}`).update({
+    portalPassword: password,
+    portalBloqueado: false
+  }).then(() => {
+    addNotif(`✓ Senha gerada para ${client.nome}!`, 'success');
+
+    // Mostrar modal com senha
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1001';
+    modal.innerHTML = `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:400px">
+      <h3 style="margin-bottom:16px">Credenciais do Portal</h3>
+      <div style="background:var(--bg-input);padding:12px;border-radius:8px;margin-bottom:16px;font-family:monospace">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">ID:</div>
+        <div style="font-weight:600;margin-bottom:12px;word-break:break-all">${clientId}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Senha:</div>
+        <div style="font-weight:600">${password}</div>
+      </div>
+      <div style="font-size:12px;color:var(--yellow);background:rgba(245,158,11,.1);padding:12px;border-radius:8px;margin-bottom:16px">
+        <strong>⚠ Importante:</strong> Copie a senha acima. Ela não será exibida novamente.
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="navigator.clipboard.writeText('${clientId}').then(()=>addNotif('ID copiado!','info'))" style="flex:1;padding:10px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600">Copiar ID</button>
+        <button onclick="navigator.clipboard.writeText('${password}').then(()=>addNotif('Senha copiada!','info'))" style="flex:1;padding:10px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600">Copiar Senha</button>
+        <button onclick="this.parentElement.parentElement.remove()" style="flex:1;padding:10px;background:var(--border);color:var(--text);border:none;border-radius:6px;cursor:pointer;font-weight:600">Fechar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); }, {once:true}), 10);
+  }).catch(e => addNotif('Erro ao gerar senha: ' + e.message, 'error'));
+}
+
+function togglePortalAccess(clientId, shouldBlock) {
+  const client = clientsData.find(c => c.id === clientId);
+  if (!client) return;
+
+  const action = shouldBlock ? 'bloquear' : 'desbloquear';
+  if (!confirm(`Tem certeza que deseja ${action} o acesso de ${client.nome}?`)) return;
+
+  window.db.ref(`clientes/${clientId}`).update({
+    portalBloqueado: shouldBlock
+  }).then(() => {
+    addNotif(`✓ Acesso ${action}ado para ${client.nome}`, 'success');
+    renderPortalAccessPage();
+  }).catch(e => addNotif('Erro: ' + e.message, 'error'));
+}
+
+function copyPortalLink(clientId) {
+  const link = `${window.location.origin}/portal-cliente.html?id=${clientId}`;
+  navigator.clipboard.writeText(link).then(() => {
+    addNotif('✓ Link do portal copiado!', 'success');
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
