@@ -179,12 +179,9 @@ let formFields = [];
 
         if (form && form.fields && form.fields.length > 0) {
           formFields = form.fields;
-          console.log('✅ Formulário carregado de ' + currentCollection + ':', {
-            titulo: form.title,
-            campos: form.fields.length,
-            primeira: form.fields[0],
-            segunda: form.fields[1]
-          });
+          console.log('✅ ' + currentCollection + ': ' + form.title + ' (' + form.fields.length + ' campos)');
+          console.log('   Primeiro:', form.fields[0]);
+          console.log('   Segundo:', form.fields[1]);
           window.formFields = form.fields;
           renderForm();
         } else {
