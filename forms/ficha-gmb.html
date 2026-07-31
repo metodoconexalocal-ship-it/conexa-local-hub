@@ -101,7 +101,7 @@ let formFields = [];
   try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
 
   // Escutar mudanças em tempo real na cópia editável de GMB
-  onSnapshot(query(collection(db, 'customForms'), where('title', '==', 'Google Meu Negócio (editável)')), (snap) => {
+  onSnapshot(query(collection(db, 'customForms'), where('title', 'in', ['Google Meu Negócio (editável)', 'Briefing Conexa Local | Google Empresas'])), (snap) => {
     if (snap.docs.length) {
       const form = snap.docs[0].data();
       formFields = form.fields || [];
