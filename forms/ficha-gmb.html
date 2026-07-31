@@ -151,8 +151,15 @@ let formFields = [];
 
         if (form && form.fields && form.fields.length > 0) {
           formFields = form.fields;
+          console.log('✅ Formulário carregado:', {
+            titulo: form.title,
+            campos: form.fields.length,
+            estrutura: form.fields.slice(0, 3)
+          });
+          window.formFields = form.fields; // Deixar acessível para debug
           renderForm();
         } else {
+          console.log('⚠️ Formulário sem fields ou vazio');
           tryNextCollection();
         }
       },
