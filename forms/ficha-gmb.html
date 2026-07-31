@@ -371,9 +371,11 @@ window._saveBriefing = async (data) => {
         <label class="option-chip"><input type="checkbox" name="atributos" value="Drive-thru" onchange="toggleCheckChip(this)"><span>Drive-thru</span></label>
         <label class="option-chip"><input type="checkbox" name="atributos" value="Empresa liderada por mulheres" onchange="toggleCheckChip(this)"><span>Empresa liderada por mulheres</span></label>
         <label class="option-chip"><input type="checkbox" name="atributos" value="Espaço para crianças" onchange="toggleCheckChip(this)"><span>Espaço para crianças</span></label>
-        <label class="option-chip"><input type="checkbox" name="atributos" value="Outro" onchange="toggleCheckChip(this)"><span>Outro</span></label>
+        <label class="option-chip"><input type="checkbox" name="atributos" value="Outro" onchange="toggleCheckChip(this); document.getElementById('outro_atributo_field').style.display = this.checked ? 'block' : 'none'"><span>Outro</span></label>
       </div>
     </div>
+
+    <div class="field" id="outro_atributo_field" style="display:none;"><label>Especifique outros atributos</label><input type="text" name="outro_atributo"></div>
 
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>
@@ -385,6 +387,7 @@ window._saveBriefing = async (data) => {
       <div class="section-info"><h2>Serviços</h2><p>Focar na demanda e oportunidades.</p></div>
     </div>
 
+    <div class="field"><label>Qual é o produto/serviço mais vendido? <span class="req">*</span></label><textarea name="produto_mais_vendido" required></textarea></div>
     <div class="field"><label>Quais serviços você deseja aumentar a demanda? <span class="req">*</span></label><textarea name="servicos_aumentar_demanda" required></textarea></div>
     <div class="field"><label>Quais serviços NÃO deseja aumentar? <span class="req">*</span></label><textarea name="servicos_nao_aumentar_demanda" required></textarea></div>
     <div class="field"><label>Quais são os serviços mais procurados? <span class="req">*</span></label><textarea name="servicos_mais_procurados" required></textarea></div>
@@ -474,12 +477,6 @@ window._saveBriefing = async (data) => {
 
     <div class="field"><label>Meta de leads/vendas nos próximos 3 meses</label><input type="text" name="meta_3meses"></div>
     <div class="field"><label>Qual seria um número de avaliações considerado sucesso?</label><input type="text" name="meta_avaliacoes"></div>
-    <div class="field"><label>Quer aparecer em pesquisas relacionadas à sua cidade?</label>
-      <div class="options-group">
-        <label class="option-chip"><input type="radio" name="pesquisas_cidade" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
-        <label class="option-chip"><input type="radio" name="pesquisas_cidade" value="Não" onchange="selectChip(this)"><span>Não</span></label>
-      </div>
-    </div>
 
     <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
   </div>

@@ -6054,8 +6054,10 @@ const GMB_SECTIONS = [
   ]},
   { label: '06 — Atributos da Empresa', fields: [
     { key: 'atributos', label: 'Atributos disponíveis' },
+    { key: 'outro_atributo', label: 'Outros atributos' },
   ]},
   { label: '07 — Serviços', fields: [
+    { key: 'produto_mais_vendido', label: 'Produto/serviço mais vendido' },
     { key: 'servicos_aumentar_demanda',label: 'Serviços aumentar demanda' },
     { key: 'servicos_nao_aumentar_demanda',label: 'Serviços NÃO aumentar' },
     { key: 'servicos_mais_procurados',label: 'Serviços mais procurados' },
@@ -6075,7 +6077,6 @@ const GMB_SECTIONS = [
     { key: 'objetivo_principal',label: 'Objetivo principal' },
     { key: 'meta_3meses',       label: 'Meta próximos 3 meses' },
     { key: 'meta_avaliacoes',   label: 'Meta de avaliações' },
-    { key: 'pesquisas_cidade',  label: 'Aparecer em pesquisas da cidade' },
   ]},
   { label: '11 — Conteúdo e Diferenciais', fields: [
     { key: 'vantagem_competitiva',label: 'Vantagem competitiva' },
