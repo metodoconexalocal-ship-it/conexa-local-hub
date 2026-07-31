@@ -1962,7 +1962,9 @@ function sendBrowserNotification(title, body) {
   const send = () => new Notification(title, { body, icon: '' });
   if (Notification.permission === 'granted') { send(); }
   else if (Notification.permission !== 'denied') {
-    Notification.requestPermission().then(p => { if (p === 'granted') send(); });
+    Notification.requestPermission()
+      .then(p => { if (p === 'granted') send(); })
+      .catch(e => console.warn('Notificações negadas', e));
   }
 }
 
@@ -8451,28 +8453,36 @@ function _classifBadge(nivel) {
 // ██ DASHBOARD ████████████████████████████████████████████████████████████████
 // ═══════════════════════════════════════════════════════════════════════════════
 async function renderDashboard() {
-  const el = document.getElementById('main-content');
-  el.innerHTML = `<div style="padding:28px 24px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-      <div style="font-size:22px;font-weight:800"><i class="bi bi-speedometer2"></i> Dashboard Geral</div>
-      <span style="font-size:12px;color:var(--text-muted)">Visão macro da operação</span>
-    </div>
-    <div style="text-align:center;padding:40px;color:var(--text-muted)"><i class="bi bi-hourglass-split"></i> Carregando dados...</div>
-  </div>`;
-
-  // Carregar dados em paralelo (com fallback em caso de erro no Firebase)
-  let lembretes = [];
   try {
-    const results = await Promise.all([
-      window.loadLembretes ? window.loadLembretes() : Promise.resolve([])
-    ]);
-    lembretes = results[0] || [];
-  } catch(e) {
-    console.warn('renderDashboard: erro ao carregar lembretes', e);
-    lembretes = [];
-  }
+    const el = document.getElementById('main-content');
+    if (!el) { console.error('Dashboard: main-content não encontrado'); return; }
 
-  const ativos     = clientsData.filter(c => !c.archived && c.statusCli === 'Ativo');
+    el.innerHTML = `<div style="padding:28px 24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <div style="font-size:22px;font-weight:800"><i class="bi bi-speedometer2"></i> Dashboard Geral</div>
+        <span style="font-size:12px;color:var(--text-muted)">Visão macro da operação</span>
+      </div>
+      <div style="text-align:center;padding:40px;color:var(--text-muted)"><i class="bi bi-hourglass-split"></i> Carregando dados...</div>
+    </div>`;
+
+    // Carregar dados em paralelo (com fallback em caso de erro no Firebase)
+    let lembretes = [];
+    try {
+      const results = await Promise.all([
+        window.loadLembretes ? window.loadLembretes() : Promise.resolve([])
+      ]);
+      lembretes = results[0] || [];
+    } catch(e) {
+      console.warn('renderDashboard: erro ao carregar lembretes', e);
+      lembretes = [];
+    }
+
+    if (!clientsData || !Array.isArray(clientsData)) {
+      el.innerHTML = '<div class="page-wrap"><p style="color:var(--red)">Erro: dados de clientes não carregados</p></div>';
+      return;
+    }
+
+    const ativos     = clientsData.filter(c => !c.archived && c.statusCli === 'Ativo');
   const emRisco    = clientsData.filter(c => !c.archived && (c.statusCli === 'Pausado' || c.temp === 'Frio'));
   const crescendo  = clientsData.filter(c => !c.archived && (c.etapaJornada === 'otimizacao' || c.etapaJornada === 'expansao'));
   const inadimpl   = clientsData.filter(c => !c.archived && (c.payStatus === 'Atrasado' || c.payStatus === 'Não pagou'));
@@ -8490,14 +8500,14 @@ async function renderDashboard() {
       });
     });
   });
+
+  // Contratos vencendo em 30 dias
+  const hoje = new Date();
   const semAtividade = ativos.filter(c => {
     const last = clientUltAtiv[c.id];
     if (!last) return true;
     return (hoje - last) / 86400000 > RISK_DIAS;
   });
-
-  // Contratos vencendo em 30 dias
-  const hoje = new Date();
   const em30 = new Date(); em30.setDate(hoje.getDate() + 30);
   const vencendo = clientsData.filter(c => {
     if (!c.fim || c.archived) return false;
@@ -8725,6 +8735,11 @@ async function renderDashboard() {
     </div>` : ''}
 
   </div>`;
+  } catch(e) {
+    console.error('Erro crítico ao renderizar dashboard:', e);
+    const el = document.getElementById('main-content');
+    if (el) el.innerHTML = '<div class="page-wrap"><p style="color:var(--red)">⚠️ Erro ao carregar dashboard. Tente recarregar.</p></div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
