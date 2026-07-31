@@ -177,15 +177,14 @@ let formFields = [];
           form = snap.docs[snap.docs.length - 1].data();
         }
 
-        if (form && form.fields && form.fields.length > 0) {
+        if (form && form.fields && form.fields.length > 5) {
+          // Só usar do Firestore se tiver muitos campos (formulário completo)
           formFields = form.fields;
           console.log('✅ ' + currentCollection + ': ' + form.title + ' (' + form.fields.length + ' campos)');
-          console.log('   Primeiro:', form.fields[0]);
-          console.log('   Segundo:', form.fields[1]);
           window.formFields = form.fields;
           renderForm();
         } else {
-          console.log('⚠️ Formulário sem fields ou vazio');
+          console.log('⚠️ ' + currentCollection + ' tem poucos campos (' + (form?.fields?.length || 0) + '), usando fallback');
           tryNextCollection();
         }
       },
