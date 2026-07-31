@@ -8282,8 +8282,42 @@ function _renderCustomFormsList() {
 function _cfOpenEditor(formId) {
   const existing = formId ? _cfForms.find(f => f.id === formId) : null;
   _cfEditing = existing || null;
-  _cfFields  = existing ? JSON.parse(JSON.stringify(existing.fields || [])) : [];
+
+  // Se for Google Meu Negócio/Conexa Local, carregar as 12 seções completas
+  if (existing?.title?.includes('Google Meu Negócio') || existing?.title?.includes('Conexa Local')) {
+    _cfFields = _convertGMBSectionsToFields();
+  } else {
+    _cfFields = existing ? JSON.parse(JSON.stringify(existing.fields || [])) : [];
+  }
+
   renderCustomFormEditor(existing);
+}
+
+function _convertGMBSectionsToFields() {
+  const fields = [];
+  GMB_SECTIONS.forEach(section => {
+    // Adiciona divisor de seção
+    fields.push({
+      id: 'f' + Date.now() + Math.random(),
+      type: 'section',
+      label: section.label,
+      hint: '',
+      required: false,
+      options: []
+    });
+    // Adiciona todos os campos da seção
+    section.fields.forEach(fieldDef => {
+      fields.push({
+        id: 'f' + Date.now() + Math.random(),
+        type: 'text',
+        label: fieldDef.label,
+        hint: '',
+        required: false,
+        options: []
+      });
+    });
+  });
+  return fields;
 }
 
 function renderCustomFormEditor(existing) {
