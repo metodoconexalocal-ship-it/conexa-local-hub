@@ -129,24 +129,106 @@ let formFields = [];
   const tryNextCollection = () => {
     if (collectionIndex >= collections.length) {
       clearTimeout(timeout);
-      // Fallback: usar formulário padrão
-      console.log('⚠️ Firestore bloqueado, usando fallback com 7 seções');
+      // Fallback: usar formulário COMPLETO 12 seções
+      console.log('⚠️ Usando formulário COMPLETO (12 seções, ~90 campos)');
       formFields = [
-        {type: 'section', label: '01. Dados Básicos da Empresa'},
-        {type: 'text', label: 'Nome da Empresa', required: true},
-        {type: 'email', label: 'E-mail', required: true},
-        {type: 'section', label: '02. Sobre o Negócio'},
-        {type: 'textarea', label: 'Descrição', required: true},
-        {type: 'section', label: '03. Localização'},
-        {type: 'text', label: 'Endereço'},
-        {type: 'section', label: '04. Produtos e Serviços'},
-        {type: 'text', label: 'Principais produtos/serviços'},
-        {type: 'section', label: '05. Horários'},
+        {type: 'section', label: '01 — Dados da Empresa'},
+        {type: 'text', label: 'Nome da empresa', required: true},
+        {type: 'text', label: 'Endereço completo'},
+        {type: 'email', label: 'E-mail profissional'},
+        {type: 'tel', label: 'Telefone principal'},
+        {type: 'tel', label: 'WhatsApp'},
+        {type: 'date', label: 'Data de abertura'},
+        {type: 'text', label: 'CNPJ'},
+
+        {type: 'section', label: '02 — Sobre o Negócio'},
+        {type: 'text', label: 'Categoria principal'},
+        {type: 'text', label: 'Categorias secundárias'},
+        {type: 'text', label: 'Palavra-chave principal'},
+        {type: 'text', label: 'Especialidades'},
+        {type: 'text', label: 'Como cliente pesquisaria'},
+        {type: 'text', label: 'Como ajuda o cliente'},
+        {type: 'textarea', label: 'História da empresa'},
+        {type: 'textarea', label: 'Diferenciais principais'},
+        {type: 'text', label: 'Público-alvo'},
+        {type: 'text', label: 'Serviço mais lucrativo'},
+
+        {type: 'section', label: '03 — Presença Digital'},
+        {type: 'text', label: 'Site'},
+        {type: 'text', label: 'Perfil atual no Google'},
+        {type: 'text', label: 'Instagram'},
+        {type: 'text', label: 'Facebook'},
+        {type: 'text', label: 'LinkedIn'},
+        {type: 'text', label: 'Outras redes sociais'},
+        {type: 'text', label: 'Possui site'},
+        {type: 'text', label: 'WhatsApp Business'},
+        {type: 'text', label: 'Link do WhatsApp'},
+        {type: 'text', label: 'Catálogo virtual'},
+        {type: 'text', label: 'Identidade visual'},
+        {type: 'text', label: 'Fotos profissionais'},
+        {type: 'text', label: 'Vídeos profissionais'},
+        {type: 'text', label: 'Principais concorrentes'},
+
+        {type: 'section', label: '04 — Localização e Área de Atendimento'},
+        {type: 'text', label: 'Localização exata'},
+        {type: 'text', label: 'Áreas de cobertura'},
+        {type: 'text', label: 'Cliente vai até empresa'},
+        {type: 'text', label: 'Atende no endereço do cliente'},
+        {type: 'text', label: 'Cobrança de deslocamento'},
+
+        {type: 'section', label: '05 — Funcionamento'},
         {type: 'text', label: 'Horário de funcionamento'},
-        {type: 'section', label: '06. Redes Sociais'},
-        {type: 'text', label: 'Redes sociais'},
-        {type: 'section', label: '07. Observações'},
-        {type: 'textarea', label: 'Observações gerais'}
+        {type: 'text', label: 'Horários especiais/feriados'},
+        {type: 'text', label: 'Agendamento obrigatório'},
+        {type: 'text', label: 'Agendamento online'},
+        {type: 'text', label: 'Link de agendamento'},
+        {type: 'text', label: 'Idiomas de atendimento'},
+        {type: 'text', label: 'Atendimento fim de semana'},
+        {type: 'text', label: 'Atendimento emergencial'},
+
+        {type: 'section', label: '06 — Atributos da Empresa'},
+        {type: 'text', label: 'Atributos disponíveis'},
+        {type: 'text', label: 'Outros atributos'},
+
+        {type: 'section', label: '07 — Serviços'},
+        {type: 'text', label: 'Produto/serviço mais vendido'},
+        {type: 'text', label: 'Serviços aumentar demanda'},
+        {type: 'text', label: 'Serviços NÃO aumentar'},
+        {type: 'text', label: 'Serviços mais procurados'},
+        {type: 'text', label: 'Produtos/serviços destacar'},
+
+        {type: 'section', label: '08 — Fotos e Materiais'},
+        {type: 'text', label: 'Materiais disponíveis'},
+
+        {type: 'section', label: '09 — Avaliações'},
+        {type: 'text', label: 'Possui avaliações Google'},
+        {type: 'number', label: 'Quantidade de avaliações'},
+        {type: 'text', label: 'Solicita avaliações'},
+        {type: 'text', label: 'Responde avaliações'},
+        {type: 'text', label: 'Cliente para avaliar'},
+
+        {type: 'section', label: '10 — Objetivos'},
+        {type: 'textarea', label: 'Objetivo principal'},
+        {type: 'text', label: 'Meta próximos 3 meses'},
+        {type: 'number', label: 'Meta de avaliações'},
+
+        {type: 'section', label: '11 — Conteúdo e Diferenciais'},
+        {type: 'textarea', label: 'Vantagem competitiva'},
+        {type: 'textarea', label: 'Diferencial único'},
+        {type: 'text', label: 'Tipo de conteúdo'},
+        {type: 'text', label: 'Frequência conteúdo'},
+        {type: 'text', label: 'Investir conteúdo profissional'},
+        {type: 'number', label: 'Orçamento conteúdo'},
+
+        {type: 'section', label: '12 — Documentação'},
+        {type: 'text', label: 'Possui certificados'},
+        {type: 'textarea', label: 'Descrição certificados'},
+        {type: 'text', label: 'Participou Google Ads'},
+        {type: 'textarea', label: 'Resultado Google Ads'},
+        {type: 'number', label: 'Orçamento mensal marketing'},
+        {type: 'textarea', label: 'Informações adicionais'},
+        {type: 'text', label: 'Melhor forma contato'},
+        {type: 'text', label: 'Responsável projeto'}
       ];
       renderForm();
       return;
@@ -177,14 +259,14 @@ let formFields = [];
           form = snap.docs[snap.docs.length - 1].data();
         }
 
-        if (form && form.fields && form.fields.length > 5) {
-          // Só usar do Firestore se tiver muitos campos (formulário completo)
+        if (form && form.fields && form.fields.length > 50) {
+          // Só usar do Firestore se tiver MUITOS campos (formulário completo 12 seções)
           formFields = form.fields;
           console.log('✅ ' + currentCollection + ': ' + form.title + ' (' + form.fields.length + ' campos)');
           window.formFields = form.fields;
           renderForm();
         } else {
-          console.log('⚠️ ' + currentCollection + ' tem poucos campos (' + (form?.fields?.length || 0) + '), usando fallback');
+          console.log('⚠️ ' + currentCollection + ' tem ' + (form?.fields?.length || 0) + ' campos, usando formulário completo');
           tryNextCollection();
         }
       },
