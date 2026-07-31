@@ -1,0 +1,31 @@
+📱 LINK PARA COMPARTILHAR COM CLIENTE
+=====================================
+
+Use ESTE link para compartilhar o formulário com o cliente:
+
+https://gmn-hub.vercel.app/forms/ficha-gmb.html
+
+⚠️ NÃO use o link gerado pelo botão "Copiar link" em Meus Formulários
+   (esse é para o formulário editável no CRM, não para o cliente)
+
+✅ Como compartilhar:
+1. Copie o link acima
+2. Envie por WhatsApp, Email, SMS, etc
+3. Cliente preenche as 12 seções
+4. Dados aparecem em: Formulários → Google Meu Negócio → Respostas
+
+📊 O que o cliente verá:
+- Seção 01: Dados da Empresa
+- Seção 02: Sobre o Negócio
+- Seção 03: Presença Digital
+- Seção 04: Localização
+- Seção 05: Funcionamento
+- Seção 06: Atributos (com campo "Outro")
+- Seção 07: Serviços (com "Produto mais vendido")
+- Seção 08: Fotos e Materiais
+- Seção 09: Avaliações
+- Seção 10: Objetivos
+- Seção 11: Conteúdo e Diferenciais
+- Seção 12: Documentação
+
+✨ Total: 90+ campos em 12 seções
