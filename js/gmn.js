@@ -122,11 +122,18 @@
   function render() {
     const fn = {
       'gmn-dashboard': renderDash, 'gmn-dashboard-filtrada': renderDashboardFiltrada, 'gmn-tarefas': renderTarefas, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
-      'gmn-avaliacoes': renderAvals, 'gmn-ranking': renderRank,
+      'gmn-avaliacoes': renderAvals, 'gmn-ranking': renderRank, 'gmn-auditoria': renderAuditoria, 'gmn-auditoria-detalhes': renderAuditoriaDetalhes,
     }[pagina];
     if (fn) $g('main-content').innerHTML = fn();
   }
   GMN.render = render;
+
+  /* ── Seletor de perfil para auditoria ─────────────────────────────────── */
+  GMN.setPerfilAuditoria = (perfilId) => {
+    pagina = 'gmn-auditoria-detalhes';
+    F.perfilAuditoria = perfilId;
+    render();
+  };
 
   /* ── Helpers de dados ───────────────────────────────────────────────────── */
   const perfilById = (id) => S.perfis.find((p) => p.id === id);
@@ -1012,4 +1019,380 @@
     await window.dbDelete('gmn_ranking', id);
     await refresh();
   };
+
+  /* ═════════════════════════════════ AUDITORIA GBP ═══════════════════════════ */
+
+  /* Scoring Engine - 10 dimensões */
+  const ScoringEngine = {
+    calcularScore: (perfil) => {
+      const scores = {
+        infoBasica: ScoringEngine.scoreInfoBasica(perfil),
+        conteudoVisual: ScoringEngine.scoreConteudoVisual(perfil),
+        conteudoTextual: ScoringEngine.scoreConteudoTextual(perfil),
+        reputacao: ScoringEngine.scoreReputacao(perfil),
+        atividade: ScoringEngine.scoreAtividade(perfil),
+        engajamento: ScoringEngine.scoreEngajamento(perfil),
+        otimizacao: ScoringEngine.scoreOtimizacao(perfil),
+        avaliacoes: ScoringEngine.scoreAvaliacoes(perfil),
+        posicionamento: ScoringEngine.scorePosicionamento(perfil),
+        conformidade: ScoringEngine.scoreConformidade(perfil),
+      };
+
+      const pesos = {
+        infoBasica: 0.10, conteudoVisual: 0.12, conteudoTextual: 0.10,
+        reputacao: 0.15, atividade: 0.08, engajamento: 0.10,
+        otimizacao: 0.08, avaliacoes: 0.08, posicionamento: 0.10, conformidade: 0.09,
+      };
+
+      let scoreGeral = 0;
+      Object.entries(scores).forEach(([k, v]) => { scoreGeral += v * pesos[k]; });
+      scoreGeral = Math.round(scoreGeral);
+
+      const categoria = scoreGeral < 25 ? 'critico' : scoreGeral < 50 ? 'fraco' : scoreGeral < 75 ? 'razoavel' : scoreGeral < 90 ? 'bom' : 'excelente';
+
+      return { scoreGeral, scores, categoria, recomendacoes: ScoringEngine.gerarRecomendacoes(scores, perfil) };
+    },
+
+    scoreInfoBasica: (p) => {
+      let s = 0;
+      if (p.nome && p.nome.length > 0) s += 15;
+      if (p.endereco) s += 15;
+      if (p.telefone) s += 15;
+      if (p.descricao && p.descricao.length > 100) s += 20;
+      if (p.categoria) s += 15;
+      if (p.site) s += 10;
+      if (p.email) s += 10;
+      return Math.min(s, 100);
+    },
+
+    scoreConteudoVisual: (p) => {
+      let s = 0;
+      const fotosCount = Number(p.fotosCount || 0);
+      if (fotosCount >= 30) s += 25;
+      else if (fotosCount >= 20) s += 20;
+      else if (fotosCount >= 10) s += 15;
+      else if (fotosCount > 0) s += 10;
+
+      if (fotosCount >= 50) s += 15;
+      if (Number(p.videosCount || 0) > 0) s += 20;
+      if (Number(p.videosCount || 0) >= 5) s += 20;
+      if (p.temTour360) s += 20;
+
+      return Math.min(s, 100);
+    },
+
+    scoreConteudoTextual: (p) => {
+      let s = 0;
+      if (p.descricao && p.descricao.length > 50) s += 20;
+
+      const postsCount = Number(p.posts30dias || 0);
+      if (postsCount >= 8) s += 25;
+      else if (postsCount >= 4) s += 20;
+      else if (postsCount > 0) s += 10;
+
+      if (Number(p.postsTotal || 0) >= 20) s += 20;
+      if (p.respondePosts) s += 20;
+
+      return Math.min(s, 100);
+    },
+
+    scoreReputacao: (p) => {
+      let s = 0;
+      const avCount = Number(p.avaliacoesCount || 0);
+      if (avCount >= 50) s += 20;
+      else if (avCount >= 20) s += 15;
+      else if (avCount >= 5) s += 10;
+
+      const rating = Number(p.rating || 0);
+      if (rating >= 4.5) s += 25;
+      else if (rating >= 4.0) s += 20;
+      else if (rating >= 3.5) s += 15;
+      else if (rating >= 3.0) s += 10;
+
+      if (p.respondeAvaliacoes) s += 25;
+      s += 10;
+
+      return Math.min(s, 100);
+    },
+
+    scoreAtividade: (p) => {
+      let s = 0;
+      const posts30 = Number(p.posts30dias || 0);
+      if (posts30 >= 8) s += 35;
+      else if (posts30 >= 4) s += 25;
+      else if (posts30 > 0) s += 15;
+
+      if (p.respondeAvaliacoes) s += 35;
+      else if (Number(p.taxaRespostaAvaliacoes || 0) >= 0.5) s += 20;
+
+      s += 30;
+
+      return Math.min(s, 100);
+    },
+
+    scoreEngajamento: (p) => {
+      let s = 0;
+      const chamadas = Number(p.chamadas30dias || 0);
+      if (chamadas >= 20) s += 25;
+      else if (chamadas >= 10) s += 18;
+      else if (chamadas > 0) s += 10;
+
+      const clicks = Number(p.websiteClicks30dias || 0);
+      if (clicks >= 30) s += 25;
+      else if (clicks >= 15) s += 18;
+      else if (clicks > 0) s += 10;
+
+      const direcoes = Number(p.direcoesRequeridas30dias || 0);
+      if (direcoes >= 15) s += 25;
+      else if (direcoes >= 8) s += 18;
+      else if (direcoes > 0) s += 10;
+
+      s += 15;
+
+      return Math.min(s, 100);
+    },
+
+    scoreOtimizacao: (p) => {
+      let s = 0;
+      if (p.categoria) s += 20;
+      if (p.horarios) s += 15;
+      if (p.site) s += 15;
+
+      const redes = (p.redesSociais || '').split(',').filter(r => r.trim()).length;
+      if (redes >= 3) s += 15;
+      else if (redes >= 2) s += 10;
+      else if (redes >= 1) s += 5;
+
+      const attrs = (p.atributos || '').split(',').filter(a => a.trim()).length;
+      if (attrs >= 5) s += 20;
+      else if (attrs >= 3) s += 15;
+      else if (attrs > 0) s += 10;
+
+      if (p.temMensagemBoasVindas) s += 15;
+
+      return Math.min(s, 100);
+    },
+
+    scoreAvaliacoes: (p) => {
+      let s = 0;
+      const taxaResp = Number(p.taxaRespostaAvaliacoes || 0);
+      if (taxaResp === 1) s += 30;
+      else if (taxaResp >= 0.8) s += 25;
+      else if (taxaResp >= 0.5) s += 15;
+
+      const tempoResp = Number(p.tempoRespostaMedia || Infinity);
+      if (tempoResp <= 24) s += 30;
+      else if (tempoResp <= 72) s += 20;
+
+      s += 20;
+
+      return Math.min(s, 100);
+    },
+
+    scorePosicionamento: (p) => {
+      let s = 0;
+      const avCount = Number(p.avaliacoesCount || 0);
+      if (avCount >= 50) s += 30;
+      else if (avCount >= 20) s += 20;
+      else if (avCount >= 5) s += 10;
+
+      const rating = Number(p.rating || 0);
+      if (rating >= 4.5) s += 35;
+      else if (rating >= 4.0) s += 25;
+      else if (rating >= 3.5) s += 15;
+
+      if (Number(p.posts30dias || 0) > 0) s += 20;
+      s += 15;
+
+      return Math.min(s, 100);
+    },
+
+    scoreConformidade: (p) => {
+      let s = 0;
+      if (p.telefonVerificado && p.enderecoVerificado) s += 35;
+      else if (p.telefonVerificado || p.enderecoVerificado) s += 20;
+
+      s += 30;
+      if (p.site && p.nome && p.categoria) s += 20;
+      s += 15;
+
+      return Math.min(s, 100);
+    },
+
+    gerarRecomendacoes: (scores, perfil) => {
+      const recs = [];
+
+      if (scores.infoBasica < 40) {
+        recs.push({ titulo: 'Completar informações básicas', prioridade: 'critica', impacto: 15, acao: 'Preencha: nome, endereço, telefone, descrição (100+ caracteres)' });
+      }
+
+      const fotosCount = Number(perfil.fotosCount || 0);
+      if (fotosCount < 10) {
+        recs.push({ titulo: 'Adicionar fotos profissionais', prioridade: 'critica', impacto: 20, acao: `Você tem ${fotosCount} fotos. Adicione até 30 de qualidade` });
+      }
+
+      const rating = Number(perfil.rating || 0);
+      if (rating < 4.0) {
+        recs.push({ titulo: 'Melhorar reputação', prioridade: 'importante', impacto: 18, acao: `Rating: ${rating}/5. Trabalhe para chegar a 4.5+` });
+      }
+
+      if (Number(perfil.posts30dias || 0) === 0) {
+        recs.push({ titulo: 'Postar conteúdo regularmente', prioridade: 'importante', impacto: 12, acao: 'Poste 2x por semana para aumentar visibilidade em +25%' });
+      }
+
+      if (!perfil.respondeAvaliacoes || Number(perfil.taxaRespostaAvaliacoes || 0) < 0.5) {
+        recs.push({ titulo: 'Responder a avaliações', prioridade: 'importante', impacto: 14, acao: 'Responda 100% dos reviews para melhorar score em +12 pontos' });
+      }
+
+      if (!perfil.site) {
+        recs.push({ titulo: 'Adicionar website', prioridade: 'valiosa', impacto: 8, acao: 'Linke seu website no perfil para +8% de tráfego' });
+      }
+
+      const redesCount = (perfil.redesSociais || '').split(',').filter(r => r.trim()).length;
+      if (redesCount < 2) {
+        recs.push({ titulo: 'Conectar redes sociais', prioridade: 'valiosa', impacto: 7, acao: 'Linke Instagram, Facebook e LinkedIn' });
+      }
+
+      if (Number(perfil.videosCount || 0) === 0) {
+        recs.push({ titulo: 'Adicionar vídeos', prioridade: 'legal', impacto: 5, acao: 'Adicione 3-5 vídeos profissionais da empresa' });
+      }
+
+      recs.sort((a, b) => {
+        const prio = { critica: 0, importante: 1, valiosa: 2, legal: 3 };
+        return (prio[a.prioridade] || 999) - (prio[b.prioridade] || 999) || b.impacto - a.impacto;
+      });
+
+      return recs.slice(0, 10);
+    },
+  };
+
+  /* Renderizar auditoria (tela de seleção) */
+  function renderAuditoria() {
+    const perfisHtml = S.perfis.map(p => `
+      <div class="gmn-card" onclick="GMN.setPerfilAuditoria('${p.id}')" style="cursor:pointer">
+        <div class="gmn-card-top">
+          <div>
+            <div class="gmn-card-nome">${esc(p.nome)}</div>
+            <div class="gmn-card-sub">${esc(p.categoria || '—')}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">
+            <i class="bi bi-chevron-right"></i>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    return `<div class="page-wrap">
+      <div class="page-header">
+        <h1>🔍 Auditoria GBP</h1>
+        <p>Análise detalhada de cada perfil Google Business</p>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div class="gmn-alert">
+          <i class="bi bi-info-circle"></i> Clique em um perfil para ver análise completa com score automático e recomendações.
+        </div>
+      </div>
+
+      <div class="gmn-grid">
+        ${perfisHtml}
+      </div>
+    </div>`;
+  }
+
+  /* Renderizar detalhes da auditoria */
+  function renderAuditoriaDetalhes() {
+    const perfilId = F.perfilAuditoria;
+    const p = perfilById(perfilId);
+    if (!p) return '<div class="page-wrap"><p style="color:var(--text-muted)">Perfil não encontrado</p></div>';
+
+    const resultado = ScoringEngine.calcularScore(p);
+    const { scoreGeral, scores, categoria, recomendacoes } = resultado;
+
+    const catColors = {
+      critico: { cor: 'var(--red)', label: '🔴 Crítico', bg: 'rgba(220,38,38,.1)' },
+      fraco: { cor: 'var(--orange)', label: '🟠 Fraco', bg: 'rgba(234,88,12,.1)' },
+      razoavel: { cor: 'var(--yellow)', label: '🟡 Razoável', bg: 'rgba(202,138,4,.1)' },
+      bom: { cor: 'var(--green)', label: '🟢 Bom', bg: 'rgba(34,197,94,.1)' },
+      excelente: { cor: 'var(--green)', label: '💚 Excelente', bg: 'rgba(45,206,137,.1)' },
+    };
+
+    const catInfo = catColors[categoria] || catColors.critico;
+
+    const scoreCards = [
+      { nome: 'Info. Básicas', val: scores.infoBasica },
+      { nome: 'Conteúdo Visual', val: scores.conteudoVisual },
+      { nome: 'Conteúdo Textual', val: scores.conteudoTextual },
+      { nome: 'Reputação', val: scores.reputacao },
+      { nome: 'Atividade', val: scores.atividade },
+      { nome: 'Engajamento', val: scores.engajamento },
+      { nome: 'Otimização', val: scores.otimizacao },
+      { nome: 'Avaliações', val: scores.avaliacoes },
+      { nome: 'Posicionamento', val: scores.posicionamento },
+      { nome: 'Conformidade', val: scores.conformidade },
+    ];
+
+    const prioCores = {
+      critica: { emoji: '🔴', bg: 'rgba(220,38,38,.1)', border: 'var(--red)' },
+      importante: { emoji: '🟠', bg: 'rgba(234,88,12,.1)', border: 'var(--orange)' },
+      valiosa: { emoji: '🟡', bg: 'rgba(202,138,4,.1)', border: 'var(--yellow)' },
+      legal: { emoji: '🟢', bg: 'rgba(34,197,94,.1)', border: 'var(--green)' },
+    };
+
+    return `<div class="page-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h1 style="margin:0;margin-bottom:4px">${esc(p.nome)}</h1>
+          <p style="margin:0;color:var(--text-muted);font-size:13px">${esc(p.categoria || '—')} · Auditoria GBP</p>
+        </div>
+        <button class="btn btn-ghost" onclick="pagina='gmn-auditoria';render()"><i class="bi bi-arrow-left"></i> Voltar</button>
+      </div>
+
+      <div style="background:${catInfo.bg};border:1.5px solid ${catInfo.cor};border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:${catInfo.cor};text-transform:uppercase;letter-spacing:.5px">Score Geral</div>
+          <div style="font-size:42px;font-weight:900;color:${catInfo.cor};line-height:1">${scoreGeral}</div>
+        </div>
+        <div style="text-align:right;color:${catInfo.cor}">
+          <div style="font-weight:700;font-size:16px">${catInfo.label}</div>
+          <div style="font-size:12px;opacity:.8">0-100</div>
+        </div>
+      </div>
+
+      <div class="gmn-panel" style="margin-bottom:20px">
+        <div class="gmn-panel-title"><i class="bi bi-grid-3x2-gap"></i> Scores por Dimensão</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          ${scoreCards.map(sc => {
+            const cor = sc.val >= 75 ? 'var(--green)' : sc.val >= 50 ? 'var(--yellow)' : 'var(--red)';
+            const bg = sc.val >= 75 ? 'rgba(34,197,94,.1)' : sc.val >= 50 ? 'rgba(202,138,4,.1)' : 'rgba(220,38,38,.1)';
+            return `
+              <div style="background:${bg};border:1px solid ${cor};border-radius:10px;padding:12px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">${sc.nome}</div>
+                <div style="font-size:28px;font-weight:900;color:${cor};margin-top:4px">${sc.val}</div>
+                <div style="height:4px;background:var(--bg-base);border-radius:99px;margin-top:8px;overflow:hidden">
+                  <div style="height:100%;background:${cor};width:${sc.val}%;border-radius:99px"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="gmn-panel">
+        <div class="gmn-panel-title"><i class="bi bi-lightbulb"></i> Recomendações</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${recomendacoes.length ? recomendacoes.map((rec, i) => {
+            const prio = prioCores[rec.prioridade] || prioCores.legal;
+            return `
+              <div style="background:${prio.bg};border-left:3px solid ${prio.border};border-radius:8px;padding:12px;border-top-left-radius:0;border-bottom-left-radius:0">
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px">${prio.emoji} ${rec.titulo}</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${rec.acao}</div>
+                <div style="font-size:11px;font-weight:600;color:var(--text-muted)">Impacto: +${rec.impacto}% no score</div>
+              </div>
+            `;
+          }).join('') : '<div class="gmn-empty" style="color:var(--green)">✅ Nenhuma recomendação crítica!</div>'}
+        </div>
+      </div>
+    </div>`;
+  }
 })();

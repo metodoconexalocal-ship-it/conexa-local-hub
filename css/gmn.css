@@ -85,3 +85,67 @@
 }
 .gmn-toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media (max-width: 800px) { .gmn-toast { bottom: 80px; } }
+
+/* ── AUDITORIA GBP ─────────────────────────────────────────────────────── */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 28px; font-weight: 900; margin: 0 0 6px 0; color: var(--text-primary); }
+.page-header p { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+/* Score badge */
+.score-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  border: 1.5px solid;
+}
+.score-badge-left { flex: 1; }
+.score-badge-left .score-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; opacity: .8; margin-bottom: 4px; }
+.score-badge-left .score-value { font-size: 42px; font-weight: 900; line-height: 1; }
+.score-badge-right { text-align: right; }
+.score-badge-right .score-category { font-weight: 700; font-size: 16px; }
+.score-badge-right .score-range { font-size: 12px; opacity: .8; }
+
+/* Grid de scores */
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.score-card {
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid;
+}
+.score-card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: .7; margin-bottom: 4px; }
+.score-card-value { font-size: 28px; font-weight: 900; margin-top: 4px; margin-bottom: 8px; }
+.score-card-bar { height: 4px; background: var(--bg-base); border-radius: 99px; overflow: hidden; }
+.score-card-bar-fill { height: 100%; border-radius: 99px; }
+
+/* Recomendações */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.recommendation-item {
+  border-left: 3px solid;
+  border-radius: 8px;
+  padding: 12px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.recommendation-item-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.recommendation-item-action { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.recommendation-item-impact { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .gmn-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .scores-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .score-badge { flex-direction: column; text-align: center; }
+  .score-badge-right { text-align: center; margin-top: 12px; }
+}
