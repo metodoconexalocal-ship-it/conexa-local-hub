@@ -1022,6 +1022,16 @@
 
   /* ═════════════════════════════════ AUDITORIA GBP ═══════════════════════════ */
 
+  /* Helpers para cálculos de auditoria */
+  function getAvaliacoesPerfil(perfilId) {
+    return S.avaliacoes.filter((a) => a.perfilId === perfilId);
+  }
+  function getPostsPerfil(perfilId, dias = 30) {
+    const d = new Date(); d.setDate(d.getDate() - dias);
+    const dataLimite = d.toISOString().split('T')[0];
+    return S.posts.filter((p) => p.perfilId === perfilId && p.data >= dataLimite);
+  }
+
   /* Scoring Engine - 10 dimensões */
   const ScoringEngine = {
     calcularScore: (perfil) => {
@@ -1056,98 +1066,105 @@
     scoreInfoBasica: (p) => {
       let s = 0;
       if (p.nome && p.nome.length > 0) s += 15;
-      if (p.endereco) s += 15;
-      if (p.telefone) s += 15;
-      if (p.descricao && p.descricao.length > 100) s += 20;
+      if (p.cidade) s += 10;
+      if (p.linkPerfil) s += 15;
+      if (p.obs && p.obs.length > 50) s += 20;
       if (p.categoria) s += 15;
-      if (p.site) s += 10;
-      if (p.email) s += 10;
+      if (p.cliente) s += 10;
+      if (p.deadline) s += 15;
       return Math.min(s, 100);
     },
 
     scoreConteudoVisual: (p) => {
       let s = 0;
-      const fotosCount = Number(p.fotosCount || 0);
-      if (fotosCount >= 30) s += 25;
-      else if (fotosCount >= 20) s += 20;
-      else if (fotosCount >= 10) s += 15;
-      else if (fotosCount > 0) s += 10;
+      const pct = checklistPct(p);
+      if (pct >= 80) s += 30;
+      else if (pct >= 60) s += 20;
+      else if (pct >= 40) s += 15;
+      else if (pct > 0) s += 10;
 
-      if (fotosCount >= 50) s += 15;
-      if (Number(p.videosCount || 0) > 0) s += 20;
-      if (Number(p.videosCount || 0) >= 5) s += 20;
-      if (p.temTour360) s += 20;
+      if (p.checklist && p.checklist.logo_capa) s += 20;
+      if (p.checklist && p.checklist.fotos) s += 20;
+      if (p.checklist && p.checklist.servicos) s += 20;
 
       return Math.min(s, 100);
     },
 
     scoreConteudoTextual: (p) => {
       let s = 0;
-      if (p.descricao && p.descricao.length > 50) s += 20;
+      if (p.checklist && p.checklist.descricao) s += 25;
+      if (p.checklist && p.checklist.servicos) s += 20;
 
-      const postsCount = Number(p.posts30dias || 0);
-      if (postsCount >= 8) s += 25;
-      else if (postsCount >= 4) s += 20;
-      else if (postsCount > 0) s += 10;
+      const posts30 = getPostsPerfil(p.id, 30).length;
+      if (posts30 >= 8) s += 25;
+      else if (posts30 >= 4) s += 20;
+      else if (posts30 > 0) s += 10;
 
-      if (Number(p.postsTotal || 0) >= 20) s += 20;
-      if (p.respondePosts) s += 20;
+      if (p.checklist && p.checklist.post_inicial) s += 20;
 
       return Math.min(s, 100);
     },
 
     scoreReputacao: (p) => {
       let s = 0;
-      const avCount = Number(p.avaliacoesCount || 0);
+      const avals = getAvaliacoesPerfil(p.id);
+      const avCount = avals.length;
+
       if (avCount >= 50) s += 20;
       else if (avCount >= 20) s += 15;
       else if (avCount >= 5) s += 10;
 
-      const rating = Number(p.rating || 0);
-      if (rating >= 4.5) s += 25;
-      else if (rating >= 4.0) s += 20;
-      else if (rating >= 3.5) s += 15;
-      else if (rating >= 3.0) s += 10;
+      if (avCount > 0) {
+        const media = avals.reduce((sum, a) => sum + (Number(a.nota) || 0), 0) / avCount;
+        if (media >= 4.5) s += 25;
+        else if (media >= 4.0) s += 20;
+        else if (media >= 3.5) s += 15;
+        else if (media >= 3.0) s += 10;
+      }
 
-      if (p.respondeAvaliacoes) s += 25;
-      s += 10;
+      const respondidas = avals.filter((a) => a.respondida).length;
+      if (respondidas === avCount && avCount > 0) s += 25;
+      else if (respondidas > 0) s += 10;
 
       return Math.min(s, 100);
     },
 
     scoreAtividade: (p) => {
       let s = 0;
-      const posts30 = Number(p.posts30dias || 0);
+      const posts30 = getPostsPerfil(p.id, 30).length;
       if (posts30 >= 8) s += 35;
       else if (posts30 >= 4) s += 25;
       else if (posts30 > 0) s += 15;
 
-      if (p.respondeAvaliacoes) s += 35;
-      else if (Number(p.taxaRespostaAvaliacoes || 0) >= 0.5) s += 20;
+      const avals = getAvaliacoesPerfil(p.id);
+      if (avals.length > 0) {
+        const taxaResp = avals.filter((a) => a.respondida).length / avals.length;
+        if (taxaResp >= 0.8) s += 35;
+        else if (taxaResp >= 0.5) s += 20;
+      }
 
-      s += 30;
+      const subs = getSubElementos(p.id);
+      const subFeit = subs.filter((s) => s.feito).length;
+      if (subFeit > 0) s += 30;
 
       return Math.min(s, 100);
     },
 
     scoreEngajamento: (p) => {
       let s = 0;
-      const chamadas = Number(p.chamadas30dias || 0);
-      if (chamadas >= 20) s += 25;
-      else if (chamadas >= 10) s += 18;
-      else if (chamadas > 0) s += 10;
+      const subElements = getSubElementos(p.id);
+      const totalSubs = subElements.length;
 
-      const clicks = Number(p.websiteClicks30dias || 0);
-      if (clicks >= 30) s += 25;
-      else if (clicks >= 15) s += 18;
-      else if (clicks > 0) s += 10;
+      if (totalSubs >= 10) s += 30;
+      else if (totalSubs >= 5) s += 20;
+      else if (totalSubs > 0) s += 10;
 
-      const direcoes = Number(p.direcoesRequeridas30dias || 0);
-      if (direcoes >= 15) s += 25;
-      else if (direcoes >= 8) s += 18;
-      else if (direcoes > 0) s += 10;
+      const subFeit = subElements.filter((s) => s.feito).length;
+      const subPct = totalSubs ? (subFeit / totalSubs) : 0;
+      if (subPct >= 0.8) s += 30;
+      else if (subPct >= 0.5) s += 20;
 
-      s += 15;
+      s += 20;
 
       return Math.min(s, 100);
     },
@@ -1155,34 +1172,34 @@
     scoreOtimizacao: (p) => {
       let s = 0;
       if (p.categoria) s += 20;
-      if (p.horarios) s += 15;
-      if (p.site) s += 15;
+      if (p.checklist && p.checklist.horarios) s += 15;
+      if (p.linkPerfil) s += 15;
 
-      const redes = (p.redesSociais || '').split(',').filter(r => r.trim()).length;
-      if (redes >= 3) s += 15;
-      else if (redes >= 2) s += 10;
-      else if (redes >= 1) s += 5;
+      const checklist = p.checklist || {};
+      const checkCount = Object.keys(checklist).filter((k) => checklist[k]).length;
+      if (checkCount >= 10) s += 15;
+      else if (checkCount >= 5) s += 10;
+      else if (checkCount > 0) s += 5;
 
-      const attrs = (p.atributos || '').split(',').filter(a => a.trim()).length;
-      if (attrs >= 5) s += 20;
-      else if (attrs >= 3) s += 15;
-      else if (attrs > 0) s += 10;
-
-      if (p.temMensagemBoasVindas) s += 15;
+      if (p.checklist && p.checklist.atributos) s += 15;
 
       return Math.min(s, 100);
     },
 
     scoreAvaliacoes: (p) => {
       let s = 0;
-      const taxaResp = Number(p.taxaRespostaAvaliacoes || 0);
-      if (taxaResp === 1) s += 30;
-      else if (taxaResp >= 0.8) s += 25;
-      else if (taxaResp >= 0.5) s += 15;
+      const avals = getAvaliacoesPerfil(p.id);
 
-      const tempoResp = Number(p.tempoRespostaMedia || Infinity);
-      if (tempoResp <= 24) s += 30;
-      else if (tempoResp <= 72) s += 20;
+      if (avals.length > 0) {
+        const respondidas = avals.filter((a) => a.respondida).length;
+        const taxaResp = respondidas / avals.length;
+        if (taxaResp === 1) s += 30;
+        else if (taxaResp >= 0.8) s += 25;
+        else if (taxaResp >= 0.5) s += 15;
+      }
+
+      if (p.checklist && p.checklist.aval_resp) s += 30;
+      if (p.checklist && p.checklist.aval_inicial) s += 20;
 
       s += 20;
 
@@ -1191,17 +1208,23 @@
 
     scorePosicionamento: (p) => {
       let s = 0;
-      const avCount = Number(p.avaliacoesCount || 0);
+      const avals = getAvaliacoesPerfil(p.id);
+      const avCount = avals.length;
+
       if (avCount >= 50) s += 30;
       else if (avCount >= 20) s += 20;
       else if (avCount >= 5) s += 10;
 
-      const rating = Number(p.rating || 0);
-      if (rating >= 4.5) s += 35;
-      else if (rating >= 4.0) s += 25;
-      else if (rating >= 3.5) s += 15;
+      if (avCount > 0) {
+        const media = avals.reduce((sum, a) => sum + (Number(a.nota) || 0), 0) / avCount;
+        if (media >= 4.5) s += 35;
+        else if (media >= 4.0) s += 25;
+        else if (media >= 3.5) s += 15;
+      }
 
-      if (Number(p.posts30dias || 0) > 0) s += 20;
+      const posts30 = getPostsPerfil(p.id, 30).length;
+      if (posts30 > 0) s += 20;
+
       s += 15;
 
       return Math.min(s, 100);
@@ -1209,11 +1232,11 @@
 
     scoreConformidade: (p) => {
       let s = 0;
-      if (p.telefonVerificado && p.enderecoVerificado) s += 35;
-      else if (p.telefonVerificado || p.enderecoVerificado) s += 20;
+      if (p.linkPerfil && p.linkAvaliacao) s += 35;
+      else if (p.linkPerfil || p.linkAvaliacao) s += 20;
 
       s += 30;
-      if (p.site && p.nome && p.categoria) s += 20;
+      if (p.nome && p.categoria && p.cidade) s += 20;
       s += 15;
 
       return Math.min(s, 100);
@@ -1223,38 +1246,42 @@
       const recs = [];
 
       if (scores.infoBasica < 40) {
-        recs.push({ titulo: 'Completar informações básicas', prioridade: 'critica', impacto: 15, acao: 'Preencha: nome, endereço, telefone, descrição (100+ caracteres)' });
+        recs.push({ titulo: 'Completar informações básicas', prioridade: 'critica', impacto: 15, acao: 'Preencha: nome, cidade, categoria, cliente' });
       }
 
-      const fotosCount = Number(perfil.fotosCount || 0);
-      if (fotosCount < 10) {
-        recs.push({ titulo: 'Adicionar fotos profissionais', prioridade: 'critica', impacto: 20, acao: `Você tem ${fotosCount} fotos. Adicione até 30 de qualidade` });
+      const pct = checklistPct(perfil);
+      if (pct < 30) {
+        recs.push({ titulo: 'Ativar checklist de otimização', prioridade: 'critica', impacto: 25, acao: `Apenas ${pct}% do checklist preenchido. Comece pelos itens críticos.` });
       }
 
-      const rating = Number(perfil.rating || 0);
-      if (rating < 4.0) {
-        recs.push({ titulo: 'Melhorar reputação', prioridade: 'importante', impacto: 18, acao: `Rating: ${rating}/5. Trabalhe para chegar a 4.5+` });
+      const avals = getAvaliacoesPerfil(perfil.id);
+      if (avals.length < 5) {
+        recs.push({ titulo: 'Coletar avaliações iniciais', prioridade: 'critica', impacto: 20, acao: `Você tem ${avals.length} avaliações. Meta: 50+. Solicite avaliações aos clientes.` });
       }
 
-      if (Number(perfil.posts30dias || 0) === 0) {
-        recs.push({ titulo: 'Postar conteúdo regularmente', prioridade: 'importante', impacto: 12, acao: 'Poste 2x por semana para aumentar visibilidade em +25%' });
+      const posts30 = getPostsPerfil(perfil.id, 30).length;
+      if (posts30 === 0) {
+        recs.push({ titulo: 'Publicar primeiro post', prioridade: 'importante', impacto: 15, acao: 'Poste regularmente 2x por semana para aumentar visibilidade' });
       }
 
-      if (!perfil.respondeAvaliacoes || Number(perfil.taxaRespostaAvaliacoes || 0) < 0.5) {
-        recs.push({ titulo: 'Responder a avaliações', prioridade: 'importante', impacto: 14, acao: 'Responda 100% dos reviews para melhorar score em +12 pontos' });
+      if (avals.length > 0) {
+        const respondidas = avals.filter((a) => a.respondida).length;
+        if (respondidas < avals.length) {
+          recs.push({ titulo: 'Responder avaliações pendentes', prioridade: 'importante', impacto: 14, acao: `${avals.length - respondidas} avaliações sem resposta. Responda 100%.` });
+        }
       }
 
-      if (!perfil.site) {
-        recs.push({ titulo: 'Adicionar website', prioridade: 'valiosa', impacto: 8, acao: 'Linke seu website no perfil para +8% de tráfego' });
+      if (!perfil.linkAvaliacao) {
+        recs.push({ titulo: 'Adicionar link de avaliação', prioridade: 'valiosa', impacto: 10, acao: 'Cole o link do seu perfil Google no campo de link de avaliação' });
       }
 
-      const redesCount = (perfil.redesSociais || '').split(',').filter(r => r.trim()).length;
-      if (redesCount < 2) {
-        recs.push({ titulo: 'Conectar redes sociais', prioridade: 'valiosa', impacto: 7, acao: 'Linke Instagram, Facebook e LinkedIn' });
+      if (pct > 30 && pct < 80) {
+        recs.push({ titulo: 'Completar checklist pendente', prioridade: 'valiosa', impacto: 12, acao: `${100 - pct}% do checklist ainda não feito. Continue a otimização.` });
       }
 
-      if (Number(perfil.videosCount || 0) === 0) {
-        recs.push({ titulo: 'Adicionar vídeos', prioridade: 'legal', impacto: 5, acao: 'Adicione 3-5 vídeos profissionais da empresa' });
+      const subs = getSubElementos(perfil.id);
+      if (subs.length === 0) {
+        recs.push({ titulo: 'Criar sub-elementos de ação', prioridade: 'legal', impacto: 8, acao: 'Quebra as ações em tarefas menores para acompanhar o progresso' });
       }
 
       recs.sort((a, b) => {
