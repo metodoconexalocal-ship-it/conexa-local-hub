@@ -1,6 +1,11 @@
 {
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^14.3.0",
     "google-auth-library": "^11.0.2",
-    "googleapis": "^176.0.0"
+    "googleapis": "^176.0.0",
+    "node-fetch": "^3.3.2"
   }
 }
