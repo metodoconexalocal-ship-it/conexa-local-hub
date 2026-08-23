@@ -1996,7 +1996,15 @@
 
   /* ── Inicializar Dashboard ──────────────────────────────────────────── */
   GMN.inicializarDashboardMetricas = function() {
-    // Carregar perfis conectados ao abrir o dashboard
-    GMN.carregarPerfisConectados();
+    // Verificar se há um accessToken no sessionStorage (após OAuth)
+    const accessToken = sessionStorage.getItem('gmnAccessToken');
+    if (accessToken) {
+      // Buscar perfis reais do Google My Business
+      GMN.buscarPerfisGMBReais(accessToken);
+      sessionStorage.removeItem('gmnAccessToken'); // Limpar após usar
+    } else {
+      // Carregar perfis conectados ao abrir o dashboard
+      GMN.carregarPerfisConectados();
+    }
   };
 })();

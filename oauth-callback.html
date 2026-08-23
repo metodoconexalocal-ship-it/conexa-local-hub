@@ -79,7 +79,7 @@
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
-        const usuarioId = params.get('usuarioId') || sessionStorage.getItem('gmnUsuarioId');
+        const usuarioId = params.get('usuarioId') || sessionStorage.getItem('gmnUsuarioId') || 'usuario-padrao';
 
         if (!code) {
           throw new Error('Código de autenticação não recebido');
@@ -88,18 +88,24 @@
         document.getElementById('message').textContent = 'Salvando autenticação...';
 
         // Enviar código para o backend
-        const response = await fetch(`/api/auth/google/callback?code=${encodeURIComponent(code)}&usuarioId=${encodeURIComponent(usuarioId || 'usuario-padrao')}`);
+        const response = await fetch(`/api/auth/google/callback?code=${encodeURIComponent(code)}&usuarioId=${encodeURIComponent(usuarioId)}`);
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.tokens) {
           document.getElementById('status').className = 'status success';
           document.getElementById('status').textContent = '✓ Google conectado com sucesso!';
-          document.getElementById('message').textContent = 'Redirecionando para o Dashboard...';
+          document.getElementById('message').textContent = 'Buscando seus perfis...';
 
-          // Aguardar 2 segundos e redirecionar
+          // Salvar o token e usuarioId para buscar perfis
+          sessionStorage.setItem('gmnAccessToken', data.tokens.access_token);
+          sessionStorage.setItem('gmnUsuarioId', usuarioId);
+
+          // Aguardar um pouco para garantir que os dados foram salvos
           setTimeout(() => {
-            window.location.href = '/';
-          }, 2000);
+            document.getElementById('message').textContent = 'Redirecionando para o Dashboard...';
+            // Redirecionar para o dashboard com parâmetro para buscar perfis
+            window.location.href = '/?tab=gmn-metricas&carregarPerfis=true';
+          }, 1500);
         } else {
           throw new Error(data.error || 'Erro desconhecido');
         }
@@ -108,6 +114,11 @@
         document.getElementById('status').className = 'status error';
         document.getElementById('status').textContent = '✗ ' + error.message;
         console.error('Erro:', error);
+
+        // Permitir redirecionar mesmo com erro
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
       }
     }
 
