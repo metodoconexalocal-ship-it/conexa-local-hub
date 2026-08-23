@@ -593,9 +593,10 @@
 
   onAuthStateChanged(auth, async (user) => {
     // Se está voltando do Google OAuth, não limpar a interface
-    if (sessionStorage.getItem('gmnPreserveSession') === 'true') {
+    if (localStorage.getItem('gmnPreserveSession') === 'true') {
       console.log('[Firebase] Voltando do Google OAuth, preservando sessão...');
-      sessionStorage.removeItem('gmnPreserveSession');
+      localStorage.removeItem('gmnPreserveSession');
+      localStorage.removeItem('gmnOAuthReturning');
       return; // Não fazer nada, deixar a interface como está
     }
 

@@ -17,13 +17,18 @@ window.GMNOAuth = (() => {
   async function inicializar(usuarioId) {
     state.usuarioId = usuarioId;
 
-    // Primeiro, verificar se há um accessToken no sessionStorage (vindo do OAuth callback)
-    const accessTokenDoCallback = sessionStorage.getItem('gmnAccessToken');
+    // Primeiro, verificar se há um accessToken (vindo do OAuth callback)
+    // Verificar localStorage PRIMEIRO (persiste), depois sessionStorage
+    let accessTokenDoCallback = localStorage.getItem('gmnAccessToken') || sessionStorage.getItem('gmnAccessToken');
+
     if (accessTokenDoCallback) {
       console.log('✓ Token do OAuth callback encontrado, puxando perfis...');
       await buscarPerfisGMB(accessTokenDoCallback);
-      sessionStorage.removeItem('gmnAccessToken'); // Limpar após usar
+      // Limpar após usar
+      localStorage.removeItem('gmnAccessToken');
+      sessionStorage.removeItem('gmnAccessToken');
     } else {
+      console.log('[OAuth] Sem token de callback, carregando tokens salvos...');
       // Se não há token novo, carregar tokens salvos
       await carregarTokensSalvos();
       if (state.tokens.length > 0) {

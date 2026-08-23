@@ -25,22 +25,19 @@
         if (data.success && data.tokens) {
           console.log('[OAuth] Token recebido, salvando...');
 
-          // Salvar tokens
-          sessionStorage.setItem('gmnAccessToken', data.tokens.access_token);
-          sessionStorage.setItem('gmnRefreshToken', data.tokens.refresh_token || '');
-          sessionStorage.setItem('gmnTokenExpiry', data.tokens.expiry_date || '');
-          sessionStorage.setItem('gmnOAuthConnected', 'true');
-
-          // ⚠️ IMPORTANTE: Salvar flag para não limpar sessão ao voltar
+          // Salvar tokens em localStorage (persiste entre abas/recarregos)
+          localStorage.setItem('gmnAccessToken', data.tokens.access_token);
+          localStorage.setItem('gmnRefreshToken', data.tokens.refresh_token || '');
+          localStorage.setItem('gmnTokenExpiry', data.tokens.expiry_date || '');
+          localStorage.setItem('gmnOAuthConnected', 'true');
           localStorage.setItem('gmnOAuthReturning', 'true');
-          sessionStorage.setItem('gmnPreserveSession', 'true');
+          localStorage.setItem('gmnPreserveSession', 'true');
 
-          console.log('[OAuth] Redirecionando para dashboard...');
+          console.log('[OAuth] Tokens salvos em localStorage, redirecionando...');
+          console.log('localStorage.gmnAccessToken:', localStorage.getItem('gmnAccessToken')?.substring(0, 20) + '...');
 
           // Redirecionar para dashboard
-          setTimeout(() => {
-            window.location.href = '/?tab=gmn-metricas&oauth=success';
-          }, 500);
+          window.location.href = '/?tab=gmn-metricas&oauth=success';
         } else {
           throw new Error(data.error || 'Erro ao conectar');
         }
