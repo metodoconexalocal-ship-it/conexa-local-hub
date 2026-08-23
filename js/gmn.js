@@ -1725,27 +1725,35 @@
         </div>
       </div>
 
-      <!-- Perfis Conectados -->
-      <div id="gmn-perfis-conectados" style="display: none;">
+      <!-- Perfis Conectados - Seleção -->
+      <div id="gmn-perfis-conectados" style="display: none; margin-bottom: 24px;">
         <div class="gmn-metricas-panel">
-          <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
             <i class="bi bi-check-circle" style="color: #10b981;"></i>
-            Seus Perfis Google
+            Selecione um Perfil para Gerenciar
           </div>
-          <div id="gmn-perfis-lista" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;"></div>
+          <div id="gmn-perfis-lista" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;"></div>
         </div>
       </div>
 
-      <!-- Controles de Sincronização -->
-      <div class="gmn-metricas-controls">
-        <div class="gmn-metricas-input-group">
-          <input type="text" id="perfilIdInput" placeholder="ID do Perfil (ex: cliente-001)" value="perfil-demo">
-          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMN) window.GMN.carregarMetricas()">
-            <i class="bi bi-search"></i> Buscar
-          </button>
-          <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="if(window.GMN) window.GMN.sincronizarMetricas()">
-            <i class="bi bi-arrow-repeat"></i> Sincronizar
-          </button>
+      <!-- Perfil Selecionado - Header -->
+      <div id="gmn-perfil-selecionado-header" style="display: none; margin-bottom: 24px;">
+        <div class="gmn-metricas-panel" style="background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(65,231,243,0.1)); border: 1px solid var(--border-bright);">
+          <div style="display: flex; align-items: center; gap: 16px; justify-content: space-between;">
+            <div>
+              <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Perfil Gerenciado</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);" id="gmn-perfil-nome">—</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="gmn-perfil-endereco">—</div>
+            </div>
+            <div style="text-align: right;">
+              <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="if(window.GMNOAuth && window._gmnPerfilSelecionado) window.GMNOAuth.sincronizarMetricas(window._gmnPerfilSelecionado.perfilId)" style="white-space: nowrap;">
+                <i class="bi bi-arrow-repeat"></i> Sincronizar Agora
+              </button>
+              <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-top: 8px;" onclick="GMN.selecionarOutroPerfil()">
+                <i class="bi bi-arrow-left"></i> Trocar Perfil
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1996,8 +2004,44 @@
 
   /* ── Selecionar Perfil ──────────────────────────────────────────────── */
   GMN.selecionarPerfil = function(perfilId, nomeExibicao) {
+    // Armazenar perfil selecionado
+    window._gmnPerfilSelecionado = {
+      perfilId,
+      nomeExibicao
+    };
+
+    // Procurar dados do perfil na lista
+    const perfis = window._gmnMetricasState.perfisConectados || [];
+    const perfilDados = perfis.find(p => (p.perfilId || p.id) === perfilId);
+
+    // Mostrar header com informações do perfil
+    const headerContainer = document.getElementById('gmn-perfil-selecionado-header');
+    const listaContainer = document.getElementById('gmn-perfis-conectados');
+
+    if (headerContainer) {
+      document.getElementById('gmn-perfil-nome').textContent = nomeExibicao || 'Carregando...';
+      document.getElementById('gmn-perfil-endereco').textContent = perfilDados?.endereco || '';
+      headerContainer.style.display = 'block';
+    }
+
+    // Esconder lista de perfis
+    if (listaContainer) {
+      listaContainer.style.display = 'none';
+    }
+
+    // Carregar métricas do perfil
     document.getElementById('perfilIdInput').value = perfilId;
     GMN.carregarMetricas();
+  };
+
+  /* ── Selecion Outro Perfil ──────────────────────────────────────────── */
+  GMN.selecionarOutroPerfil = function() {
+    window._gmnPerfilSelecionado = null;
+    const headerContainer = document.getElementById('gmn-perfil-selecionado-header');
+    const listaContainer = document.getElementById('gmn-perfis-conectados');
+
+    if (headerContainer) headerContainer.style.display = 'none';
+    if (listaContainer) listaContainer.style.display = 'block';
   };
 
   /* ── Buscar Perfis Reais do Google My Business ──────────────────────── */
