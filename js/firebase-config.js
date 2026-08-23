@@ -592,15 +592,17 @@
   }
 
   onAuthStateChanged(auth, async (user) => {
-    // Se está voltando do Google OAuth, não limpar a interface
-    if (localStorage.getItem('gmnPreserveSession') === 'true') {
-      console.log('[Firebase] Voltando do Google OAuth, preservando sessão...');
-      localStorage.removeItem('gmnPreserveSession');
-      localStorage.removeItem('gmnOAuthReturning');
-      return; // Não fazer nada, deixar a interface como está
+    // 🔴 CRÍTICO: Se OAuth está em progresso, NÃO FAZER NADA
+    if (window._OAUTH_IN_PROGRESS || localStorage.getItem('_oauthInProgress') === 'true') {
+      console.log('[Firebase] ⏸️  OAuth em progresso, aguardando...');
+      return;
     }
 
-    if (!user && !DEV_MODE) { showLoginScreen(); return; }
+    if (!user && !DEV_MODE) {
+      console.log('[Firebase] Sem autenticação, mostrando login');
+      showLoginScreen();
+      return;
+    }
     if (DEV_MODE) return; // DEV MODE: pula auth state check completamente
 
     // Emails que sempre têm acesso (proprietárias do sistema)
