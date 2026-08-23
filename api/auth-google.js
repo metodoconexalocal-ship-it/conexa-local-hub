@@ -253,12 +253,16 @@ router.get('/google/buscar-perfis', async (req, res) => {
         access_token: accessToken
       });
 
-      const businessprofileservice = google.mybusinessbusinessinformation('v1');
+      // Tentar usar a API correta do My Business
+      const businessprofileservice = google.mybusinessbusinessinformation({ version: 'v1', auth: oauth2Client });
+
+      console.log('[GMB API] Serviço inicializado:', {
+        temAccounts: typeof businessprofileservice.accounts !== 'undefined',
+        metodos: Object.keys(businessprofileservice).slice(0, 10)
+      });
 
       // Buscar contas do usuário
-      const accountsResponse = await businessprofileservice.accounts.list({
-        auth: oauth2Client
-      });
+      const accountsResponse = await businessprofileservice.accounts.list({});
 
       let perfis = [];
 
@@ -267,8 +271,7 @@ router.get('/google/buscar-perfis', async (req, res) => {
           try {
             // Buscar locais (perfis) em cada conta
             const locationsResponse = await businessprofileservice.accounts.locations.list({
-              parent: account.name,
-              auth: oauth2Client
+              parent: account.name
             });
 
             if (locationsResponse.data.locations) {
