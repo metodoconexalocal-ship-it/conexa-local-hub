@@ -242,100 +242,45 @@ router.get('/google/buscar-perfis', async (req, res) => {
     }
 
     try {
-      // Usar REST API do Google My Business diretamente
-      let perfis = [];
+      // 🚀 DEMO MODE: Usar dados mock enquanto permissões do Google não estão configuradas
+      // TODO: Substituir por chamadas à API real quando Google My Business estiver autorizada
 
-      try {
-        // 1. Buscar contas do usuário
-        console.log('[GMB API] Buscando contas com token:', accessToken.substring(0, 30) + '...');
-        const accountsRes = await fetch('https://mybusiness.googleapis.com/v4/accounts', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
+      console.log('[GMB] Modo Demo - Retornando perfis mock');
 
-        console.log('[GMB API] Status da resposta:', accountsRes.status);
-        const contentType = accountsRes.headers.get('content-type') || '';
-        console.log('[GMB API] Content-Type:', contentType);
-
-        // Se for erro, ler como texto
-        if (!accountsRes.ok) {
-          const errorText = await accountsRes.text();
-          console.error('[GMB API] Erro HTTP:', accountsRes.status, accountsRes.statusText);
-          console.error('[GMB API] Resposta:', errorText.substring(0, 300));
-
-          // FALLBACK: Retornar dados mock para demonstração
-          console.log('[GMB API] Usando dados MOCK para demonstração...');
-          perfis = [
-            {
-              perfilId: 'conexa-local-001',
-              nomeExibicao: 'Conexa Local | SEO Local e Google Empresas',
-              endereco: 'Rua das Flores, 123 - São José, SC',
-              telefone: '(48) 99698-9531',
-              website: 'https://conexalocal.com.br',
-              sincronizadoEm: new Date()
-            }
-          ];
-        } else {
-          const accountsData = await accountsRes.json();
-          console.log('[GMB API] Contas encontradas:', accountsData.accounts?.length || 0);
-
-          if (accountsData.accounts && Array.isArray(accountsData.accounts)) {
-            // 2. Para cada conta, buscar locais
-            for (const account of accountsData.accounts) {
-              try {
-                const accountId = account.name.split('/')[1];
-                const locationsRes = await fetch(
-                  `https://mybusiness.googleapis.com/v4/accounts/${accountId}/locations`,
-                  {
-                    headers: {
-                      'Authorization': `Bearer ${accessToken}`,
-                      'Content-Type': 'application/json'
-                    }
-                  }
-                );
-
-                if (!locationsRes.ok) throw new Error(`HTTP ${locationsRes.status}`);
-
-                const locationsData = await locationsRes.json();
-                console.log(`[GMB API] Locais encontrados: ${locationsData.locations?.length || 0}`);
-
-                if (locationsData.locations && Array.isArray(locationsData.locations)) {
-                  perfis.push(...locationsData.locations.map(loc => ({
-                    perfilId: loc.name?.split('/')?.pop() || loc.name,
-                    nomeExibicao: loc.displayName || 'Sem nome',
-                    endereco: loc.address?.addressLines?.[0] || '',
-                    telefone: loc.primaryPhone || '',
-                    website: loc.websiteUri || '',
-                    sincronizadoEm: new Date()
-                  })));
-                }
-              } catch (locError) {
-                console.warn('⚠️ Erro ao buscar locais:', locError.message);
-              }
-            }
-          }
+      // Dados mock para demonstração
+      const perfis = [
+        {
+          perfilId: 'conexa-local-001',
+          nomeExibicao: 'Conexa Local | SEO Local e Google Empresas | Amanda Sestren Silveira',
+          endereco: 'Rua das Flores, 123 - Palhoça, SC 88055-300',
+          telefone: '(48) 99698-9531',
+          website: 'https://conexalocal.com.br',
+          sincronizadoEm: new Date().toISOString()
+        },
+        {
+          perfilId: 'dc-agency-001',
+          nomeExibicao: 'DigitalCreate Agency | Agência de Marketing Digital',
+          endereco: 'Centro - São José, SC',
+          telefone: '(48) 3244-5050',
+          website: 'https://digitalcreate.com.br',
+          sincronizadoEm: new Date().toISOString()
         }
-      } catch (apiError) {
-        console.error('[GMB API] Exceção:', apiError.message);
-        throw apiError;
-      }
+      ];
 
       res.json({
         sucesso: true,
         usuarioId,
         perfis: perfis,
         total: perfis.length,
-        message: `Encontrados ${perfis.length} perfil(is)`
+        message: `✓ Carregados ${perfis.length} perfil(is) (DEMO MODE)`
       });
     } catch (gmError) {
-      console.error('Erro ao buscar perfis do GMB:', gmError.message);
+      console.error('Erro ao buscar perfis:', gmError.message);
       res.json({
         sucesso: false,
         usuarioId,
         perfis: [],
-        message: 'Erro ao buscar perfis da API Google',
+        message: 'Erro ao buscar perfis',
         erro: gmError.message
       });
     }
