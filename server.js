@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 3000;
 // ─── MIDDLEWARE ──────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
 // ─── ROTAS DE AUTENTICAÇÃO (Google OAuth) ───────────────────────
 const authGoogleRouter = require('./api/auth-google');
@@ -23,6 +22,9 @@ app.use('/api/auth', authGoogleRouter);
 // ─── ROTAS DE SINCRONIZAÇÃO (Métricas) ──────────────────────────
 const syncMetricasRouter = require('./api/sync-metricas');
 app.use('/api/sync-metricas', syncMetricasRouter);
+
+// ─── SERVIR ARQUIVOS ESTÁTICOS (DEPOIS DAS ROTAS) ────────────────
+app.use(express.static(path.join(__dirname)));
 
 // ─── ROTA TESTE ──────────────────────────────────────────────────
 app.get('/api/status', (req, res) => {
