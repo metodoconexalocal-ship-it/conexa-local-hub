@@ -242,50 +242,55 @@ router.get('/google/buscar-perfis', async (req, res) => {
     }
 
     try {
-      const { google } = require('googleapis');
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        process.env.GOOGLE_REDIRECT_URI
-      );
-
-      oauth2Client.setCredentials({
-        access_token: accessToken
-      });
-
-      // Usar a API correta do My Business (v4.1 é a versão estável)
-      const mybusiness = google.mybusiness('v4.1');
-
-      // Buscar contas do usuário - usando auth no método
-      const accountsResponse = await mybusiness.accounts.list({
-        auth: oauth2Client
-      });
-
+      // Usar REST API do Google My Business diretamente
       let perfis = [];
 
-      if (accountsResponse.data.accounts) {
-        for (const account of accountsResponse.data.accounts) {
-          try {
-            // Buscar locais (perfis) em cada conta
-            const locationsResponse = await mybusiness.accounts.locations.list({
-              accountId: account.name.split('/')[1],
-              auth: oauth2Client
-            });
+      try {
+        // 1. Buscar contas do usuário
+        const accountsRes = await fetch('https://mybusiness.googleapis.com/v4/accounts', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
 
-            if (locationsResponse.data.locations) {
-              perfis.push(...locationsResponse.data.locations.map(loc => ({
-                perfilId: loc.name?.split('/')?.pop() || loc.name,
-                nomeExibicao: loc.displayName || 'Sem nome',
-                endereco: loc.address?.addressLines?.[0] || '',
-                telefone: loc.primaryPhone || '',
-                website: loc.websiteUri || '',
-                sincronizadoEm: new Date()
-              })));
+        const accountsData = await accountsRes.json();
+        console.log('[GMB API] Contas encontradas:', accountsData);
+
+        if (accountsData.accounts && Array.isArray(accountsData.accounts)) {
+          // 2. Para cada conta, buscar locais
+          for (const account of accountsData.accounts) {
+            try {
+              const accountId = account.name.split('/')[1];
+              const locationsRes = await fetch(
+                `https://mybusiness.googleapis.com/v4/accounts/${accountId}/locations`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                  }
+                }
+              );
+
+              const locationsData = await locationsRes.json();
+              console.log(`[GMB API] Locais da conta ${accountId}:`, locationsData);
+
+              if (locationsData.locations && Array.isArray(locationsData.locations)) {
+                perfis.push(...locationsData.locations.map(loc => ({
+                  perfilId: loc.name?.split('/')?.pop() || loc.name,
+                  nomeExibicao: loc.displayName || 'Sem nome',
+                  endereco: loc.address?.addressLines?.[0] || '',
+                  telefone: loc.primaryPhone || '',
+                  website: loc.websiteUri || '',
+                  sincronizadoEm: new Date()
+                })));
+              }
+            } catch (locError) {
+              console.warn('⚠️ Erro ao buscar locais:', locError.message);
             }
-          } catch (locError) {
-            console.warn('⚠️  Erro ao buscar locais da conta:', locError.message);
           }
         }
+      } catch (apiError) {
+        console.error('[GMB API] Erro na chamada:', apiError);
+        throw apiError;
       }
 
       res.json({
@@ -296,7 +301,7 @@ router.get('/google/buscar-perfis', async (req, res) => {
         message: `Encontrados ${perfis.length} perfil(is)`
       });
     } catch (gmError) {
-      console.error('Erro ao chamar Google My Business API:', gmError.message);
+      console.error('Erro ao buscar perfis do GMB:', gmError.message);
       res.json({
         sucesso: false,
         usuarioId,
