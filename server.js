@@ -46,14 +46,15 @@ app.get('/api/status', (req, res) => {
 });
 
 // ─── SERVIR ARQUIVO ESTÁTICO (CSS, JS, IMG, etc) ───────────────
-app.use(express.static(__dirname, {
+const staticPath = process.env.VERCEL ? process.cwd() : __dirname;
+app.use(express.static(staticPath, {
   maxAge: '1d',
   etag: false
 }));
 
 // ─── SERVIR PÁGINA INICIAL ──────────────────────────────────────
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 // ─── MIDDLEWARE 404 ─────────────────────────────────────────────
