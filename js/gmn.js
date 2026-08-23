@@ -1442,23 +1442,29 @@
     <div class="page-wrap">
       <style>
         .gmn-metricas-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 28px 32px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          padding: 20px 24px;
           border-radius: 12px;
           margin-bottom: 24px;
         }
         .gmn-metricas-header-title {
-          font-size: 28px;
+          font-size: 18px;
           font-weight: 700;
           margin: 0 0 4px 0;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
+          color: var(--text-primary);
+        }
+        .gmn-metricas-header-title i {
+          color: #667eea;
+          font-size: 22px;
         }
         .gmn-metricas-header-subtitle {
-          font-size: 13px;
-          opacity: 0.9;
+          font-size: 12px;
+          color: var(--text-muted);
           margin: 0;
           font-weight: 500;
         }
@@ -1575,18 +1581,19 @@
         }
         .gmn-metricas-score-card {
           grid-column: 1 / -1;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: var(--bg-card);
+          border: 2px solid #667eea;
+          color: var(--text-primary);
           padding: 28px 32px;
           border-radius: 12px;
-          border: none;
         }
         .gmn-metricas-score-card .gmn-metricas-card-title {
-          color: rgba(255,255,255,0.8);
+          color: var(--text-muted);
         }
         .gmn-metricas-score-card .gmn-metricas-card-value {
           font-size: 48px;
-          color: white;
+          color: #667eea;
+          font-weight: 800;
         }
         .gmn-metricas-score-label {
           font-size: 12px;
