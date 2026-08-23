@@ -1642,16 +1642,6 @@
           background: #fee2e2;
           color: #991b1b;
         }
-        .gmn-metricas-auth-panel {
-          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
-          border: 1px solid #bfdbfe;
-          padding: 20px;
-          border-radius: 12px;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
         .gmn-metricas-panel {
           background: var(--bg-card);
           padding: 20px;
@@ -1698,17 +1688,17 @@
       </div>
 
       <!-- Seção de Autenticação Google -->
-      <div class="gmn-metricas-auth-panel">
+      <div class="gmn-metricas-panel">
         <div style="display: flex; align-items: center; gap: 16px; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="bi bi-google" style="font-size: 24px; color: #4285f4;"></i>
-            <div>
-              <div style="font-weight: 600; font-size: 13px; color: var(--text-primary);">Conectar Google My Business</div>
-              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Sincronize seus perfis para ver métricas em tempo real</div>
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <i class="bi bi-google" style="font-size: 20px; color: #4285f4;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 13px; color: var(--text-primary);">Conectar com Google My Business</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Autentique para ver seus perfis e métricas em tempo real</div>
             </div>
           </div>
-          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMN) window.GMN.conectarGoogle()">
-            <i class="bi bi-box-arrow-up-right"></i> Conectar
+          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMN) window.GMN.conectarGoogle()" style="white-space: nowrap;">
+            <i class="bi bi-link-45deg"></i> Conectar
           </button>
         </div>
       </div>
@@ -1929,6 +1919,12 @@
       if (data.perfis && data.perfis.length > 0) {
         window._gmnMetricasState.perfisConectados = data.perfis;
         GMN.renderizarPerfisConectados();
+
+        // Se houver tokens com accessToken, buscar perfis reais do GMB
+        const perfisComToken = data.perfis.filter(p => p.accessToken);
+        if (perfisComToken.length > 0) {
+          GMN.buscarPerfisGMBReais(perfisComToken[0].accessToken);
+        }
       }
     } catch (error) {
       console.warn('Erro ao carregar perfis:', error);
@@ -1941,7 +1937,7 @@
     const container = document.getElementById('gmn-perfis-conectados');
     const lista = document.getElementById('gmn-perfis-lista');
 
-    if (perfis.length === 0) {
+    if (!perfis || perfis.length === 0) {
       if (container) container.style.display = 'none';
       return;
     }
@@ -1949,15 +1945,24 @@
     if (container) container.style.display = 'block';
 
     if (lista) {
-      lista.innerHTML = perfis.map(perfil => `
-        <div class="gmn-metricas-perfil-card" onclick="if(window.GMN) window.GMN.selecionarPerfil('${perfil.perfilId}', '${perfil.nomeExibicao || perfil.perfilId}')">
-          <div style="font-size: 24px; margin-bottom: 8px;">
+      lista.innerHTML = perfis.map(perfil => {
+        const id = perfil.perfilId || perfil.id || '';
+        const nome = perfil.nomeExibicao || perfil.displayName || 'Sem nome';
+        const endereco = perfil.endereco || perfil.address?.addressLines?.[0] || '';
+        const telefone = perfil.telefone || perfil.primaryPhone || '';
+        const nomeEscapado = nome.replace(/'/g, "\\'");
+
+        return `
+        <div class="gmn-metricas-perfil-card" onclick="if(window.GMN) window.GMN.selecionarPerfil('${id}', '${nomeEscapado}')">
+          <div style="font-size: 24px; margin-bottom: 8px; color: #667eea;">
             <i class="bi bi-shop"></i>
           </div>
-          <div class="gmn-metricas-perfil-nome">${perfil.nomeExibicao || 'Perfil'}</div>
-          <div class="gmn-metricas-perfil-id">${perfil.perfilId}</div>
+          <div class="gmn-metricas-perfil-nome" title="${nome}">${nome}</div>
+          ${endereco ? `<div class="gmn-metricas-perfil-id" title="${endereco}" style="font-size: 11px; margin-top: 4px;"><i class="bi bi-geo-alt" style="font-size: 10px; margin-right: 3px;"></i>${endereco.substring(0, 25)}${endereco.length > 25 ? '...' : ''}</div>` : ''}
+          ${telefone ? `<div class="gmn-metricas-perfil-id" style="font-size: 11px; margin-top: 2px;"><i class="bi bi-telephone" style="font-size: 10px; margin-right: 3px;"></i>${telefone}</div>` : ''}
         </div>
-      `).join('');
+        `;
+      }).join('');
     }
   };
 
@@ -1967,21 +1972,25 @@
     GMN.carregarMetricas();
   };
 
-  /* ── Buscar Perfis do Google My Business ────────────────────────────── */
-  GMN.buscarPerfisGMB = async function(accessToken) {
+  /* ── Buscar Perfis Reais do Google My Business ──────────────────────── */
+  GMN.buscarPerfisGMBReais = async function(accessToken) {
     try {
-      GMN.mostrarStatusMetrica('Buscando perfis no Google My Business...', 'loading');
-
       const response = await fetch(`/api/auth/google/buscar-perfis?accessToken=${encodeURIComponent(accessToken)}`);
       const data = await response.json();
 
-      if (data.perfis) {
-        window._gmnMetricasState.perfisConectados = data.perfis;
+      if (data.sucesso && data.perfis && data.perfis.length > 0) {
+        // Combinar com perfis já armazenados, priorizando os reais
+        const perfisReais = data.perfis.map(p => ({
+          ...p,
+          id: p.perfilId,
+          tipo: 'real'
+        }));
+
+        window._gmnMetricasState.perfisConectados = perfisReais;
         GMN.renderizarPerfisConectados();
-        GMN.mostrarStatusMetrica(`${data.perfis.length} perfil(is) encontrado(s)!`, 'success');
       }
     } catch (error) {
-      console.warn('Erro ao buscar perfis GMB:', error);
+      console.warn('Erro ao buscar perfis reais do GMB:', error);
     }
   };
 
