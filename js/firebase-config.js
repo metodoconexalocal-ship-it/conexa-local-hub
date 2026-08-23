@@ -595,6 +595,22 @@
     if (!user && !DEV_MODE) { showLoginScreen(); return; }
     if (DEV_MODE) return; // DEV MODE: pula auth state check completamente
 
+    // Emails que sempre têm acesso (proprietárias do sistema)
+    const SUPER_ADMINS = ['conexalocal@gmail.com'];
+    const isSuperAdmin = SUPER_ADMINS.some(e => e.toLowerCase() === user.email.toLowerCase());
+
+    // Se é super admin, fazer auto-login imediatamente (sem esperar Firestore)
+    if (isSuperAdmin) {
+      window._pendingUser = user;
+      window._pendingIsFirst = true;
+      window._pendingJaRegistrado = null;
+      window._pendingPreCad = null;
+      window._pendingAllUsers = [];
+      window._pendingIsSuperAdmin = true;
+      await window._proceedWithLogin();
+      return;
+    }
+
     // Check if email is in pre-cad list OR already registered
     const allUsers = await window.loadAllUsers();
     const jaRegistrado = allUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
@@ -602,12 +618,8 @@
     const preCad = preCadList.find(p => p.email.toLowerCase() === user.email.toLowerCase());
     const isFirst = allUsers.length === 0;
 
-    // Emails que sempre têm acesso (proprietárias do sistema)
-    const SUPER_ADMINS = ['conexalocal@gmail.com'];
-    const isSuperAdmin = SUPER_ADMINS.some(e => e.toLowerCase() === user.email.toLowerCase());
-
-    // Block if not first user, not registered, not pre-cad, and not super admin
-    if (!isFirst && !jaRegistrado && !preCad && !isSuperAdmin) {
+    // Block if not first user, not registered, not pre-cad
+    if (!isFirst && !jaRegistrado && !preCad) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('senha-screen').style.display = 'none';
       document.getElementById('app-root').style.display = 'none';
@@ -617,20 +629,13 @@
       return;
     }
 
-    // Armazenar dados pendentes para qualquer usuário
+    // Armazenar dados pendentes para outros usuários
     window._pendingUser = user;
     window._pendingIsFirst = isFirst;
     window._pendingJaRegistrado = jaRegistrado;
     window._pendingPreCad = preCad;
     window._pendingAllUsers = allUsers;
-    window._pendingIsSuperAdmin = isSuperAdmin;
-
-    // Para SUPER_ADMIN: auto-login sem requerer senha adicional
-    if (isSuperAdmin) {
-      // Auto-login para super admins
-      await window._proceedWithLogin();
-      return;
-    }
+    window._pendingIsSuperAdmin = false;
 
     // Para outros usuários: mostrar tela de senha
     document.getElementById('login-screen').style.display = 'none';
