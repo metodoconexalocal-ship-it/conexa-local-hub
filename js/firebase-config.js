@@ -617,30 +617,30 @@
       return;
     }
 
-    // Show password screen
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('senha-screen').style.display = 'flex';
-    document.getElementById('senha-input').value = '';
-    document.getElementById('senha-input').focus();
-
+    // Armazenar dados pendentes para qualquer usuário
     window._pendingUser = user;
     window._pendingIsFirst = isFirst;
     window._pendingJaRegistrado = jaRegistrado;
     window._pendingPreCad = preCad;
     window._pendingAllUsers = allUsers;
     window._pendingIsSuperAdmin = isSuperAdmin;
-  });
 
-  window.verificarSenha = async () => {
-    const val = document.getElementById('senha-input').value;
-    if (val !== SENHA_ACESSO) {
-      document.getElementById('senha-sub').textContent = '❌ Senha incorreta. Tente novamente.';
-      document.getElementById('senha-input').value = '';
-      document.getElementById('senha-input').focus();
+    // Para SUPER_ADMIN: auto-login sem requerer senha adicional
+    if (isSuperAdmin) {
+      // Auto-login para super admins
+      await window._proceedWithLogin();
       return;
     }
 
-    // Senha correta — prosseguir com login
+    // Para outros usuários: mostrar tela de senha
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('senha-screen').style.display = 'flex';
+    document.getElementById('senha-input').value = '';
+    document.getElementById('senha-input').focus();
+  });
+
+  // Função interna para fazer login após autenticação
+  window._proceedWithLogin = async () => {
     if (DEV_MODE) {
       // DEV MODE: criar usuário fake
       const userData = {
@@ -712,6 +712,19 @@
     window.dispatchEvent(new Event('firebase-ready'));
     // Disparar evento para novos módulos CRM
     setTimeout(() => document.dispatchEvent(new Event('crm-ready')), 500);
+  };
+
+  window.verificarSenha = async () => {
+    const val = document.getElementById('senha-input').value;
+    if (val !== SENHA_ACESSO) {
+      document.getElementById('senha-sub').textContent = '❌ Senha incorreta. Tente novamente.';
+      document.getElementById('senha-input').value = '';
+      document.getElementById('senha-input').focus();
+      return;
+    }
+
+    // Senha correta — prosseguir com login
+    await window._proceedWithLogin();
   };
 
   function showLoginScreen() {
