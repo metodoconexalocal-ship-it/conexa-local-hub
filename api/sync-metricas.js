@@ -4,15 +4,23 @@ const { db, collections, isConnected } = require('../lib/firebase-config');
 const router = express.Router();
 
 /**
+ * Middleware: Obter usuário logado
+ */
+const getLoggedInUser = (req) => {
+  return req.headers['x-user-id'] || req.query.usuarioId || req.body.usuarioId || 'usuario-padrao';
+};
+
+/**
  * POST /api/sync-metricas/trigger
- * Dispara sincronização de métricas do Google
+ * Dispara sincronização de métricas do Google do usuário logado
  */
 router.post('/trigger', async (req, res) => {
   try {
-    const { usuarioId, perfilId } = req.body;
+    const { perfilId } = req.body;
+    const usuarioId = getLoggedInUser(req);
 
-    if (!usuarioId || !perfilId) {
-      return res.status(400).json({ error: 'usuarioId e perfilId são obrigatórios' });
+    if (!perfilId) {
+      return res.status(400).json({ error: 'perfilId é obrigatório' });
     }
 
     // Simular dados do Google (depois será real via Google My Business API)
