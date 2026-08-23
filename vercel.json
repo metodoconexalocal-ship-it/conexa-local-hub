@@ -16,6 +16,26 @@
       "dest": "server.js"
     },
     {
+      "src": "/css/(.*)",
+      "dest": "/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
+    },
+    {
+      "src": "/forms/(.*)",
+      "dest": "/forms/$1"
+    },
+    {
+      "src": "/tracker/(.*)",
+      "dest": "/tracker/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "server.js"
     }
