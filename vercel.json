@@ -6,7 +6,7 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": "index.html,api/**,js/**,css/**,img/**,lib/**,forms/**,tracker/**,oauth-callback.html"
+        "includeFiles": "**/*"
       }
     }
   ],
