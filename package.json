@@ -1,5 +1,11 @@
 {
+  "name": "gmn-hub",
+  "version": "1.0.0",
   "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
