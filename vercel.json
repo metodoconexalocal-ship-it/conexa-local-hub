@@ -4,24 +4,12 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/oauth-callback.html",
-      "dest": "/oauth-callback.html"
-    },
-    {
       "src": "/(.*)",
-      "dest": "index.html"
+      "dest": "server.js"
     }
   ],
   "env": {
