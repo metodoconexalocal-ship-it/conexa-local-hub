@@ -31,6 +31,10 @@
           sessionStorage.setItem('gmnTokenExpiry', data.tokens.expiry_date || '');
           sessionStorage.setItem('gmnOAuthConnected', 'true');
 
+          // ⚠️ IMPORTANTE: Salvar flag para não limpar sessão ao voltar
+          localStorage.setItem('gmnOAuthReturning', 'true');
+          sessionStorage.setItem('gmnPreserveSession', 'true');
+
           console.log('[OAuth] Redirecionando para dashboard...');
 
           // Redirecionar para dashboard
