@@ -143,15 +143,15 @@ window.GMNOAuth = (() => {
     try {
       state.carregando = true;
 
-      // IMPORTANTE: Salvar usuarioId antes de redirecionar para que oauth-callback possa recuperar
-      sessionStorage.setItem('gmnUsuarioId', state.usuarioId);
-      console.log('✓ usuarioId salvo no sessionStorage:', state.usuarioId);
+      // Salvar usuarioId em localStorage (persiste)
+      localStorage.setItem('gmnUsuarioId', state.usuarioId);
+      console.log('✓ usuarioId salvo em localStorage:', state.usuarioId);
 
       const response = await fetch(`/api/auth/google/url?usuarioId=${encodeURIComponent(state.usuarioId)}`);
       const data = await response.json();
 
       if (data.url) {
-        console.log('→ Redirecionando para Google OAuth...');
+        console.log('→ Redirecionando para Google OAuth (callback direto no index.html)...');
         window.location.href = data.url;
       } else if (data.error) {
         throw new Error(data.error);
