@@ -603,7 +603,7 @@
     const isFirst = allUsers.length === 0;
 
     // Emails que sempre têm acesso (proprietárias do sistema)
-    const SUPER_ADMINS = ['digitalcreateagency@gmail.com'];
+    const SUPER_ADMINS = ['conexalocal@gmail.com'];
     const isSuperAdmin = SUPER_ADMINS.some(e => e.toLowerCase() === user.email.toLowerCase());
 
     // Block if not first user, not registered, not pre-cad, and not super admin
