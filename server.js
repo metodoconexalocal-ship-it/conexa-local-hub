@@ -33,21 +33,16 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// ─── SERVIR ARQUIVOS ESTÁTICOS PRIMEIRO ──────────────────────────
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/img', express.static(path.join(__dirname, 'img')));
-app.use('/forms', express.static(path.join(__dirname, 'forms')));
-app.use('/lib', express.static(path.join(__dirname, 'lib')));
-app.use('/tracker', express.static(path.join(__dirname, 'tracker')));
+// ─── SERVIR ARQUIVO ESTÁTICO (CSS, JS, IMG, etc) ───────────────
+app.use(express.static(__dirname, {
+  maxAge: '1d',
+  etag: false
+}));
 
 // ─── SERVIR PÁGINA INICIAL ──────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// ─── SERVIR ARQUIVOS ESTÁTICOS GENÉRICOS ─────────────────────────
-app.use(express.static(path.join(__dirname)));
 
 // ─── MIDDLEWARE 404 ─────────────────────────────────────────────
 app.use((req, res) => {
