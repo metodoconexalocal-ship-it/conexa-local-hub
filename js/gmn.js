@@ -1432,91 +1432,291 @@
     return `
     <div class="page-wrap">
       <style>
-        .metricas-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
-        .metricas-header h1 { font-size: 2rem; margin: 0 0 5px 0; }
-        .metricas-header p { opacity: 0.9; margin: 0; }
-        .metricas-controls { background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        .metricas-input { flex: 1; min-width: 250px; }
-        .metricas-input input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-        .metricas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .metricas-card { background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s; }
-        .metricas-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-        .metricas-card-title { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-        .metricas-card-value { font-size: 2.5rem; font-weight: bold; color: #667eea; }
-        .metricas-card-icon { font-size: 2rem; margin-bottom: 10px; }
-        .metricas-score-card { grid-column: 1 / -1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; }
-        .metricas-score-card .metricas-card-title { color: rgba(255,255,255,0.8); }
-        .metricas-score-card .metricas-card-value { color: white; font-size: 4rem; }
-        .metricas-chart { background: var(--bg-card); padding: 30px; border-radius: 12px; margin-bottom: 20px; }
-        .metricas-chart h3 { margin: 0 0 20px 0; color: var(--text-primary); }
-        .metricas-status { padding: 12px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; margin-top: 20px; }
-        .metricas-status.loading { background: #dbeafe; color: #0c4a6e; }
-        .metricas-status.success { background: #d1fae5; color: #065f46; }
-        .metricas-status.error { background: #fee2e2; color: #991b1b; }
-        .btn { padding: 10px 25px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
-        .btn-sync { background: #10b981; color: white; }
-        .btn-sync:hover { background: #059669; transform: translateY(-2px); }
+        .gmn-metricas-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 28px 32px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+        }
+        .gmn-metricas-header-title {
+          font-size: 28px;
+          font-weight: 700;
+          margin: 0 0 4px 0;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .gmn-metricas-header-subtitle {
+          font-size: 13px;
+          opacity: 0.9;
+          margin: 0;
+          font-weight: 500;
+        }
+        .gmn-metricas-controls {
+          background: var(--bg-card);
+          padding: 20px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
+          border: 1px solid var(--border);
+        }
+        .gmn-metricas-input-group {
+          display: flex;
+          gap: 10px;
+          flex: 1;
+          min-width: 300px;
+          align-items: center;
+        }
+        .gmn-metricas-input-group input {
+          flex: 1;
+          padding: 9px 13px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-size: 13px;
+          background: var(--bg-base);
+          color: var(--text-primary);
+          font-family: var(--font);
+        }
+        .gmn-metricas-input-group input:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .gmn-metricas-btn {
+          padding: 9px 18px;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          white-space: nowrap;
+        }
+        .gmn-metricas-btn-primary {
+          background: #667eea;
+          color: white;
+        }
+        .gmn-metricas-btn-primary:hover {
+          background: #5568d3;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .gmn-metricas-btn-sync {
+          background: #10b981;
+          color: white;
+        }
+        .gmn-metricas-btn-sync:hover {
+          background: #059669;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .gmn-metricas-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        .gmn-metricas-card {
+          background: var(--bg-card);
+          padding: 24px;
+          border-radius: 12px;
+          border: 1px solid var(--border);
+          transition: all 0.3s;
+        }
+        .gmn-metricas-card:hover {
+          transform: translateY(-4px);
+          border-color: #667eea;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+        .gmn-metricas-card-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          margin-bottom: 12px;
+        }
+        .gmn-metricas-card-icon.icon-chamadas { background: #fce7f3; color: #ec4899; }
+        .gmn-metricas-card-icon.icon-mensagens { background: #e9d5ff; color: #a855f7; }
+        .gmn-metricas-card-icon.icon-direcoes { background: #dbeafe; color: #0284c7; }
+        .gmn-metricas-card-icon.icon-website { background: #dcfce7; color: #16a34a; }
+        .gmn-metricas-card-icon.icon-visualizacoes { background: #fee2e2; color: #dc2626; }
+        .gmn-metricas-card-icon.icon-buscas { background: #fef3c7; color: #d97706; }
+        .gmn-metricas-card-title {
+          color: var(--text-muted);
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+        }
+        .gmn-metricas-card-value {
+          font-size: 32px;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+        .gmn-metricas-score-card {
+          grid-column: 1 / -1;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 28px 32px;
+          border-radius: 12px;
+          border: none;
+        }
+        .gmn-metricas-score-card .gmn-metricas-card-title {
+          color: rgba(255,255,255,0.8);
+        }
+        .gmn-metricas-score-card .gmn-metricas-card-value {
+          font-size: 48px;
+          color: white;
+        }
+        .gmn-metricas-score-label {
+          font-size: 12px;
+          color: rgba(255,255,255,0.8);
+          margin-top: 16px;
+          font-weight: 500;
+        }
+        .gmn-metricas-chart {
+          background: var(--bg-card);
+          padding: 28px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          border: 1px solid var(--border);
+        }
+        .gmn-metricas-chart-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0 0 20px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .gmn-metricas-chart-placeholder {
+          height: 300px;
+          background: var(--bg-base);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+          font-size: 13px;
+        }
+        .gmn-metricas-status {
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          margin-top: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .gmn-metricas-status.loading {
+          background: #dbeafe;
+          color: #0c4a6e;
+        }
+        .gmn-metricas-status.success {
+          background: #d1fae5;
+          color: #065f46;
+        }
+        .gmn-metricas-status.error {
+          background: #fee2e2;
+          color: #991b1b;
+        }
       </style>
 
-      <div class="metricas-header">
-        <h1>📊 Dashboard de Métricas</h1>
-        <p>Google My Business - Análise em Tempo Real</p>
+      <div class="gmn-metricas-header">
+        <div class="gmn-metricas-header-title">
+          <i class="bi bi-speedometer2"></i>
+          Métricas em Tempo Real
+        </div>
+        <div class="gmn-metricas-header-subtitle">Google My Business - Análise de desempenho do perfil</div>
       </div>
 
-      <div class="metricas-controls">
-        <div class="metricas-input">
+      <div class="gmn-metricas-controls">
+        <div class="gmn-metricas-input-group">
           <input type="text" id="perfilIdInput" placeholder="ID do Perfil (ex: cliente-001)" value="perfil-demo">
-        </div>
-        <button class="btn btn-primary" onclick="if(window.GMN) window.GMN.carregarMetricas()">🔍 Buscar</button>
-        <button class="btn btn-sync" onclick="if(window.GMN) window.GMN.sincronizarMetricas()">🔄 Sincronizar Agora</button>
-      </div>
-
-      <div class="metricas-card metricas-score-card">
-        <div class="metricas-card-title">Score Geral do Perfil</div>
-        <div class="metricas-card-value" id="scoreValue">--</div>
-        <div class="metricas-card-title" style="margin-top: 20px; font-size: 11px;">Última atualização: <span id="lastUpdate">--</span></div>
-      </div>
-
-      <div class="metricas-grid">
-        <div class="metricas-card">
-          <div class="metricas-card-icon">☎️</div>
-          <div class="metricas-card-title">Chamadas</div>
-          <div class="metricas-card-value" id="chamadas">0</div>
-        </div>
-        <div class="metricas-card">
-          <div class="metricas-card-icon">💬</div>
-          <div class="metricas-card-title">Mensagens</div>
-          <div class="metricas-card-value" id="mensagens">0</div>
-        </div>
-        <div class="metricas-card">
-          <div class="metricas-card-icon">🗺️</div>
-          <div class="metricas-card-title">Direções</div>
-          <div class="metricas-card-value" id="direcoes">0</div>
-        </div>
-        <div class="metricas-card">
-          <div class="metricas-card-icon">🌐</div>
-          <div class="metricas-card-title">Website Clicks</div>
-          <div class="metricas-card-value" id="websiteClicks">0</div>
-        </div>
-        <div class="metricas-card">
-          <div class="metricas-card-icon">👁️</div>
-          <div class="metricas-card-title">Visualizações</div>
-          <div class="metricas-card-value" id="visualizacoes">0</div>
-        </div>
-        <div class="metricas-card">
-          <div class="metricas-card-icon">🔍</div>
-          <div class="metricas-card-title">Buscas Locais</div>
-          <div class="metricas-card-value" id="buscasLocais">0</div>
+          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMN) window.GMN.carregarMetricas()">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+          <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="if(window.GMN) window.GMN.sincronizarMetricas()">
+            <i class="bi bi-arrow-repeat"></i> Sincronizar
+          </button>
         </div>
       </div>
 
-      <div class="metricas-chart">
-        <h3>📈 Evolução das Métricas</h3>
-        <div style="height: 300px; background: var(--bg-base); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-style: italic;">
-          Gráfico de evolução (próxima versão)
+      <div class="gmn-metricas-grid">
+        <div class="gmn-metricas-card gmn-metricas-score-card">
+          <div class="gmn-metricas-card-title">Score Geral do Perfil</div>
+          <div class="gmn-metricas-card-value" id="scoreValue">--</div>
+          <div class="gmn-metricas-score-label">Última atualização: <span id="lastUpdate">--</span></div>
         </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-chamadas">
+            <i class="bi bi-telephone"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Chamadas</div>
+          <div class="gmn-metricas-card-value" id="chamadas">0</div>
+        </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-mensagens">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Mensagens</div>
+          <div class="gmn-metricas-card-value" id="mensagens">0</div>
+        </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-direcoes">
+            <i class="bi bi-compass"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Direções</div>
+          <div class="gmn-metricas-card-value" id="direcoes">0</div>
+        </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-website">
+            <i class="bi bi-globe"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Website Clicks</div>
+          <div class="gmn-metricas-card-value" id="websiteClicks">0</div>
+        </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-visualizacoes">
+            <i class="bi bi-eye"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Visualizações</div>
+          <div class="gmn-metricas-card-value" id="visualizacoes">0</div>
+        </div>
+
+        <div class="gmn-metricas-card">
+          <div class="gmn-metricas-card-icon icon-buscas">
+            <i class="bi bi-search"></i>
+          </div>
+          <div class="gmn-metricas-card-title">Buscas Locais</div>
+          <div class="gmn-metricas-card-value" id="buscasLocais">0</div>
+        </div>
+      </div>
+
+      <div class="gmn-metricas-chart">
+        <div class="gmn-metricas-chart-title">
+          <i class="bi bi-graph-up"></i>
+          Evolução das Métricas
+        </div>
+        <div class="gmn-metricas-chart-placeholder">Gráfico de evolução (próxima versão)</div>
       </div>
 
       <div id="metricas-status"></div>
