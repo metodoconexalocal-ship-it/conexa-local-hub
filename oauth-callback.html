@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conectando Google...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 400px;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e9ecef;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    h1 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 20px;
+    }
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h1>Conectando com Google...</h1>
+    <p id="message">Aguarde enquanto confirmamos sua autenticação</p>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function processarCallback() {
+      try {
+        // Obter parâmetros da URL
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const state = params.get('state');
+        const usuarioId = params.get('usuarioId') || sessionStorage.getItem('gmnUsuarioId');
+
+        if (!code) {
+          throw new Error('Código de autenticação não recebido');
+        }
+
+        document.getElementById('message').textContent = 'Salvando autenticação...';
+
+        // Enviar código para o backend
+        const response = await fetch(`/api/auth/google/callback?code=${encodeURIComponent(code)}&usuarioId=${encodeURIComponent(usuarioId || 'usuario-padrao')}`);
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('status').className = 'status success';
+          document.getElementById('status').textContent = '✓ Google conectado com sucesso!';
+          document.getElementById('message').textContent = 'Redirecionando para o Dashboard...';
+
+          // Aguardar 2 segundos e redirecionar
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        } else {
+          throw new Error(data.error || 'Erro desconhecido');
+        }
+      } catch (error) {
+        document.getElementById('message').textContent = 'Erro ao conectar';
+        document.getElementById('status').className = 'status error';
+        document.getElementById('status').textContent = '✗ ' + error.message;
+        console.error('Erro:', error);
+      }
+    }
+
+    // Processar callback ao carregar a página
+    window.addEventListener('load', processarCallback);
+  </script>
+</body>
+</html>

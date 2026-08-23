@@ -219,6 +219,88 @@ router.get('/google/perfis-do-usuario', async (req, res) => {
 });
 
 /**
+ * GET /api/auth/google/buscar-perfis
+ * Busca perfis reais do Google My Business usando access token
+ */
+router.get('/google/buscar-perfis', async (req, res) => {
+  try {
+    const { accessToken } = req.query;
+    const usuarioId = getLoggedInUser(req);
+
+    if (!accessToken) {
+      return res.status(400).json({ error: 'accessToken é obrigatório' });
+    }
+
+    try {
+      const { google } = require('googleapis');
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_REDIRECT_URI
+      );
+
+      oauth2Client.setCredentials({
+        access_token: accessToken
+      });
+
+      const businessprofileservice = google.mybusinessbusinessinformation('v1');
+
+      // Buscar contas do usuário
+      const accountsResponse = await businessprofileservice.accounts.list({
+        auth: oauth2Client
+      });
+
+      let perfis = [];
+
+      if (accountsResponse.data.accounts) {
+        for (const account of accountsResponse.data.accounts) {
+          try {
+            // Buscar locais (perfis) em cada conta
+            const locationsResponse = await businessprofileservice.accounts.locations.list({
+              parent: account.name,
+              auth: oauth2Client
+            });
+
+            if (locationsResponse.data.locations) {
+              perfis.push(...locationsResponse.data.locations.map(loc => ({
+                perfilId: loc.name?.split('/')?.pop() || loc.name,
+                nomeExibicao: loc.displayName || 'Sem nome',
+                endereco: loc.address?.addressLines?.[0] || '',
+                telefone: loc.primaryPhone || '',
+                website: loc.websiteUri || '',
+                sincronizadoEm: new Date()
+              })));
+            }
+          } catch (locError) {
+            console.warn('⚠️  Erro ao buscar locais da conta:', locError.message);
+          }
+        }
+      }
+
+      res.json({
+        sucesso: true,
+        usuarioId,
+        perfis: perfis,
+        total: perfis.length,
+        message: `Encontrados ${perfis.length} perfil(is)`
+      });
+    } catch (gmError) {
+      console.error('Erro ao chamar Google My Business API:', gmError.message);
+      res.json({
+        sucesso: false,
+        usuarioId,
+        perfis: [],
+        message: 'Erro ao buscar perfis da API Google',
+        erro: gmError.message
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar perfis:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /api/auth/google/status/:perfilId
  * Verifica status da conexão Google para um perfil específico
  */
