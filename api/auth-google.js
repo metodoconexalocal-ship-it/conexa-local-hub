@@ -253,6 +253,18 @@ router.get('/google/buscar-perfis', async (req, res) => {
           }
         });
 
+        console.log('[GMB API] Status:', accountsRes.status);
+        console.log('[GMB API] Headers:', accountsRes.headers);
+
+        // Verificar se resposta é JSON ou erro HTML
+        const contentType = accountsRes.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const errorText = await accountsRes.text();
+          console.error('[GMB API] Erro HTTP:', accountsRes.status, accountsRes.statusText);
+          console.error('[GMB API] Resposta não é JSON:', errorText.substring(0, 500));
+          throw new Error(`HTTP ${accountsRes.status}: ${accountsRes.statusText}`);
+        }
+
         const accountsData = await accountsRes.json();
         console.log('[GMB API] Contas encontradas:', accountsData);
 
