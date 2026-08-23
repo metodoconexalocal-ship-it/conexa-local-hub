@@ -1902,6 +1902,12 @@
       if (data.url) {
         // Redirecionar para Google OAuth
         window.location.href = data.url;
+      } else if (data.error) {
+        // Mostrar erro claro se credenciais não estão configuradas
+        let mensagem = data.error;
+        if (data.message) mensagem += '\n' + data.message;
+        if (data.docs) mensagem += '\n\nConsulte: ' + data.docs;
+        GMN.mostrarStatusMetrica(mensagem, 'error');
       } else {
         GMN.mostrarStatusMetrica('Erro ao obter URL de autenticação', 'error');
       }

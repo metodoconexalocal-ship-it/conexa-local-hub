@@ -17,6 +17,16 @@ const getLoggedInUser = (req) => {
  */
 router.get('/google/url', (req, res) => {
   try {
+    // Validar se credenciais do Google estão configuradas
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return res.status(400).json({
+        error: 'Credenciais do Google não configuradas',
+        message: 'Configure GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no arquivo .env',
+        detalhes: 'Veja .env.example para referência',
+        docs: 'https://console.cloud.google.com/apis/credentials'
+      });
+    }
+
     const usuarioId = getLoggedInUser(req);
     const url = googleOAuth.gerarUrlAutenticacao();
 
