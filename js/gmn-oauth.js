@@ -129,6 +129,11 @@ window.GMNOAuth = (() => {
   async function fazerLoginGoogle() {
     try {
       state.carregando = true;
+
+      // IMPORTANTE: Salvar usuarioId antes de redirecionar para que oauth-callback possa recuperar
+      sessionStorage.setItem('gmnUsuarioId', state.usuarioId);
+      console.log('✓ usuarioId salvo no sessionStorage:', state.usuarioId);
+
       const response = await fetch(`/api/auth/google/url?usuarioId=${encodeURIComponent(state.usuarioId)}`);
       const data = await response.json();
 

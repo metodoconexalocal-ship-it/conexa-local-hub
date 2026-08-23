@@ -5,38 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Processando...</title>
   <script>
-    // Processar callback silenciosamente sem mostrar interface
     async function processarCallback() {
       try {
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
-        const usuarioId = params.get('usuarioId') || 'usuario-padrao';
+
+        // Recuperar usuarioId do sessionStorage (foi salvo antes de redirecionar para Google)
+        let usuarioId = sessionStorage.getItem('gmnUsuarioId');
+        if (!usuarioId) usuarioId = 'usuario-padrao';
+
+        console.log('[OAuth] Processando callback para usuarioId:', usuarioId);
 
         if (!code) throw new Error('Código não recebido');
 
-        // Enviar código para backend
+        // Enviar código para backend COM usuarioId
         const response = await fetch(`/api/auth/google/callback?code=${encodeURIComponent(code)}&usuarioId=${encodeURIComponent(usuarioId)}`);
         const data = await response.json();
 
         if (data.success && data.tokens) {
-          // Salvar token
-          sessionStorage.setItem('gmnAccessToken', data.tokens.access_token);
-          sessionStorage.setItem('gmnUsuarioId', usuarioId);
+          console.log('[OAuth] Token recebido, salvando...');
 
-          // Redirecionar de volta para dashboard
-          window.location.href = '/?tab=gmn-metricas&connected=true';
+          // Salvar tokens
+          sessionStorage.setItem('gmnAccessToken', data.tokens.access_token);
+          sessionStorage.setItem('gmnRefreshToken', data.tokens.refresh_token || '');
+          sessionStorage.setItem('gmnTokenExpiry', data.tokens.expiry_date || '');
+          sessionStorage.setItem('gmnOAuthConnected', 'true');
+
+          console.log('[OAuth] Redirecionando para dashboard...');
+
+          // Redirecionar para dashboard
+          setTimeout(() => {
+            window.location.href = '/?tab=gmn-metricas&oauth=success';
+          }, 500);
         } else {
           throw new Error(data.error || 'Erro ao conectar');
         }
       } catch (error) {
-        console.error('OAuth Error:', error);
+        console.error('[OAuth] Erro:', error);
+        sessionStorage.setItem('gmnOAuthError', error.message);
+
         // Voltar para home em caso de erro
-        setTimeout(() => window.location.href = '/', 2000);
+        setTimeout(() => window.location.href = '/?oauth=error', 2000);
       }
     }
 
     // Processar assim que a página carregar
-    window.addEventListener('load', processarCallback);
+    if (document.readyState === 'loading') {
+      window.addEventListener('load', processarCallback);
+    } else {
+      processarCallback();
+    }
   </script>
   <style>
     body { background: #0f0d22; margin: 0; }
