@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 // ─── MIDDLEWARE ──────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ─── ROTAS DE AUTENTICAÇÃO (Google OAuth) ───────────────────────
 const authGoogleRouter = require('./api/auth-google');
@@ -22,9 +23,6 @@ app.use('/api/auth', authGoogleRouter);
 // ─── ROTAS DE SINCRONIZAÇÃO (Métricas) ──────────────────────────
 const syncMetricasRouter = require('./api/sync-metricas');
 app.use('/api/sync-metricas', syncMetricasRouter);
-
-// ─── SERVIR ARQUIVOS ESTÁTICOS (DEPOIS DAS ROTAS) ────────────────
-app.use(express.static(path.join(__dirname)));
 
 // ─── ROTA TESTE ──────────────────────────────────────────────────
 app.get('/api/status', (req, res) => {
@@ -40,9 +38,20 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ─── INICIAR SERVIDOR ───────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`
+// ─── SERVIR ARQUIVOS ESTÁTICOS (DEVE SER A ÚLTIMA ROTA) ──────────
+app.use(express.static(path.join(__dirname)));
+
+// ─── MIDDLEWARE 404 ─────────────────────────────────────────────
+app.use((req, res) => {
+  if (!res.headersSent) {
+    res.status(404).json({ error: 'Rota não encontrada' });
+  }
+});
+
+// ─── INICIAR SERVIDOR (apenas em desenvolvimento local) ─────────
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`
   ╔════════════════════════════════════════════════╗
   ║  🚀 Servidor rodando!                         ║
   ║  http://localhost:${PORT}                         ║
@@ -50,6 +59,8 @@ app.listen(PORT, () => {
   ║  Pressione Ctrl + C para parar               ║
   ╚════════════════════════════════════════════════╝
   `);
-});
+  });
+}
 
+// ─── EXPORTAR PARA VERCEL ────────────────────────────────────────
 module.exports = app;

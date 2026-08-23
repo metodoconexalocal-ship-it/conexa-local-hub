@@ -2,3 +2,10 @@ node_modules/
 .netlify/
 .env
 .env.txt
+.env.*.txt
+.DS_Store
+*.log
+npm-debug.log*
+.vercel/
+dist/
+build/
