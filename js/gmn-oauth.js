@@ -73,22 +73,30 @@ window.GMNOAuth = (() => {
   async function buscarPerfisGMB(accessToken) {
     try {
       state.carregando = true;
-      const response = await fetch(`/api/auth/google/buscar-perfis?accessToken=${encodeURIComponent(accessToken)}&usuarioId=${encodeURIComponent(state.usuarioId)}`);
+      console.log('[OAuth] Buscando perfis com token:', accessToken?.substring(0, 20) + '...');
+
+      const url = `/api/auth/google/buscar-perfis?accessToken=${encodeURIComponent(accessToken)}&usuarioId=${encodeURIComponent(state.usuarioId)}`;
+      const response = await fetch(url);
       const data = await response.json();
 
+      console.log('[OAuth] Resposta da API:', data);
+
       if (data.sucesso && data.perfis && data.perfis.length > 0) {
-        console.log(`✓ ${data.perfis.length} perfil(is) encontrado(s) no Google My Business`);
+        console.log(`✓ ${data.perfis.length} perfil(is) encontrado(s) no Google My Business:`, data.perfis);
         state.perfisConectados = data.perfis;
         salvarPerfisNoFirebase(data.perfis);
         return data.perfis;
-      } else if (!data.sucesso) {
-        console.warn('⚠️ Erro ao buscar perfis:', data.message);
+      } else if (data.sucesso === false) {
+        console.warn('⚠️ API retornou erro:', data.message || data.erro);
+        console.log('Detalhes:', data);
+        return [];
+      } else {
+        console.warn('✓ API respondeu mas sem perfis:', data);
         return [];
       }
-
-      return [];
     } catch (error) {
-      console.error('Erro ao buscar perfis GMB:', error);
+      console.error('❌ Erro ao buscar perfis GMB:', error);
+      console.error('Stack:', error.stack);
       return [];
     } finally {
       state.carregando = false;
