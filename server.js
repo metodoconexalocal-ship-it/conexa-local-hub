@@ -16,6 +16,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ─── DEBUG: Log de requisições ────────────────────────────────────
+const fs = require('fs');
+app.use((req, res, next) => {
+  // Log apenas requisições de arquivos estáticos
+  if (req.path.match(/\.(css|js|img|png|jpg|gif|svg)$/i)) {
+    const fullPath = path.join(__dirname, req.path);
+    const exists = fs.existsSync(fullPath);
+    console.log(`[${req.method}] ${req.path} → ${exists ? 'EXISTS' : 'NOT FOUND'} (${fullPath})`);
+  }
+  next();
+});
+
 // ─── ROTAS DE AUTENTICAÇÃO (Google OAuth) ───────────────────────
 const authGoogleRouter = require('./api/auth-google');
 app.use('/api/auth', authGoogleRouter);
