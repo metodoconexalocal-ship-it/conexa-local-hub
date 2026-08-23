@@ -1436,6 +1436,21 @@
         perfisConectados: [],
         carregando: false
       };
+
+      // Inicializar OAuth e carregar perfis conectados
+      if (window.GMNOAuth) {
+        window.GMNOAuth.inicializar(usuarioId).then(() => {
+          const perfis = window.GMNOAuth.obterPerfisConectados();
+          window._gmnMetricasState.perfisConectados = perfis;
+          // Renderizar novamente se houver perfis
+          if (perfis.length > 0) {
+            const container = document.querySelector('[data-page="gmn-metricas"]');
+            if (container) {
+              container.innerHTML = renderGMNMetricas();
+            }
+          }
+        });
+      }
     }
 
     return `
@@ -1704,7 +1719,7 @@
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Autentique para ver seus perfis e métricas em tempo real</div>
             </div>
           </div>
-          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMN) window.GMN.conectarGoogle()" style="white-space: nowrap;">
+          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMNOAuth) window.GMNOAuth.fazerLoginGoogle()" style="white-space: nowrap;">
             <i class="bi bi-link-45deg"></i> Conectar
           </button>
         </div>
