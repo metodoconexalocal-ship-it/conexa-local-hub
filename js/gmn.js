@@ -123,6 +123,7 @@
     const fn = {
       'gmn-dashboard': renderDash, 'gmn-dashboard-filtrada': renderDashboardFiltrada, 'gmn-tarefas': renderTarefas, 'gmn-perfis': renderPerfis, 'gmn-postagens': renderPosts,
       'gmn-avaliacoes': renderAvals, 'gmn-ranking': renderRank, 'gmn-auditoria': renderAuditoria, 'gmn-auditoria-detalhes': renderAuditoriaDetalhes,
+      'gmn-metricas': renderGMNMetricas,
     }[pagina];
     if (fn) $g('main-content').innerHTML = fn();
   }
@@ -1422,4 +1423,184 @@
       </div>
     </div>`;
   }
+
+  /* ── DASHBOARD DE MÉTRICAS ──────────────────────────────────────────────── */
+  function renderGMNMetricas() {
+    const currentUser = window.currentRole || 'user';
+    const usuarioId = currentUser === 'admin' ? (F.perfilMetricasUser || 'amanda') : currentUser;
+
+    return `
+    <div class="page-wrap">
+      <style>
+        .metricas-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .metricas-header h1 { font-size: 2rem; margin: 0 0 5px 0; }
+        .metricas-header p { opacity: 0.9; margin: 0; }
+        .metricas-controls { background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .metricas-input { flex: 1; min-width: 250px; }
+        .metricas-input input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+        .metricas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .metricas-card { background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s; }
+        .metricas-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .metricas-card-title { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .metricas-card-value { font-size: 2.5rem; font-weight: bold; color: #667eea; }
+        .metricas-card-icon { font-size: 2rem; margin-bottom: 10px; }
+        .metricas-score-card { grid-column: 1 / -1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; }
+        .metricas-score-card .metricas-card-title { color: rgba(255,255,255,0.8); }
+        .metricas-score-card .metricas-card-value { color: white; font-size: 4rem; }
+        .metricas-chart { background: var(--bg-card); padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .metricas-chart h3 { margin: 0 0 20px 0; color: var(--text-primary); }
+        .metricas-status { padding: 12px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; margin-top: 20px; }
+        .metricas-status.loading { background: #dbeafe; color: #0c4a6e; }
+        .metricas-status.success { background: #d1fae5; color: #065f46; }
+        .metricas-status.error { background: #fee2e2; color: #991b1b; }
+        .btn { padding: 10px 25px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-sync { background: #10b981; color: white; }
+        .btn-sync:hover { background: #059669; transform: translateY(-2px); }
+      </style>
+
+      <div class="metricas-header">
+        <h1>📊 Dashboard de Métricas</h1>
+        <p>Google My Business - Análise em Tempo Real</p>
+      </div>
+
+      <div class="metricas-controls">
+        <div class="metricas-input">
+          <input type="text" id="perfilIdInput" placeholder="ID do Perfil (ex: cliente-001)" value="perfil-demo">
+        </div>
+        <button class="btn btn-primary" onclick="if(window.GMN) window.GMN.carregarMetricas()">🔍 Buscar</button>
+        <button class="btn btn-sync" onclick="if(window.GMN) window.GMN.sincronizarMetricas()">🔄 Sincronizar Agora</button>
+      </div>
+
+      <div class="metricas-card metricas-score-card">
+        <div class="metricas-card-title">Score Geral do Perfil</div>
+        <div class="metricas-card-value" id="scoreValue">--</div>
+        <div class="metricas-card-title" style="margin-top: 20px; font-size: 11px;">Última atualização: <span id="lastUpdate">--</span></div>
+      </div>
+
+      <div class="metricas-grid">
+        <div class="metricas-card">
+          <div class="metricas-card-icon">☎️</div>
+          <div class="metricas-card-title">Chamadas</div>
+          <div class="metricas-card-value" id="chamadas">0</div>
+        </div>
+        <div class="metricas-card">
+          <div class="metricas-card-icon">💬</div>
+          <div class="metricas-card-title">Mensagens</div>
+          <div class="metricas-card-value" id="mensagens">0</div>
+        </div>
+        <div class="metricas-card">
+          <div class="metricas-card-icon">🗺️</div>
+          <div class="metricas-card-title">Direções</div>
+          <div class="metricas-card-value" id="direcoes">0</div>
+        </div>
+        <div class="metricas-card">
+          <div class="metricas-card-icon">🌐</div>
+          <div class="metricas-card-title">Website Clicks</div>
+          <div class="metricas-card-value" id="websiteClicks">0</div>
+        </div>
+        <div class="metricas-card">
+          <div class="metricas-card-icon">👁️</div>
+          <div class="metricas-card-title">Visualizações</div>
+          <div class="metricas-card-value" id="visualizacoes">0</div>
+        </div>
+        <div class="metricas-card">
+          <div class="metricas-card-icon">🔍</div>
+          <div class="metricas-card-title">Buscas Locais</div>
+          <div class="metricas-card-value" id="buscasLocais">0</div>
+        </div>
+      </div>
+
+      <div class="metricas-chart">
+        <h3>📈 Evolução das Métricas</h3>
+        <div style="height: 300px; background: var(--bg-base); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-style: italic;">
+          Gráfico de evolução (próxima versão)
+        </div>
+      </div>
+
+      <div id="metricas-status"></div>
+    </div>
+    `;
+  }
+
+  /* ── Funções de API para Métricas ────────────────────────────────────────── */
+  GMN.carregarMetricas = async function() {
+    const perfilId = document.getElementById('perfilIdInput')?.value;
+    if (!perfilId) {
+      GMN.mostrarStatusMetrica('Por favor, digite um ID de perfil', 'error');
+      return;
+    }
+
+    GMN.mostrarStatusMetrica('Carregando...', 'loading');
+
+    try {
+      const response = await fetch(`/api/sync-metricas/${perfilId}/hoje`);
+      const data = await response.json();
+
+      if (data.metricas) {
+        GMN.atualizarDashboardMetricas(data.metricas);
+        GMN.mostrarStatusMetrica('✅ Métricas carregadas com sucesso!', 'success');
+      } else {
+        GMN.mostrarStatusMetrica('Nenhuma métrica encontrada para este perfil', 'error');
+      }
+    } catch (error) {
+      GMN.mostrarStatusMetrica('❌ Erro ao carregar: ' + error.message, 'error');
+    }
+  };
+
+  GMN.sincronizarMetricas = async function() {
+    const perfilId = document.getElementById('perfilIdInput')?.value;
+    if (!perfilId) {
+      GMN.mostrarStatusMetrica('Por favor, digite um ID de perfil', 'error');
+      return;
+    }
+
+    GMN.mostrarStatusMetrica('Sincronizando com Google...', 'loading');
+
+    try {
+      const response = await fetch('/api/sync-metricas/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usuarioId: window.currentRole || 'user',
+          perfilId: perfilId
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.metricas) {
+        GMN.atualizarDashboardMetricas(data.metricas);
+        GMN.mostrarStatusMetrica('✅ Sincronização completa!', 'success');
+      } else {
+        GMN.mostrarStatusMetrica('❌ Erro na sincronização', 'error');
+      }
+    } catch (error) {
+      GMN.mostrarStatusMetrica('❌ Erro: ' + error.message, 'error');
+    }
+  };
+
+  GMN.atualizarDashboardMetricas = function(metricas) {
+    document.getElementById('chamadas').textContent = metricas.chamadas || 0;
+    document.getElementById('mensagens').textContent = metricas.mensagens || 0;
+    document.getElementById('direcoes').textContent = metricas.direcoes || 0;
+    document.getElementById('websiteClicks').textContent = metricas.websiteClicks || 0;
+    document.getElementById('visualizacoes').textContent = metricas.visualizacoes || 0;
+    document.getElementById('buscasLocais').textContent = metricas.buscasLocais || 0;
+
+    const total = (metricas.chamadas || 0) + (metricas.mensagens || 0) + (metricas.direcoes || 0);
+    const score = Math.min(100, Math.floor((total / 10)));
+    document.getElementById('scoreValue').textContent = score;
+
+    const agora = new Date().toLocaleString('pt-BR');
+    document.getElementById('lastUpdate').textContent = agora;
+  };
+
+  GMN.mostrarStatusMetrica = function(mensagem, tipo) {
+    const statusDiv = document.getElementById('metricas-status');
+    if (statusDiv) {
+      statusDiv.innerHTML = `<div class="metricas-status ${tipo}">${mensagem}</div>`;
+    }
+  };
 })();
