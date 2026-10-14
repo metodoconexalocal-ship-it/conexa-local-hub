@@ -1,330 +1,232 @@
-// 🔐 Google OAuth Endpoints — Multi-Tenant (por usuário logado)
+// 🔐 Google Business Profile — endpoints (multi-conta por navegador, tokens só no servidor)
+const crypto = require('crypto');
 const express = require('express');
-const googleOAuth = require('../lib/google-oauth');
-const { db, collections, isConnected } = require('../lib/firebase-config');
+const g = require('../lib/google-oauth');
+
 const router = express.Router();
 
-/**
- * Middleware: Obter usuário logado da sessão
- */
-const getLoggedInUser = (req) => {
-  return req.headers['x-user-id'] || req.query.usuarioId || 'usuario-padrao';
-};
+const URL_CONTAS = 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts';
+const URL_LOCAIS = 'https://mybusinessbusinessinformation.googleapis.com/v1';
+const URL_PERFORMANCE = 'https://businessprofileperformance.googleapis.com/v1';
 
-/**
- * GET /api/auth/google/url
- * Retorna URL para fazer login no Google (vinculado ao usuário logado)
- */
-router.get('/google/url', (req, res) => {
-  try {
-    // Validar se credenciais do Google estão configuradas
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-      return res.status(400).json({
-        error: 'Credenciais do Google não configuradas',
-        message: 'Configure GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no arquivo .env',
-        detalhes: 'Veja .env.example para referência',
-        docs: 'https://console.cloud.google.com/apis/credentials'
-      });
-    }
+// Métricas diárias da Business Profile Performance API
+const METRICAS_DIARIAS = [
+  'CALL_CLICKS',
+  'BUSINESS_CONVERSATIONS',
+  'BUSINESS_DIRECTION_REQUESTS',
+  'WEBSITE_CLICKS',
+  'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
+  'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH',
+  'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
+  'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
+];
+const IMPRESSOES_BUSCA = ['BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH'];
+const IMPRESSOES_TOTAIS = [...IMPRESSOES_BUSCA, 'BUSINESS_IMPRESSIONS_DESKTOP_MAPS', 'BUSINESS_IMPRESSIONS_MOBILE_MAPS'];
 
-    const usuarioId = getLoggedInUser(req);
-    const url = googleOAuth.gerarUrlAutenticacao();
+const sessaoNaoConectada = (res) =>
+  res.status(401).json({ erro: 'Conta Google não conectada. Clique em "Conectar" novamente.' });
 
-    // Armazenar usuarioId na sessão para recuperar no callback
-    res.json({
-      url,
-      message: 'Clique neste link para fazer login com Google',
-      usuarioId: usuarioId,
-      callbackUrl: `/api/auth/google/callback?usuarioId=${encodeURIComponent(usuarioId)}`
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+function tratarErro(res, e) {
+  const motivo = e.response?.data?.error || e.message;
+  console.error('[Google API]', e.status || '', motivo);
+  if (String(motivo).includes('invalid_grant')) {
+    return res.status(401).json({ erro: 'Sessão Google expirada. Clique em "Conectar" novamente.' });
   }
+  if (e.status === 403) {
+    return res.status(403).json({
+      erro: `Google recusou o acesso: ${e.message}`,
+      dica: 'Confirme que as APIs "My Business Account Management", "My Business Business Information" e "Business Profile Performance" estão ativadas no projeto e que a conta conectada tem acesso de gerente ao perfil.',
+    });
+  }
+  res.status(e.status || 500).json({ erro: e.message });
+}
+
+function formatarPerfil(local, conta) {
+  const end = local.storefrontAddress || {};
+  const endereco = [...(end.addressLines || []), end.locality, end.administrativeArea]
+    .filter(Boolean)
+    .join(', ');
+  return {
+    id: local.name.split('/').pop(),
+    nome: local.title || 'Sem nome',
+    endereco,
+    telefone: local.phoneNumbers?.primaryPhone || '',
+    site: local.websiteUri || '',
+    mapsUri: local.metadata?.mapsUri || '',
+    conta: conta.accountName || conta.name,
+  };
+}
+
+const formatarData = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+
+// GET /api/auth/google/login — redireciona para o consentimento do Google
+router.get('/google/login', (req, res) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(500).send('GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET não configurados no servidor.');
+  }
+  const state = crypto.randomBytes(16).toString('hex');
+  g.definirCookie(req, res, g.COOKIE_STATE, state, g.MAX_AGE_STATE);
+  res.redirect(g.urlLogin(req, state));
 });
 
-/**
- * GET /api/auth/google/callback
- * Recebe o código do Google e troca por token, vincula ao usuário
- */
+// GET /api/auth/google/callback — troca o código por tokens e guarda só o refresh token (cifrado)
 router.get('/google/callback', async (req, res) => {
+  const voltar = (query) => res.redirect(`/?tab=gmn-metricas&${query}`);
   try {
-    const { code, state, usuarioId } = req.query;
-    const usuarioLogado = usuarioId || getLoggedInUser(req);
+    const { code, state, error } = req.query;
+    const stateEsperado = g.lerCookie(req, g.COOKIE_STATE);
+    g.limparCookie(req, res, g.COOKIE_STATE);
 
-    if (!code) {
-      return res.status(400).json({ error: 'Código de autenticação não recebido' });
+    if (error) return voltar(`oauth=erro&motivo=${encodeURIComponent(error)}`);
+    if (!code || !state || !stateEsperado || state !== stateEsperado) {
+      return voltar('oauth=erro&motivo=state_invalido');
     }
 
-    // Trocar código por tokens
-    const tokens = await googleOAuth.trocarCodigoPorToken(code);
-
-    // Salvar tokens no Firebase vinculados ao usuário logado
-    if (isConnected() && db && tokens.access_token) {
-      try {
-        const tokenDocId = `${usuarioLogado}_${Date.now()}`;
-        await db.collection(collections.GOOGLE_TOKENS).doc(tokenDocId).set({
-          usuarioId: usuarioLogado,
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token || null,
-          expiresIn: tokens.expiry_date,
-          criadoEm: new Date(),
-          atualizadoEm: new Date(),
-          ativo: true
-        });
-
-        return res.json({
-          success: true,
-          message: 'Google vinculado com sucesso ao seu usuário',
-          usuarioId: usuarioLogado,
-          tokens: {
-            access_token: tokens.access_token ? '✓ obtido' : '✗ erro',
-            refresh_token: tokens.refresh_token ? '✓ obtido' : '✗ erro',
-            expiry_date: tokens.expiry_date
-          }
-        });
-      } catch (fbError) {
-        console.warn('⚠️  Erro ao salvar tokens no Firebase:', fbError.message);
-      }
+    const client = g.criarClient(req);
+    const { tokens } = await client.getToken(code);
+    if (!tokens.refresh_token) {
+      // Google só emite refresh_token quando o consentimento é dado; sem ele a sessão não dura.
+      return voltar('oauth=erro&motivo=sem_refresh_token');
     }
 
-    res.json({
-      success: true,
-      message: 'Autenticação bem-sucedida (sem persistência Firebase)',
-      usuarioId: usuarioLogado,
-      tokens: {
-        access_token: tokens.access_token ? '✓ obtido' : '✗ erro',
-        refresh_token: tokens.refresh_token ? '✓ obtido' : '✗ erro',
-        expiry_date: tokens.expiry_date
-      }
-    });
-  } catch (error) {
-    console.error('Erro no callback:', error);
-    res.status(500).json({ error: error.message });
+    const usuario = await g.buscarUsuarioGoogle(tokens.access_token);
+    g.definirCookie(
+      req,
+      res,
+      g.COOKIE_SESSAO,
+      g.criptografar({ refreshToken: tokens.refresh_token, email: usuario.email, nome: usuario.name || '' }),
+      g.MAX_AGE_SESSAO
+    );
+    voltar('oauth=ok');
+  } catch (e) {
+    console.error('[OAuth callback]', e.message);
+    voltar(`oauth=erro&motivo=${encodeURIComponent(e.message)}`);
   }
 });
 
-/**
- * POST /api/auth/google/vincular-perfil
- * Vincula um perfil GMN ao Google OAuth do usuário logado
- */
-router.post('/google/vincular-perfil', async (req, res) => {
-  try {
-    const { perfilId, nomeExibicao } = req.body;
-    const usuarioId = getLoggedInUser(req);
-
-    if (!perfilId) {
-      return res.status(400).json({ error: 'perfilId é obrigatório' });
-    }
-
-    if (isConnected() && db) {
-      try {
-        const docId = `${usuarioId}_${perfilId}`;
-        await db.collection(collections.GOOGLE_TOKENS).doc(docId).update({
-          perfilId: perfilId,
-          nomeExibicao: nomeExibicao || perfilId,
-          atualizadoEm: new Date()
-        });
-
-        return res.json({
-          success: true,
-          message: 'Perfil vinculado ao Google com sucesso',
-          usuarioId,
-          perfilId
-        });
-      } catch (fbError) {
-        console.warn('⚠️  Erro ao vincular perfil:', fbError.message);
-      }
-    }
-
-    res.json({
-      success: true,
-      message: 'Perfil vinculado (sem persistência)',
-      usuarioId,
-      perfilId
-    });
-  } catch (error) {
-    console.error('Erro ao vincular perfil:', error);
-    res.status(500).json({ error: error.message });
-  }
+// GET /api/auth/google/status
+router.get('/google/status', (req, res) => {
+  const sessao = g.sessaoAtual(req);
+  res.json({
+    conectado: !!sessao?.refreshToken,
+    email: sessao?.email || null,
+    nome: sessao?.nome || null,
+  });
 });
 
-/**
- * POST /api/auth/google/desconectar
- * Desvincula Google do perfil do usuário logado
- */
+// POST /api/auth/google/desconectar — revoga o token no Google e limpa o cookie
 router.post('/google/desconectar', async (req, res) => {
+  const sessao = g.sessaoAtual(req);
+  if (sessao?.refreshToken) {
+    try { await g.revogarToken(sessao.refreshToken); } catch (e) { console.warn('[revoke]', e.message); }
+  }
+  g.limparCookie(req, res, g.COOKIE_SESSAO);
+  res.json({ ok: true });
+});
+
+// GET /api/auth/google/perfis — todos os perfis (locais) de todas as contas GBP acessíveis
+router.get('/google/perfis', async (req, res) => {
   try {
-    const { perfilId } = req.body;
-    const usuarioId = getLoggedInUser(req);
+    const sess = await g.accessTokenDaSessao(req);
+    if (!sess) return sessaoNaoConectada(res);
 
-    if (!perfilId) {
-      return res.status(400).json({ error: 'perfilId é obrigatório' });
+    const { accounts = [] } = await g.googleGet(sess.token, URL_CONTAS);
+    const perfis = [];
+
+    for (const conta of accounts) {
+      let pageToken;
+      do {
+        const url = new URL(`${URL_LOCAIS}/${conta.name}/locations`);
+        url.searchParams.set('readMask', 'name,title,storefrontAddress,phoneNumbers,websiteUri,metadata');
+        url.searchParams.set('pageSize', '100');
+        if (pageToken) url.searchParams.set('pageToken', pageToken);
+
+        const pagina = await g.googleGet(sess.token, url.toString());
+        for (const local of pagina.locations || []) perfis.push(formatarPerfil(local, conta));
+        pageToken = pagina.nextPageToken;
+      } while (pageToken);
     }
 
-    if (isConnected() && db) {
-      try {
-        const docId = `${usuarioId}_${perfilId}`;
-        await db.collection(collections.GOOGLE_TOKENS).doc(docId).update({
-          ativo: false,
-          desconectadoEm: new Date()
-        });
-
-        return res.json({
-          success: true,
-          message: 'Desconectado do Google com sucesso',
-          usuarioId,
-          perfilId
-        });
-      } catch (fbError) {
-        console.warn('⚠️  Erro ao desconectar:', fbError.message);
-      }
-    }
-
-    res.json({
-      success: true,
-      message: 'Desconectado com sucesso',
-      usuarioId,
-      perfilId
-    });
-  } catch (error) {
-    console.error('Erro ao desconectar:', error);
-    res.status(500).json({ error: error.message });
+    perfis.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    res.json({ ok: true, conta: sess.sessao.email, total: perfis.length, perfis });
+  } catch (e) {
+    tratarErro(res, e);
   }
 });
 
-/**
- * GET /api/auth/google/perfis-do-usuario
- * Lista todos os perfis Google vinculados ao usuário logado
- */
-router.get('/google/perfis-do-usuario', async (req, res) => {
+// GET /api/auth/google/metricas?locationId=123&dias=30
+router.get('/google/metricas', async (req, res) => {
   try {
-    const usuarioId = getLoggedInUser(req);
-    let perfis = [];
+    const locationId = String(req.query.locationId || '').replace(/\D/g, '');
+    if (!locationId) return res.status(400).json({ erro: 'locationId inválido' });
+    const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 30, 1), 90);
 
-    if (isConnected() && db) {
-      try {
-        const query = await db.collection(collections.GOOGLE_TOKENS)
-          .where('usuarioId', '==', usuarioId)
-          .where('ativo', '==', true)
-          .get();
+    const sess = await g.accessTokenDaSessao(req);
+    if (!sess) return sessaoNaoConectada(res);
 
-        perfis = query.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (fbError) {
-        console.warn('⚠️  Erro ao buscar perfis:', fbError.message);
-      }
+    // O Google publica métricas com ~2 dias de atraso: o período termina em "ontem - 1"
+    const fim = new Date();
+    fim.setUTCDate(fim.getUTCDate() - 2);
+    const inicio = new Date(fim);
+    inicio.setUTCDate(inicio.getUTCDate() - (dias - 1));
+
+    const url = new URL(`${URL_PERFORMANCE}/locations/${locationId}:fetchMultiDailyMetricsTimeSeries`);
+    METRICAS_DIARIAS.forEach((m) => url.searchParams.append('dailyMetrics', m));
+    for (const [prefixo, d] of [['start_date', inicio], ['end_date', fim]]) {
+      url.searchParams.set(`dailyRange.${prefixo}.year`, d.getUTCFullYear());
+      url.searchParams.set(`dailyRange.${prefixo}.month`, d.getUTCMonth() + 1);
+      url.searchParams.set(`dailyRange.${prefixo}.day`, d.getUTCDate());
     }
 
-    res.json({
-      usuarioId,
-      perfis: perfis,
-      total: perfis.length
-    });
-  } catch (error) {
-    console.error('Erro ao buscar perfis:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+    const dados = await g.googleGet(sess.token, url.toString());
 
-/**
- * GET /api/auth/google/buscar-perfis
- * Busca perfis reais do Google My Business usando access token
- */
-router.get('/google/buscar-perfis', async (req, res) => {
-  try {
-    const { accessToken } = req.query;
-    const usuarioId = getLoggedInUser(req);
-
-    if (!accessToken) {
-      return res.status(400).json({ error: 'accessToken é obrigatório' });
-    }
-
-    try {
-      // 🚀 DEMO MODE: Usar dados mock enquanto permissões do Google não estão configuradas
-      // TODO: Substituir por chamadas à API real quando Google My Business estiver autorizada
-
-      console.log('[GMB] Modo Demo - Retornando perfis mock');
-
-      // Dados mock para demonstração
-      const perfis = [
-        {
-          perfilId: 'conexa-local-001',
-          nomeExibicao: 'Conexa Local | SEO Local e Google Empresas | Amanda Sestren Silveira',
-          endereco: 'Rua das Flores, 123 - Palhoça, SC 88055-300',
-          telefone: '(48) 99698-9531',
-          website: 'https://conexalocal.com.br',
-          sincronizadoEm: new Date().toISOString()
-        },
-        {
-          perfilId: 'dc-agency-001',
-          nomeExibicao: 'DigitalCreate Agency | Agência de Marketing Digital',
-          endereco: 'Centro - São José, SC',
-          telefone: '(48) 3244-5050',
-          website: 'https://digitalcreate.com.br',
-          sincronizadoEm: new Date().toISOString()
+    // Agrupa por dia: { 'AAAA-MM-DD': { CALL_CLICKS: 3, ... } }
+    const porDia = {};
+    for (const bloco of dados.multiDailyMetricTimeSeries || []) {
+      for (const serie of bloco.dailyMetricTimeSeries || []) {
+        for (const ponto of serie.timeSeries?.datedValues || []) {
+          const chave = formatarData(new Date(Date.UTC(ponto.date.year, ponto.date.month - 1, ponto.date.day)));
+          (porDia[chave] ||= {})[serie.dailyMetric] = Number(ponto.value || 0);
         }
-      ];
+      }
+    }
 
-      res.json({
-        sucesso: true,
-        usuarioId,
-        perfis: perfis,
-        total: perfis.length,
-        message: `✓ Carregados ${perfis.length} perfil(is) (DEMO MODE)`
-      });
-    } catch (gmError) {
-      console.error('Erro ao buscar perfis:', gmError.message);
-      res.json({
-        sucesso: false,
-        usuarioId,
-        perfis: [],
-        message: 'Erro ao buscar perfis',
-        erro: gmError.message
+    // Preenche todos os dias do período (dia sem dado = zero)
+    const soma = (dia, lista) => lista.reduce((t, m) => t + (dia[m] || 0), 0);
+    const serie = [];
+    for (let d = new Date(inicio); d <= fim; d.setUTCDate(d.getUTCDate() + 1)) {
+      const data = formatarData(d);
+      const dia = porDia[data] || {};
+      serie.push({
+        data,
+        chamadas: dia.CALL_CLICKS || 0,
+        mensagens: dia.BUSINESS_CONVERSATIONS || 0,
+        direcoes: dia.BUSINESS_DIRECTION_REQUESTS || 0,
+        websiteClicks: dia.WEBSITE_CLICKS || 0,
+        visualizacoes: soma(dia, IMPRESSOES_TOTAIS),
+        buscasLocais: soma(dia, IMPRESSOES_BUSCA),
       });
     }
-  } catch (error) {
-    console.error('Erro ao buscar perfis:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
-/**
- * GET /api/auth/google/status/:perfilId
- * Verifica status da conexão Google para um perfil específico
- */
-router.get('/google/status/:perfilId', async (req, res) => {
-  try {
-    const { perfilId } = req.params;
-    const usuarioId = getLoggedInUser(req);
-    let conectado = false;
-    let ultimaSincronizacao = null;
-
-    if (isConnected() && db) {
-      try {
-        const docId = `${usuarioId}_${perfilId}`;
-        const doc = await db.collection(collections.GOOGLE_TOKENS).doc(docId).get();
-
-        if (doc.exists) {
-          const data = doc.data();
-          conectado = data.ativo && !!data.accessToken;
-          ultimaSincronizacao = data.atualizadoEm;
-        }
-      } catch (fbError) {
-        console.warn('⚠️  Erro ao verificar status:', fbError.message);
-      }
-    }
+    const totalDe = (campo) => serie.reduce((t, d) => t + d[campo], 0);
+    const totais = {
+      chamadas: totalDe('chamadas'),
+      mensagens: totalDe('mensagens'),
+      direcoes: totalDe('direcoes'),
+      websiteClicks: totalDe('websiteClicks'),
+      visualizacoes: totalDe('visualizacoes'),
+      buscasLocais: totalDe('buscasLocais'),
+    };
 
     res.json({
-      conectado,
-      ultimaSincronizacao,
-      usuarioId,
-      perfilId
+      ok: true,
+      locationId,
+      periodo: { inicio: formatarData(inicio), fim: formatarData(fim), dias },
+      totais,
+      serie,
     });
-  } catch (error) {
-    console.error('Erro ao verificar status:', error);
-    res.status(500).json({ error: error.message });
+  } catch (e) {
+    tratarErro(res, e);
   }
 });
 

@@ -1426,38 +1426,6 @@
 
   /* ── DASHBOARD DE MÉTRICAS ──────────────────────────────────────────────── */
   function renderGMNMetricas() {
-    const currentUser = window.currentRole || 'user';
-    const usuarioId = currentUser === 'admin' ? (F.perfilMetricasUser || 'amanda') : currentUser;
-
-    // Estado para armazenar perfis conectados
-    if (!window._gmnMetricasState) {
-      window._gmnMetricasState = {
-        usuarioId: usuarioId,
-        perfisConectados: [],
-        carregando: false
-      };
-
-      // Inicializar OAuth e carregar perfis conectados
-      if (window.GMNOAuth) {
-        window.GMNOAuth.inicializar(usuarioId).then(() => {
-          const perfis = window.GMNOAuth.obterPerfisConectados();
-          window._gmnMetricasState.perfisConectados = perfis;
-          console.log(`[GMN] Carregados ${perfis.length} perfil(is) conectado(s)`);
-
-          // SEMPRE renderizar novamente para mostrar os perfis
-          setTimeout(() => {
-            const container = document.querySelector('[data-page="gmn-metricas"]');
-            if (container) {
-              console.log('[GMN] Re-renderizando dashboard com perfis');
-              container.innerHTML = renderGMNMetricas();
-              // Re-inicializar handlers
-              GMN.renderizarPerfisConectados();
-            }
-          }, 300);
-        }).catch(e => console.error('[GMN] Erro ao inicializar OAuth:', e));
-      }
-    }
-
     return `
     <div class="page-wrap">
       <style>
@@ -1714,8 +1682,8 @@
         <div class="gmn-metricas-header-subtitle">Google My Business - Análise de desempenho do perfil</div>
       </div>
 
-      <!-- Seção de Autenticação Google -->
-      <div class="gmn-metricas-panel">
+      <!-- Seção de Autenticação Google (visível só quando desconectado) -->
+      <div class="gmn-metricas-panel" id="gmn-card-conectar" style="display: none;">
         <div style="display: flex; align-items: center; gap: 16px; justify-content: space-between;">
           <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
             <i class="bi bi-google" style="font-size: 20px; color: #4285f4;"></i>
@@ -1724,7 +1692,7 @@
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Autentique para ver seus perfis e métricas em tempo real</div>
             </div>
           </div>
-          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="if(window.GMNOAuth) window.GMNOAuth.fazerLoginGoogle()" style="white-space: nowrap;">
+          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="GMNOAuth.conectar()" style="white-space: nowrap;">
             <i class="bi bi-link-45deg"></i> Conectar
           </button>
         </div>
@@ -1736,6 +1704,10 @@
           <div style="font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
             <i class="bi bi-check-circle" style="color: #10b981;"></i>
             Selecione um Perfil para Gerenciar
+            <span id="gmn-conta-google" style="margin-left: auto; font-size: 12px; font-weight: 500; color: var(--text-muted);"></span>
+            <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); padding: 4px 10px; font-size: 12px;" onclick="GMN.desconectarGoogle()">
+              <i class="bi bi-box-arrow-right"></i> Desconectar
+            </button>
           </div>
           <div id="gmn-perfis-lista" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;"></div>
         </div>
@@ -1751,8 +1723,8 @@
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="gmn-perfil-endereco">—</div>
             </div>
             <div style="text-align: right;">
-              <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="if(window.GMNOAuth && window._gmnPerfilSelecionado) window.GMNOAuth.sincronizarMetricas(window._gmnPerfilSelecionado.perfilId)" style="white-space: nowrap;">
-                <i class="bi bi-arrow-repeat"></i> Sincronizar Agora
+              <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="GMN.atualizarMetricasPerfil()" style="white-space: nowrap;">
+                <i class="bi bi-arrow-repeat"></i> Atualizar Métricas
               </button>
               <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-top: 8px;" onclick="GMN.selecionarOutroPerfil()">
                 <i class="bi bi-arrow-left"></i> Trocar Perfil
@@ -1764,7 +1736,7 @@
 
       <div class="gmn-metricas-grid">
         <div class="gmn-metricas-card gmn-metricas-score-card">
-          <div class="gmn-metricas-card-title">Score Geral do Perfil</div>
+          <div class="gmn-metricas-card-title">Interações (30 dias)</div>
           <div class="gmn-metricas-card-value" id="scoreValue">--</div>
           <div class="gmn-metricas-score-label">Última atualização: <span id="lastUpdate">--</span></div>
         </div>
@@ -1821,9 +1793,9 @@
       <div class="gmn-metricas-chart">
         <div class="gmn-metricas-chart-title">
           <i class="bi bi-graph-up"></i>
-          Evolução das Métricas
+          Visualizações por dia (últimos 30 dias)
         </div>
-        <div class="gmn-metricas-chart-placeholder">Gráfico de evolução (próxima versão)</div>
+        <div id="gmn-serie-chart" style="display: flex; align-items: flex-end; gap: 2px; height: 160px; padding-top: 8px;"></div>
       </div>
 
       <div id="metricas-status"></div>
@@ -1845,243 +1817,137 @@
     return result;
   };
 
-  /* ── Funções de API para Métricas ────────────────────────────────────────── */
-  GMN.carregarMetricas = async function() {
-    const perfilId = document.getElementById('perfilIdInput')?.value;
-    if (!perfilId) {
-      GMN.mostrarStatusMetrica('Por favor, digite um ID de perfil', 'error');
-      return;
+  /* ── Google Business Profile: conexão, perfis e métricas ─────────────── */
+  GMN.mostrarStatusMetrica = function (mensagem, tipo) {
+    const el = document.getElementById('metricas-status');
+    if (el) el.innerHTML = mensagem ? `<div class="metricas-status ${tipo}">${esc(mensagem)}</div>` : '';
+  };
+
+  GMN.mostrarConexaoGoogle = function (status) {
+    const cardConectar = document.getElementById('gmn-card-conectar');
+    const seletor = document.getElementById('gmn-perfis-conectados');
+    const header = document.getElementById('gmn-perfil-selecionado-header');
+    const conta = document.getElementById('gmn-conta-google');
+    if (cardConectar) cardConectar.style.display = status.conectado ? 'none' : 'flex';
+    if (seletor) seletor.style.display = status.conectado ? 'block' : 'none';
+    if (header) header.style.display = 'none';
+    if (conta) conta.textContent = status.conectado ? `Conectado como ${status.email}` : '';
+  };
+
+  GMN.inicializarDashboardMetricas = async function () {
+    // Retorno do callback OAuth: /?tab=gmn-metricas&oauth=ok|erro
+    const params = new URLSearchParams(window.location.search);
+    const retorno = params.get('oauth');
+    if (retorno) {
+      if (retorno === 'ok') GMN.mostrarStatusMetrica('Conta Google conectada.', 'success');
+      else GMN.mostrarStatusMetrica('Não foi possível conectar: ' + (params.get('motivo') || 'erro desconhecido'), 'error');
+      history.replaceState(null, '', '/?tab=gmn-metricas');
     }
 
-    GMN.mostrarStatusMetrica('Carregando...', 'loading');
-
+    let status;
     try {
-      const response = await fetch(`/api/sync-metricas/${perfilId}/hoje`);
-      const data = await response.json();
-
-      if (data.metricas) {
-        GMN.atualizarDashboardMetricas(data.metricas);
-        GMN.mostrarStatusMetrica('✅ Métricas carregadas com sucesso!', 'success');
-      } else {
-        GMN.mostrarStatusMetrica('Nenhuma métrica encontrada para este perfil', 'error');
-      }
-    } catch (error) {
-      GMN.mostrarStatusMetrica('❌ Erro ao carregar: ' + error.message, 'error');
+      status = await window.GMNOAuth.status();
+    } catch (e) {
+      return GMN.mostrarStatusMetrica('Erro ao verificar a conexão: ' + e.message, 'error');
     }
+    GMN.mostrarConexaoGoogle(status);
+    if (status.conectado) await GMN.carregarPerfisConectados();
   };
 
-  GMN.sincronizarMetricas = async function() {
-    const perfilId = document.getElementById('perfilIdInput')?.value;
-    if (!perfilId) {
-      GMN.mostrarStatusMetrica('Por favor, digite um ID de perfil', 'error');
-      return;
-    }
-
-    GMN.mostrarStatusMetrica('Sincronizando com Google...', 'loading');
-
-    try {
-      const response = await fetch('/api/sync-metricas/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usuarioId: window.currentRole || 'user',
-          perfilId: perfilId
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.metricas) {
-        GMN.atualizarDashboardMetricas(data.metricas);
-        GMN.mostrarStatusMetrica('✅ Sincronização completa!', 'success');
-      } else {
-        GMN.mostrarStatusMetrica('❌ Erro na sincronização', 'error');
-      }
-    } catch (error) {
-      GMN.mostrarStatusMetrica('❌ Erro: ' + error.message, 'error');
-    }
-  };
-
-  GMN.atualizarDashboardMetricas = function(metricas) {
-    document.getElementById('chamadas').textContent = metricas.chamadas || 0;
-    document.getElementById('mensagens').textContent = metricas.mensagens || 0;
-    document.getElementById('direcoes').textContent = metricas.direcoes || 0;
-    document.getElementById('websiteClicks').textContent = metricas.websiteClicks || 0;
-    document.getElementById('visualizacoes').textContent = metricas.visualizacoes || 0;
-    document.getElementById('buscasLocais').textContent = metricas.buscasLocais || 0;
-
-    const total = (metricas.chamadas || 0) + (metricas.mensagens || 0) + (metricas.direcoes || 0);
-    const score = Math.min(100, Math.floor((total / 10)));
-    document.getElementById('scoreValue').textContent = score;
-
-    const agora = new Date().toLocaleString('pt-BR');
-    document.getElementById('lastUpdate').textContent = agora;
-  };
-
-  GMN.mostrarStatusMetrica = function(mensagem, tipo) {
-    const statusDiv = document.getElementById('metricas-status');
-    if (statusDiv) {
-      statusDiv.innerHTML = `<div class="metricas-status ${tipo}">${mensagem}</div>`;
-    }
-  };
-
-  /* ── OAuth Google ─────────────────────────────────────────────────────── */
-  GMN.conectarGoogle = async function() {
-    try {
-      GMN.mostrarStatusMetrica('Redirecionando para Google...', 'loading');
-
-      // Obter URL de autenticação do servidor
-      const response = await fetch(`/api/auth/google/url?usuarioId=${encodeURIComponent(window._gmnMetricasState.usuarioId)}`);
-      const data = await response.json();
-
-      if (data.url) {
-        // Redirecionar para Google OAuth
-        window.location.href = data.url;
-      } else if (data.error) {
-        // Mostrar erro claro se credenciais não estão configuradas
-        let mensagem = data.error;
-        if (data.message) mensagem += '\n' + data.message;
-        if (data.docs) mensagem += '\n\nConsulte: ' + data.docs;
-        GMN.mostrarStatusMetrica(mensagem, 'error');
-      } else {
-        GMN.mostrarStatusMetrica('Erro ao obter URL de autenticação', 'error');
-      }
-    } catch (error) {
-      GMN.mostrarStatusMetrica('Erro ao conectar Google: ' + error.message, 'error');
-    }
-  };
-
-  /* ── Carregar Perfis Conectados ──────────────────────────────────────── */
-  GMN.carregarPerfisConectados = async function() {
-    try {
-      const response = await fetch(`/api/auth/google/perfis-do-usuario?usuarioId=${encodeURIComponent(window._gmnMetricasState.usuarioId)}`);
-      const data = await response.json();
-
-      if (data.perfis && data.perfis.length > 0) {
-        window._gmnMetricasState.perfisConectados = data.perfis;
-        GMN.renderizarPerfisConectados();
-
-        // Se houver tokens com accessToken, buscar perfis reais do GMB
-        const perfisComToken = data.perfis.filter(p => p.accessToken);
-        if (perfisComToken.length > 0) {
-          GMN.buscarPerfisGMBReais(perfisComToken[0].accessToken);
-        }
-      }
-    } catch (error) {
-      console.warn('Erro ao carregar perfis:', error);
-    }
-  };
-
-  /* ── Renderizar Perfis Conectados ───────────────────────────────────── */
-  GMN.renderizarPerfisConectados = function() {
-    const perfis = window._gmnMetricasState.perfisConectados;
-    const container = document.getElementById('gmn-perfis-conectados');
+  GMN.carregarPerfisConectados = async function () {
     const lista = document.getElementById('gmn-perfis-lista');
-
-    if (!perfis || perfis.length === 0) {
-      if (container) container.style.display = 'none';
-      return;
-    }
-
-    if (container) container.style.display = 'block';
-
-    if (lista) {
-      lista.innerHTML = perfis.map(perfil => {
-        const id = perfil.perfilId || perfil.id || '';
-        const nome = perfil.nomeExibicao || perfil.displayName || 'Sem nome';
-        const endereco = perfil.endereco || perfil.address?.addressLines?.[0] || '';
-        const telefone = perfil.telefone || perfil.primaryPhone || '';
-        const nomeEscapado = nome.replace(/'/g, "\\'");
-
-        return `
-        <div class="gmn-metricas-perfil-card" onclick="if(window.GMN) window.GMN.selecionarPerfil('${id}', '${nomeEscapado}')">
-          <div style="font-size: 24px; margin-bottom: 8px; color: #667eea;">
-            <i class="bi bi-shop"></i>
-          </div>
-          <div class="gmn-metricas-perfil-nome" title="${nome}">${nome}</div>
-          ${endereco ? `<div class="gmn-metricas-perfil-id" title="${endereco}" style="font-size: 11px; margin-top: 4px;"><i class="bi bi-geo-alt" style="font-size: 10px; margin-right: 3px;"></i>${endereco.substring(0, 25)}${endereco.length > 25 ? '...' : ''}</div>` : ''}
-          ${telefone ? `<div class="gmn-metricas-perfil-id" style="font-size: 11px; margin-top: 2px;"><i class="bi bi-telephone" style="font-size: 10px; margin-right: 3px;"></i>${telefone}</div>` : ''}
-        </div>
-        `;
-      }).join('');
-    }
-  };
-
-  /* ── Selecionar Perfil ──────────────────────────────────────────────── */
-  GMN.selecionarPerfil = function(perfilId, nomeExibicao) {
-    // Armazenar perfil selecionado
-    window._gmnPerfilSelecionado = {
-      perfilId,
-      nomeExibicao
-    };
-
-    // Procurar dados do perfil na lista
-    const perfis = window._gmnMetricasState.perfisConectados || [];
-    const perfilDados = perfis.find(p => (p.perfilId || p.id) === perfilId);
-
-    // Mostrar header com informações do perfil
-    const headerContainer = document.getElementById('gmn-perfil-selecionado-header');
-    const listaContainer = document.getElementById('gmn-perfis-conectados');
-
-    if (headerContainer) {
-      document.getElementById('gmn-perfil-nome').textContent = nomeExibicao || 'Carregando...';
-      document.getElementById('gmn-perfil-endereco').textContent = perfilDados?.endereco || '';
-      headerContainer.style.display = 'block';
-    }
-
-    // Esconder lista de perfis
-    if (listaContainer) {
-      listaContainer.style.display = 'none';
-    }
-
-    // Carregar métricas do perfil
-    document.getElementById('perfilIdInput').value = perfilId;
-    GMN.carregarMetricas();
-  };
-
-  /* ── Selecion Outro Perfil ──────────────────────────────────────────── */
-  GMN.selecionarOutroPerfil = function() {
-    window._gmnPerfilSelecionado = null;
-    const headerContainer = document.getElementById('gmn-perfil-selecionado-header');
-    const listaContainer = document.getElementById('gmn-perfis-conectados');
-
-    if (headerContainer) headerContainer.style.display = 'none';
-    if (listaContainer) listaContainer.style.display = 'block';
-  };
-
-  /* ── Buscar Perfis Reais do Google My Business ──────────────────────── */
-  GMN.buscarPerfisGMBReais = async function(accessToken) {
+    if (lista) lista.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Carregando perfis do Google…</div>';
     try {
-      const response = await fetch(`/api/auth/google/buscar-perfis?accessToken=${encodeURIComponent(accessToken)}`);
-      const data = await response.json();
-
-      if (data.sucesso && data.perfis && data.perfis.length > 0) {
-        // Combinar com perfis já armazenados, priorizando os reais
-        const perfisReais = data.perfis.map(p => ({
-          ...p,
-          id: p.perfilId,
-          tipo: 'real'
-        }));
-
-        window._gmnMetricasState.perfisConectados = perfisReais;
-        GMN.renderizarPerfisConectados();
+      const dados = await window.GMNOAuth.listarPerfis();
+      window._gmnPerfis = dados.perfis || [];
+      GMN.renderizarPerfisConectados();
+      if (!window._gmnPerfis.length) {
+        GMN.mostrarStatusMetrica('Nenhum perfil encontrado nesta conta Google. Confirme que ela tem acesso de gerente aos perfis.', 'error');
       }
-    } catch (error) {
-      console.warn('Erro ao buscar perfis reais do GMB:', error);
+    } catch (e) {
+      window._gmnPerfis = [];
+      GMN.renderizarPerfisConectados();
+      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
     }
   };
 
-  /* ── Inicializar Dashboard ──────────────────────────────────────────── */
-  GMN.inicializarDashboardMetricas = function() {
-    // Verificar se há um accessToken no sessionStorage (após OAuth)
-    const accessToken = sessionStorage.getItem('gmnAccessToken');
-    if (accessToken) {
-      // Buscar perfis reais do Google My Business
-      GMN.buscarPerfisGMBReais(accessToken);
-      sessionStorage.removeItem('gmnAccessToken'); // Limpar após usar
-    } else {
-      // Carregar perfis conectados ao abrir o dashboard
-      GMN.carregarPerfisConectados();
+  GMN.renderizarPerfisConectados = function () {
+    const lista = document.getElementById('gmn-perfis-lista');
+    if (!lista) return;
+    lista.innerHTML = (window._gmnPerfis || []).map((p) => `
+      <div class="gmn-metricas-perfil-card" onclick="GMN.selecionarPerfil('${esc(p.id)}')">
+        <div style="font-size: 24px; margin-bottom: 8px; color: #667eea;"><i class="bi bi-shop"></i></div>
+        <div class="gmn-metricas-perfil-nome" title="${esc(p.nome)}">${esc(p.nome)}</div>
+        ${p.endereco ? `<div class="gmn-metricas-perfil-id" title="${esc(p.endereco)}" style="font-size: 11px; margin-top: 4px;"><i class="bi bi-geo-alt" style="font-size: 10px; margin-right: 3px;"></i>${esc(p.endereco)}</div>` : ''}
+      </div>`).join('');
+  };
+
+  GMN.selecionarPerfil = async function (id) {
+    const perfil = (window._gmnPerfis || []).find((p) => p.id === id);
+    if (!perfil) return;
+    window._gmnPerfilSelecionado = perfil;
+    document.getElementById('gmn-perfis-conectados').style.display = 'none';
+    document.getElementById('gmn-perfil-selecionado-header').style.display = 'block';
+    document.getElementById('gmn-perfil-nome').textContent = perfil.nome;
+    document.getElementById('gmn-perfil-endereco').textContent = perfil.endereco || '—';
+    await GMN.atualizarMetricasPerfil();
+  };
+
+  GMN.selecionarOutroPerfil = function () {
+    window._gmnPerfilSelecionado = null;
+    document.getElementById('gmn-perfil-selecionado-header').style.display = 'none';
+    document.getElementById('gmn-perfis-conectados').style.display = 'block';
+    GMN.mostrarStatusMetrica('', '');
+  };
+
+  GMN.atualizarMetricasPerfil = async function () {
+    const perfil = window._gmnPerfilSelecionado;
+    if (!perfil) return;
+    GMN.mostrarStatusMetrica('Buscando métricas dos últimos 30 dias no Google…', 'loading');
+    try {
+      const dados = await window.GMNOAuth.metricas(perfil.id, 30);
+      GMN.renderizarMetricas(dados);
+      GMN.mostrarStatusMetrica(`✅ Métricas de ${dados.periodo.inicio} a ${dados.periodo.fim}`, 'success');
+    } catch (e) {
+      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
     }
+  };
+
+  GMN.renderizarMetricas = function (dados) {
+    const t = dados.totais;
+    const set = (id, valor) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = Number(valor || 0).toLocaleString('pt-BR');
+    };
+    set('chamadas', t.chamadas);
+    set('mensagens', t.mensagens);
+    set('direcoes', t.direcoes);
+    set('websiteClicks', t.websiteClicks);
+    set('visualizacoes', t.visualizacoes);
+    set('buscasLocais', t.buscasLocais);
+    set('scoreValue', t.chamadas + t.mensagens + t.direcoes + t.websiteClicks);
+    const ultima = document.getElementById('lastUpdate');
+    if (ultima) ultima.textContent = new Date().toLocaleString('pt-BR');
+
+    const grafico = document.getElementById('gmn-serie-chart');
+    if (grafico) {
+      const max = Math.max(1, ...dados.serie.map((d) => d.visualizacoes));
+      grafico.innerHTML = dados.serie.map((d) => `
+        <div title="${esc(d.data)}: ${d.visualizacoes} visualizações, ${d.chamadas} ligações, ${d.direcoes} rotas"
+             style="flex:1;min-width:3px;height:${Math.max(2, Math.round((d.visualizacoes / max) * 100))}%;background:linear-gradient(#667eea,#41e7f3);border-radius:3px 3px 0 0"></div>`).join('');
+    }
+  };
+
+  GMN.desconectarGoogle = async function () {
+    if (!confirm('Desconectar a conta Google deste navegador?')) return;
+    try {
+      await window.GMNOAuth.desconectar();
+    } catch (e) {
+      return GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+    }
+    window._gmnPerfis = [];
+    window._gmnPerfilSelecionado = null;
+    GMN.mostrarConexaoGoogle({ conectado: false });
+    GMN.mostrarStatusMetrica('Conta Google desconectada.', 'success');
   };
 })();

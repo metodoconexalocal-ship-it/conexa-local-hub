@@ -56,7 +56,6 @@
   // ── GOOGLE BUSINESS PROFILE API (integração) ──────────────────────────────
   const GOOGLE_API_CONFIG = {
     clientId: '796309813669-a0gd3521dvplubobdueec632egjkrp4l.apps.googleusercontent.com',
-    clientSecret: 'GOCSPXyOyBs8nGKHgZiP12fzYBRAh7FXW', // ⚠️ em produção, usar backend
     redirectUri: window.location.origin + '/auth/callback',
     scope: 'https://www.googleapis.com/auth/business.manage',
   };
@@ -592,17 +591,7 @@
   }
 
   onAuthStateChanged(auth, async (user) => {
-    // 🔴 CRÍTICO: Se OAuth está em progresso, NÃO FAZER NADA
-    if (window._OAUTH_IN_PROGRESS || localStorage.getItem('_oauthInProgress') === 'true') {
-      console.log('[Firebase] ⏸️  OAuth em progresso, aguardando...');
-      return;
-    }
-
-    if (!user && !DEV_MODE) {
-      console.log('[Firebase] Sem autenticação, mostrando login');
-      showLoginScreen();
-      return;
-    }
+    if (!user && !DEV_MODE) { showLoginScreen(); return; }
     if (DEV_MODE) return; // DEV MODE: pula auth state check completamente
 
     // Emails que sempre têm acesso (proprietárias do sistema)
