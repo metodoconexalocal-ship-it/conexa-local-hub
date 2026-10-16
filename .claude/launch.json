@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "watusy", "runtimeExecutable": "npx", "runtimeArgs": ["--yes", "http-server@14.1.1", "sites/psicologa-watusy", "-p", "5180", "-c-1", "--silent"], "port": 5180 }
+  ]
+}

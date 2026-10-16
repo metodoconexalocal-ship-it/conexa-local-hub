@@ -1,0 +1,9 @@
+{
+  "name": "Psicóloga Watusy Mendes da Rosa",
+  "short_name": "Psicóloga Watusy",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F1EA",
+  "theme_color": "#2E5E4E",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
