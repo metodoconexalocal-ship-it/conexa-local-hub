@@ -1723,6 +1723,9 @@
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="gmn-perfil-endereco">—</div>
             </div>
             <div style="text-align: right;">
+              <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-bottom: 8px; white-space: nowrap;" onclick="GMN.carregarEdicaoPerfil()">
+                <i class="bi bi-pencil"></i> Editar perfil
+              </button>
               <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="GMN.atualizarMetricasPerfil()" style="white-space: nowrap;">
                 <i class="bi bi-arrow-repeat"></i> Atualizar Métricas
               </button>
@@ -1731,6 +1734,29 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Edição dos dados do perfil no Google -->
+      <div id="gmn-perfil-editar" class="gmn-metricas-panel" style="display: none; margin-bottom: 24px;">
+        <div style="font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 16px;">Editar dados do perfil no Google</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+          <label style="font-size: 12px; color: var(--text-muted);">Nome do negócio
+            <input id="gmn-edit-title" type="text" maxlength="200" style="width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text-primary);">
+          </label>
+          <label style="font-size: 12px; color: var(--text-muted);">Telefone principal
+            <input id="gmn-edit-telefone" type="text" maxlength="30" style="width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text-primary);">
+          </label>
+          <label style="font-size: 12px; color: var(--text-muted);">Site
+            <input id="gmn-edit-site" type="url" maxlength="2048" style="width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text-primary);">
+          </label>
+          <label style="font-size: 12px; color: var(--text-muted); grid-column: 1 / -1;">Descrição (até 750 caracteres)
+            <textarea id="gmn-edit-descricao" maxlength="750" rows="4" style="width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text-primary); resize: vertical;"></textarea>
+          </label>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="gmn-metricas-btn gmn-metricas-btn-primary" onclick="GMN.salvarPerfilGoogle()"><i class="bi bi-floppy"></i> Salvar no Google</button>
+          <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary);" onclick="GMN.carregarEdicaoPerfil()">Recarregar do Google</button>
         </div>
       </div>
 
@@ -1890,11 +1916,13 @@
     document.getElementById('gmn-perfil-selecionado-header').style.display = 'block';
     document.getElementById('gmn-perfil-nome').textContent = perfil.nome;
     document.getElementById('gmn-perfil-endereco').textContent = perfil.endereco || '—';
+    document.getElementById('gmn-perfil-editar').style.display = 'none';
     await GMN.atualizarMetricasPerfil();
   };
 
   GMN.selecionarOutroPerfil = function () {
     window._gmnPerfilSelecionado = null;
+    document.getElementById('gmn-perfil-editar').style.display = 'none';
     document.getElementById('gmn-perfil-selecionado-header').style.display = 'none';
     document.getElementById('gmn-perfis-conectados').style.display = 'block';
     GMN.mostrarStatusMetrica('', '');
@@ -1935,6 +1963,42 @@
       grafico.innerHTML = dados.serie.map((d) => `
         <div title="${esc(d.data)}: ${d.visualizacoes} visualizações, ${d.chamadas} ligações, ${d.direcoes} rotas"
              style="flex:1;min-width:3px;height:${Math.max(2, Math.round((d.visualizacoes / max) * 100))}%;background:linear-gradient(#667eea,#41e7f3);border-radius:3px 3px 0 0"></div>`).join('');
+    }
+  };
+
+  GMN.carregarEdicaoPerfil = async function () {
+    const perfil = window._gmnPerfilSelecionado;
+    if (!perfil) return;
+    document.getElementById('gmn-perfil-editar').style.display = 'block';
+    try {
+      const { perfil: dados } = await window.GMNOAuth.perfilEditavel(perfil.id);
+      document.getElementById('gmn-edit-title').value = dados.nome;
+      document.getElementById('gmn-edit-telefone').value = dados.telefone;
+      document.getElementById('gmn-edit-site').value = dados.site;
+      document.getElementById('gmn-edit-descricao').value = dados.descricao;
+    } catch (e) {
+      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+    }
+  };
+
+  GMN.salvarPerfilGoogle = async function () {
+    const perfil = window._gmnPerfilSelecionado;
+    if (!perfil) return;
+    const campos = {
+      title: document.getElementById('gmn-edit-title').value.trim(),
+      telefone: document.getElementById('gmn-edit-telefone').value.trim(),
+      site: document.getElementById('gmn-edit-site').value.trim(),
+      descricao: document.getElementById('gmn-edit-descricao').value.trim(),
+    };
+    if (!confirm('Gravar essas alterações no perfil do Google? Elas ficam visíveis ao público.')) return;
+    GMN.mostrarStatusMetrica('Gravando no Google…', 'loading');
+    try {
+      await window.GMNOAuth.salvarPerfil(perfil.id, campos);
+      perfil.nome = campos.title;
+      document.getElementById('gmn-perfil-nome').textContent = campos.title;
+      GMN.mostrarStatusMetrica('✅ Perfil atualizado no Google.', 'success');
+    } catch (e) {
+      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
     }
   };
 

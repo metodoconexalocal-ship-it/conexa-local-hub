@@ -230,4 +230,66 @@ router.get('/google/metricas', async (req, res) => {
   }
 });
 
+// ── Edição do perfil ────────────────────────────────────────────────────────
+// Só estes campos podem ser gravados. Cada um vira uma entrada do updateMask.
+const CAMPOS_EDITAVEIS = {
+  title: { mascara: 'title', corpo: (v) => ({ title: String(v).slice(0, 200) }) },
+  telefone: { mascara: 'phoneNumbers', corpo: (v) => ({ phoneNumbers: { primaryPhone: String(v).slice(0, 30) } }) },
+  site: { mascara: 'websiteUri', corpo: (v) => ({ websiteUri: String(v).slice(0, 2048) }) },
+  descricao: { mascara: 'profile', corpo: (v) => ({ profile: { description: String(v).slice(0, 750) } }) },
+};
+
+// GET /api/auth/google/perfil/:locationId — dados atuais para o formulário de edição
+router.get('/google/perfil/:locationId', async (req, res) => {
+  try {
+    const id = req.params.locationId.replace(/\D/g, '');
+    const sess = await g.accessTokenDaSessao(req);
+    if (!sess) return sessaoNaoConectada(res);
+
+    const url = new URL(`${URL_LOCAIS}/locations/${id}`);
+    url.searchParams.set('readMask', 'title,phoneNumbers,websiteUri,profile');
+    const local = await g.googleGet(sess.token, url.toString());
+
+    res.json({
+      ok: true,
+      perfil: {
+        id,
+        nome: local.title || '',
+        telefone: local.phoneNumbers?.primaryPhone || '',
+        site: local.websiteUri || '',
+        descricao: local.profile?.description || '',
+      },
+    });
+  } catch (e) {
+    tratarErro(res, e);
+  }
+});
+
+// PATCH /api/auth/google/perfil/:locationId — grava no Google os campos enviados
+router.patch('/google/perfil/:locationId', async (req, res) => {
+  try {
+    const id = req.params.locationId.replace(/\D/g, '');
+    const sess = await g.accessTokenDaSessao(req);
+    if (!sess) return sessaoNaoConectada(res);
+
+    const corpo = {};
+    const mascara = [];
+    for (const [campo, valor] of Object.entries(req.body || {})) {
+      const regra = CAMPOS_EDITAVEIS[campo];
+      if (!regra || valor === undefined || valor === null) continue;
+      Object.assign(corpo, regra.corpo(valor));
+      mascara.push(regra.mascara);
+    }
+    if (!mascara.length) return res.status(400).json({ erro: 'Nenhum campo válido para atualizar' });
+
+    const url = new URL(`${URL_LOCAIS}/locations/${id}`);
+    url.searchParams.set('updateMask', mascara.join(','));
+    await g.googleRequest(sess.token, 'PATCH', url.toString(), corpo);
+
+    res.json({ ok: true, atualizado: mascara });
+  } catch (e) {
+    tratarErro(res, e);
+  }
+});
+
 module.exports = router;

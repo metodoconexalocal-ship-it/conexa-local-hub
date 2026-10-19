@@ -15,6 +15,12 @@ window.GMNOAuth = (() => {
     conectar: () => { window.location.href = '/api/auth/google/login'; },
     desconectar: () => chamar('/api/auth/google/desconectar', { method: 'POST' }),
     listarPerfis: () => chamar('/api/auth/google/perfis'),
+    perfilEditavel: (id) => chamar(`/api/auth/google/perfil/${encodeURIComponent(id)}`),
+    salvarPerfil: (id, campos) => chamar(`/api/auth/google/perfil/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(campos),
+    }),
     metricas: (locationId, dias = 30) =>
       chamar(`/api/auth/google/metricas?locationId=${encodeURIComponent(locationId)}&dias=${dias}`),
   };
