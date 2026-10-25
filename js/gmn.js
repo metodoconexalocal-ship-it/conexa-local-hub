@@ -658,39 +658,57 @@
     toast(`Importados: ${novos} novo(s), ${atualizados} atualizado(s)`);
   };
 
+  // Cadastro em duas etapas: novo perfil abre rápido (básico); edição mostra tudo.
+  // Os campos ocultos continuam no formulário, então salvar nunca apaga o que já existe.
   GMN.openPerfilModal = (id) => {
     const p = id ? perfilById(id) : {};
+    const rapido = !id;
+    const campo = (label, input, full) => `<div class="form-row"${full ? ' style="grid-column:1/-1"' : ''}><label>${label}</label>${input}</div>`;
     openModal(`
       <div class="modal-header">
         <div class="modal-title">${id ? 'Editar perfil' : 'Novo perfil GMN'}</div>
         <button class="modal-close" onclick="GMN.closeModal()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-row" style="grid-column:1/-1"><label>Nome do negócio *</label><input id="pf-nome" value="${esc(p.nome || '')}" placeholder="Ex.: Ótica Visão Clara"></div>
-        <div class="form-row"><label>Cliente</label><input id="pf-cliente" value="${esc(p.cliente || '')}" placeholder="Nome do cliente"></div>
-        <div class="form-row"><label>Categoria principal</label><input id="pf-categoria" value="${esc(p.categoria || '')}" placeholder="Ex.: Ótica"></div>
-        <div class="form-row"><label>Cidade</label><input id="pf-cidade" value="${esc(p.cidade || '')}" placeholder="Ex.: Florianópolis/SC"></div>
-        <div class="form-row"><label>Telefone / WhatsApp</label><input id="pf-telefone" value="${esc(p.telefone || '')}" placeholder="(48) 9…"></div>
-        <div class="form-row"><label>Prazo máximo de conclusão</label><input id="pf-deadline" type="date" value="${p.deadline || ''}"></div>
-        <div class="form-row"><label>Tipo de perfil</label>
-          <select id="pf-tipo">
+        ${campo('Nome do negócio *', `<input id="pf-nome" value="${esc(p.nome || '')}" placeholder="Ex.: Ótica Visão Clara">`, true)}
+        ${campo('Nome do cliente', `<input id="pf-cliente" value="${esc(p.cliente || '')}" placeholder="Nome da pessoa">`)}
+        ${campo('Cidade', `<input id="pf-cidade" value="${esc(p.cidade || '')}" placeholder="Ex.: Florianópolis/SC">`)}
+        ${campo('Telefone / WhatsApp', `<input id="pf-telefone" value="${esc(p.telefone || '')}" placeholder="(48) 9…">`)}
+        ${campo('Tipo de perfil', `<select id="pf-tipo">
             <option value="recorrencia" ${p.tipo === 'recorrencia' ? 'selected' : ''}>Recorrência (manutenção)</option>
             <option value="implementacao" ${p.tipo === 'implementacao' ? 'selected' : ''}>Implementação/Criação/Regularização</option>
-          </select>
-        </div>
-        <div class="form-row"><label>Status de verificação</label>
-          <select id="pf-status">${Object.entries(STATUS_PERFIL).map(([k, v]) => `<option value="${k}" ${p.status === k ? 'selected' : ''}>${v.l}</option>`).join('')}</select>
-        </div>
-        <div class="form-row"><label>E-mail de acesso (conta Google)</label><input id="pf-email" value="${esc(p.emailAcesso || '')}" placeholder="conta@gmail.com"></div>
-        <div class="form-row" style="grid-column:1/-1"><label>Link do perfil (Google Maps)</label><input id="pf-link" value="${esc(p.linkPerfil || '')}" placeholder="https://maps.google.com/…"></div>
-        <div class="form-row" style="grid-column:1/-1"><label>Link para pedir avaliação</label><input id="pf-linkaval" value="${esc(p.linkAvaliacao || '')}" placeholder="https://g.page/r/…/review"></div>
-        <div class="form-row" style="grid-column:1/-1"><label>Observações</label><textarea id="pf-obs" placeholder="Anotações internas sobre este perfil…">${esc(p.obs || '')}</textarea></div>
+          </select>`)}
       </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="GMN.closeModal()">Cancelar</button>
-        <button class="btn btn-primary" onclick="GMN.savePerfil('${id || ''}')">${id ? 'Salvar alterações' : 'Cadastrar perfil'}</button>
+
+      <div id="pf-avancado" style="display:${rapido ? 'none' : 'grid'};grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        ${campo('Categoria principal', `<input id="pf-categoria" value="${esc(p.categoria || '')}" placeholder="Ex.: Ótica">`)}
+        ${campo('Prazo máximo de conclusão', `<input id="pf-deadline" type="date" value="${p.deadline || ''}">`)}
+        ${campo('Status de verificação', `<select id="pf-status">${Object.entries(STATUS_PERFIL).map(([k, v]) => `<option value="${k}" ${(p.status || 'nao-verificado') === k ? 'selected' : ''}>${v.l}</option>`).join('')}</select>`)}
+        ${campo('E-mail de acesso (conta Google)', `<input id="pf-email" value="${esc(p.emailAcesso || '')}" placeholder="conta@gmail.com">`)}
+        ${campo('Link do perfil (Google Maps)', `<input id="pf-link" value="${esc(p.linkPerfil || '')}" placeholder="https://maps.google.com/…">`, true)}
+        ${campo('Link para pedir avaliação', `<input id="pf-linkaval" value="${esc(p.linkAvaliacao || '')}" placeholder="https://g.page/r/…/review">`, true)}
+        ${campo('Observações', `<textarea id="pf-obs" placeholder="Anotações internas sobre este perfil…">${esc(p.obs || '')}</textarea>`, true)}
+      </div>
+
+      <div class="modal-actions" style="justify-content:space-between">
+        ${rapido ? `<button class="btn btn-ghost" id="pf-toggle" onclick="GMN.mostrarDetalhesPerfil()"><i class="bi bi-chevron-down"></i> Preencher mais detalhes</button>` : '<span></span>'}
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="GMN.closeModal()">Cancelar</button>
+          <button class="btn btn-primary" onclick="GMN.savePerfil('${id || ''}')">${id ? 'Salvar alterações' : 'Salvar cadastro'}</button>
+        </div>
       </div>`, 640);
   };
+
+  GMN.mostrarDetalhesPerfil = () => {
+    const bloco = $g('pf-avancado');
+    const botao = $g('pf-toggle');
+    const aberto = bloco.style.display !== 'none';
+    bloco.style.display = aberto ? 'none' : 'grid';
+    if (botao) botao.innerHTML = aberto
+      ? '<i class="bi bi-chevron-down"></i> Preencher mais detalhes'
+      : '<i class="bi bi-chevron-up"></i> Ocultar detalhes';
+  };
+
 
   GMN.savePerfil = async (id) => {
     const nome = $g('pf-nome').value.trim();
