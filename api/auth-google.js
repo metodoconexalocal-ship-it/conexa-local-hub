@@ -2,6 +2,9 @@
 const crypto = require('crypto');
 const express = require('express');
 const g = require('../lib/google-oauth');
+const m = require('../lib/metricas-gbp');
+const persistencia = require('../lib/persistencia-gbp');
+const { db, isConnected } = require('../lib/firebase-config');
 
 const router = express.Router();
 
@@ -9,19 +12,19 @@ const URL_CONTAS = 'https://mybusinessaccountmanagement.googleapis.com/v1/accoun
 const URL_LOCAIS = 'https://mybusinessbusinessinformation.googleapis.com/v1';
 const URL_PERFORMANCE = 'https://businessprofileperformance.googleapis.com/v1';
 
-// Métricas diárias da Business Profile Performance API
-const METRICAS_DIARIAS = [
-  'CALL_CLICKS',
-  'BUSINESS_CONVERSATIONS',
-  'BUSINESS_DIRECTION_REQUESTS',
-  'WEBSITE_CLICKS',
-  'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
-  'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH',
-  'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
-  'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
-];
-const IMPRESSOES_BUSCA = ['BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH'];
-const IMPRESSOES_TOTAIS = [...IMPRESSOES_BUSCA, 'BUSINESS_IMPRESSIONS_DESKTOP_MAPS', 'BUSINESS_IMPRESSIONS_MOBILE_MAPS'];
+const bancoNaoConectado = (res) =>
+  res.status(503).json({
+    erro: 'Banco de dados não conectado no servidor.',
+    dica: 'Configure FIREBASE_SERVICE_ACCOUNT_JSON na Vercel e faça um redeploy.',
+  });
+
+// Busca métricas do Google para um período e devolve a resposta já convertida
+async function buscarMetricas(token, locationId, dias) {
+  const { inicio, fim } = m.periodo(dias);
+  const bruto = await g.googleGet(token, m.urlMetricas(URL_PERFORMANCE, locationId, inicio, fim));
+  const porDia = m.agruparPorDia(bruto);
+  return { inicio, fim, porDia, ...m.montarSerie(porDia, inicio, fim) };
+}
 
 const sessaoNaoConectada = (res) =>
   res.status(401).json({ erro: 'Conta Google não conectada. Clique em "Conectar" novamente.' });
@@ -56,8 +59,6 @@ function formatarPerfil(local, conta) {
     conta: conta.accountName || conta.name,
   };
 }
-
-const formatarData = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 
 // GET /api/auth/google/login — redireciona para o consentimento do Google
 router.get('/google/login', (req, res) => {
@@ -148,13 +149,26 @@ router.get('/google/perfis', async (req, res) => {
     }
 
     perfis.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-    res.json({ ok: true, conta: sess.sessao.email, total: perfis.length, perfis });
+
+    // Guarda a lista no banco, se houver. Sem banco, a tela funciona mas avisa que não salvou.
+    let salvos = 0;
+    if (isConnected()) {
+      salvos = await persistencia.salvarPerfis(db, sess.sessao.email, perfis);
+    }
+    res.json({
+      ok: true,
+      conta: sess.sessao.email,
+      total: perfis.length,
+      perfis,
+      salvo: isConnected(),
+      perfisSalvos: salvos,
+    });
   } catch (e) {
     tratarErro(res, e);
   }
 });
 
-// GET /api/auth/google/metricas?locationId=123&dias=30
+// GET /api/auth/google/metricas?locationId=123&dias=30 — leitura ao vivo do Google (não grava)
 router.get('/google/metricas', async (req, res) => {
   try {
     const locationId = String(req.query.locationId || '').replace(/\D/g, '');
@@ -164,64 +178,11 @@ router.get('/google/metricas', async (req, res) => {
     const sess = await g.accessTokenDaSessao(req);
     if (!sess) return sessaoNaoConectada(res);
 
-    // O Google publica métricas com ~2 dias de atraso: o período termina em "ontem - 1"
-    const fim = new Date();
-    fim.setUTCDate(fim.getUTCDate() - 2);
-    const inicio = new Date(fim);
-    inicio.setUTCDate(inicio.getUTCDate() - (dias - 1));
-
-    const url = new URL(`${URL_PERFORMANCE}/locations/${locationId}:fetchMultiDailyMetricsTimeSeries`);
-    METRICAS_DIARIAS.forEach((m) => url.searchParams.append('dailyMetrics', m));
-    for (const [prefixo, d] of [['start_date', inicio], ['end_date', fim]]) {
-      url.searchParams.set(`dailyRange.${prefixo}.year`, d.getUTCFullYear());
-      url.searchParams.set(`dailyRange.${prefixo}.month`, d.getUTCMonth() + 1);
-      url.searchParams.set(`dailyRange.${prefixo}.day`, d.getUTCDate());
-    }
-
-    const dados = await g.googleGet(sess.token, url.toString());
-
-    // Agrupa por dia: { 'AAAA-MM-DD': { CALL_CLICKS: 3, ... } }
-    const porDia = {};
-    for (const bloco of dados.multiDailyMetricTimeSeries || []) {
-      for (const serie of bloco.dailyMetricTimeSeries || []) {
-        for (const ponto of serie.timeSeries?.datedValues || []) {
-          const chave = formatarData(new Date(Date.UTC(ponto.date.year, ponto.date.month - 1, ponto.date.day)));
-          (porDia[chave] ||= {})[serie.dailyMetric] = Number(ponto.value || 0);
-        }
-      }
-    }
-
-    // Preenche todos os dias do período (dia sem dado = zero)
-    const soma = (dia, lista) => lista.reduce((t, m) => t + (dia[m] || 0), 0);
-    const serie = [];
-    for (let d = new Date(inicio); d <= fim; d.setUTCDate(d.getUTCDate() + 1)) {
-      const data = formatarData(d);
-      const dia = porDia[data] || {};
-      serie.push({
-        data,
-        chamadas: dia.CALL_CLICKS || 0,
-        mensagens: dia.BUSINESS_CONVERSATIONS || 0,
-        direcoes: dia.BUSINESS_DIRECTION_REQUESTS || 0,
-        websiteClicks: dia.WEBSITE_CLICKS || 0,
-        visualizacoes: soma(dia, IMPRESSOES_TOTAIS),
-        buscasLocais: soma(dia, IMPRESSOES_BUSCA),
-      });
-    }
-
-    const totalDe = (campo) => serie.reduce((t, d) => t + d[campo], 0);
-    const totais = {
-      chamadas: totalDe('chamadas'),
-      mensagens: totalDe('mensagens'),
-      direcoes: totalDe('direcoes'),
-      websiteClicks: totalDe('websiteClicks'),
-      visualizacoes: totalDe('visualizacoes'),
-      buscasLocais: totalDe('buscasLocais'),
-    };
-
+    const { inicio, fim, serie, totais } = await buscarMetricas(sess.token, locationId, dias);
     res.json({
       ok: true,
       locationId,
-      periodo: { inicio: formatarData(inicio), fim: formatarData(fim), dias },
+      periodo: { inicio: m.formatarData(inicio), fim: m.formatarData(fim), dias },
       totais,
       serie,
     });
@@ -229,6 +190,63 @@ router.get('/google/metricas', async (req, res) => {
     tratarErro(res, e);
   }
 });
+
+// POST /api/auth/google/sincronizar/:locationId?dias=30
+// Busca no Google e GRAVA no banco os dias que o Google devolveu com dados.
+router.post('/google/sincronizar/:locationId', async (req, res) => {
+  try {
+    if (!isConnected()) return bancoNaoConectado(res);
+    const locationId = req.params.locationId.replace(/\D/g, '');
+    const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 30, 1), 90);
+
+    const sess = await g.accessTokenDaSessao(req);
+    if (!sess) return sessaoNaoConectada(res);
+
+    const { inicio, fim, porDia } = await buscarMetricas(sess.token, locationId, dias);
+    const diasGravados = await persistencia.salvarMetricas(db, sess.sessao.email, locationId, porDia);
+
+    res.json({
+      ok: true,
+      locationId,
+      periodo: { inicio: m.formatarData(inicio), fim: m.formatarData(fim) },
+      diasComDados: diasGravados,
+      sincronizadoEm: new Date().toISOString(),
+      sincronizadoPor: sess.sessao.email,
+    });
+  } catch (e) {
+    tratarErro(res, e);
+  }
+});
+
+// GET /api/auth/google/historico/:locationId?dias=30 — o que está salvo no banco
+router.get('/google/historico/:locationId', async (req, res) => {
+  try {
+    if (!isConnected()) return bancoNaoConectado(res);
+    const locationId = req.params.locationId.replace(/\D/g, '');
+    const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 30, 1), 365);
+    const { inicio, fim } = m.periodo(dias);
+    const ini = m.formatarData(inicio);
+    const f = m.formatarData(fim);
+
+    const registros = await persistencia.lerHistorico(db, locationId, ini, f);
+    const ultima = await persistencia.ultimaSincronizacao(db, locationId);
+    res.json({ ok: true, locationId, periodo: { inicio: ini, fim: f }, registros, ...ultima });
+  } catch (e) {
+    console.error('[historico]', e.message);
+    res.status(500).json({ erro: e.message });
+  }
+});
+
+// GET /api/auth/google/saude — situação das duas conexões (Google e banco)
+router.get('/google/saude', (req, res) => {
+  const sessao = g.sessaoAtual(req);
+  res.json({
+    banco: isConnected(),
+    google: !!sessao?.refreshToken,
+    email: sessao?.email || null,
+  });
+});
+
 
 // ── Edição do perfil ────────────────────────────────────────────────────────
 // Só estes campos podem ser gravados. Cada um vira uma entrada do updateMask.
