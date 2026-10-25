@@ -1682,6 +1682,9 @@
         <div class="gmn-metricas-header-subtitle">Google My Business - Análise de desempenho do perfil</div>
       </div>
 
+      <!-- Situação das conexões: banco de dados e conta Google -->
+      <div id="gmn-saude" style="display: none; margin-bottom: 16px; font-size: 12px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text-secondary);"></div>
+
       <!-- Seção de Autenticação Google (visível só quando desconectado) -->
       <div class="gmn-metricas-panel" id="gmn-card-conectar" style="display: none;">
         <div style="display: flex; align-items: center; gap: 16px; justify-content: space-between;">
@@ -1721,13 +1724,17 @@
               <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Perfil Gerenciado</div>
               <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);" id="gmn-perfil-nome">—</div>
               <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="gmn-perfil-endereco">—</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="gmn-sync-info">Sem gravação no banco ainda.</div>
             </div>
             <div style="text-align: right;">
               <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-bottom: 8px; white-space: nowrap;" onclick="GMN.carregarEdicaoPerfil()">
                 <i class="bi bi-pencil"></i> Editar perfil
               </button>
-              <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="GMN.atualizarMetricasPerfil()" style="white-space: nowrap;">
-                <i class="bi bi-arrow-repeat"></i> Atualizar Métricas
+              <button class="gmn-metricas-btn gmn-metricas-btn-sync" onclick="GMN.sincronizarPerfil()" style="white-space: nowrap;">
+                <i class="bi bi-cloud-arrow-down"></i> Sincronizar e salvar
+              </button>
+              <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-top: 8px;" onclick="GMN.atualizarMetricasPerfil()">
+                <i class="bi bi-arrow-repeat"></i> Só ver (sem salvar)
               </button>
               <button class="gmn-metricas-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-primary); margin-top: 8px;" onclick="GMN.selecionarOutroPerfil()">
                 <i class="bi bi-arrow-left"></i> Trocar Perfil
@@ -1860,6 +1867,19 @@
     if (conta) conta.textContent = status.conectado ? `Conectado como ${status.email}` : '';
   };
 
+  GMN.mostrarSaude = function (saude) {
+    const el = document.getElementById('gmn-saude');
+    if (!el) return;
+    const banco = saude.banco
+      ? '<span style="color:#10b981">● Banco de dados conectado: os dados são gravados</span>'
+      : '<span style="color:#f59e0b">● Banco de dados NÃO conectado: nada é gravado até configurar FIREBASE_SERVICE_ACCOUNT_JSON</span>';
+    const google = saude.google
+      ? `<span style="color:#10b981">● Google conectado como ${esc(saude.email)}</span>`
+      : '<span>● Google não conectado</span>';
+    el.innerHTML = `${banco} &nbsp;·&nbsp; ${google}`;
+    el.style.display = 'block';
+  };
+
   GMN.inicializarDashboardMetricas = async function () {
     // Retorno do callback OAuth: /?tab=gmn-metricas&oauth=ok|erro
     const params = new URLSearchParams(window.location.search);
@@ -1872,12 +1892,13 @@
 
     let status;
     try {
-      status = await window.GMNOAuth.status();
+      status = await window.GMNOAuth.saude();
     } catch (e) {
       return GMN.mostrarStatusMetrica('Erro ao verificar a conexão: ' + e.message, 'error');
     }
+    GMN.mostrarSaude(status);
     GMN.mostrarConexaoGoogle(status);
-    if (status.conectado) await GMN.carregarPerfisConectados();
+    if (status.google) await GMN.carregarPerfisConectados();
   };
 
   GMN.carregarPerfisConectados = async function () {
@@ -1889,6 +1910,10 @@
       GMN.renderizarPerfisConectados();
       if (!window._gmnPerfis.length) {
         GMN.mostrarStatusMetrica('Nenhum perfil encontrado nesta conta Google. Confirme que ela tem acesso de gerente aos perfis.', 'error');
+      } else if (!dados.salvo) {
+        GMN.mostrarStatusMetrica(`Mostrando ${window._gmnPerfis.length} perfil(is), mas a lista NÃO foi salva: banco não conectado.`, 'error');
+      } else {
+        GMN.mostrarStatusMetrica(`${window._gmnPerfis.length} perfil(is) carregado(s) e salvo(s) no banco.`, 'success');
       }
     } catch (e) {
       window._gmnPerfis = [];
@@ -1928,6 +1953,7 @@
     GMN.mostrarStatusMetrica('', '');
   };
 
+  // Lê do Google e mostra (não grava)
   GMN.atualizarMetricasPerfil = async function () {
     const perfil = window._gmnPerfilSelecionado;
     if (!perfil) return;
@@ -1935,9 +1961,42 @@
     try {
       const dados = await window.GMNOAuth.metricas(perfil.id, 30);
       GMN.renderizarMetricas(dados);
-      GMN.mostrarStatusMetrica(`✅ Métricas de ${dados.periodo.inicio} a ${dados.periodo.fim}`, 'success');
+      GMN.mostrarStatusMetrica(`✅ Métricas de ${dados.periodo.inicio} a ${dados.periodo.fim} (vindas do Google, não salvas)`, 'success');
+      GMN.atualizarInfoGravacao(perfil.id);
     } catch (e) {
       GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+    }
+  };
+
+  // Lê do Google, GRAVA no banco e mostra
+  GMN.sincronizarPerfil = async function () {
+    const perfil = window._gmnPerfilSelecionado;
+    if (!perfil) return;
+    GMN.mostrarStatusMetrica('Sincronizando com o Google e gravando no banco…', 'loading');
+    try {
+      const r = await window.GMNOAuth.sincronizar(perfil.id, 30);
+      const dados = await window.GMNOAuth.metricas(perfil.id, 30);
+      GMN.renderizarMetricas(dados);
+      GMN.mostrarStatusMetrica(`✅ Salvo: ${r.diasComDados} dia(s) com dados gravados (${r.periodo.inicio} a ${r.periodo.fim}).`, 'success');
+      GMN.atualizarInfoGravacao(perfil.id);
+    } catch (e) {
+      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+    }
+  };
+
+  GMN.atualizarInfoGravacao = async function (id) {
+    const el = document.getElementById('gmn-sync-info');
+    if (!el) return;
+    try {
+      const h = await window.GMNOAuth.historico(id, 30);
+      if (!h.atualizadoEm) {
+        el.textContent = 'Sem gravação no banco ainda.';
+        return;
+      }
+      const quando = new Date(h.atualizadoEm).toLocaleString('pt-BR');
+      el.textContent = `Última gravação: ${quando} por ${h.atualizadoPor} · ${h.registros.length} dia(s) salvos no período`;
+    } catch (e) {
+      el.textContent = 'Não foi possível ler o banco: ' + e.message;
     }
   };
 
