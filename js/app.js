@@ -2467,7 +2467,7 @@ function renderClientCard(c, canSensitive) {
     ${(() => {
       // Progress bar: subitems done vs total for this client across all boards
       let tot = 0, don = 0;
-      Object.values(boards || {}).forEach(b => {
+      Object.values(state || {}).filter(b => b && b.groups).forEach(b => {
         (b.groups||[]).forEach(g => {
           (g.items||[]).forEach(i => {
             const cid = i._clientId || (clientsData.find(x => x.name===i.cliente||x.nome===i.cliente)?.id);
@@ -10642,7 +10642,7 @@ function _iaSetCliente(clientId, silent = false) {
 
   // Coleta itens do cliente para o dropdown
   const itens = [];
-  Object.entries(boards || {}).forEach(([bk, b]) => {
+  Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([bk, b]) => {
     (b.groups || []).forEach(g => {
       (g.items || []).forEach(i => {
         if (i._clientId === clientId || i.cliente === c.name) {
@@ -10677,7 +10677,7 @@ function _iaSetItem(itemKey) {
   if (!itemKey || !banner) return;
 
   let foundItem = null, foundGroup = '';
-  Object.entries(boards || {}).forEach(([bk, b]) => {
+  Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([bk, b]) => {
     (b.groups || []).forEach(g => {
       (g.items || []).forEach(i => {
         if (`${bk}::${g.id}::${i.id}` === itemKey) { foundItem = i; foundGroup = g.label; }
@@ -10723,7 +10723,7 @@ Responda sempre em português brasileiro. Seja objetivo, criativo e prático.`;
   if (!c) return agencia;
 
   const tarefas = [];
-  Object.entries(boards || {}).forEach(([bk, b]) => {
+  Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([bk, b]) => {
     (b.groups || []).forEach(g => {
       (g.items || []).forEach(i => {
         if (i._clientId === _iaClientId || i.cliente === c.name) {
@@ -10735,7 +10735,7 @@ Responda sempre em português brasileiro. Seja objetivo, criativo e prático.`;
 
   let itemCtx = '';
   if (_iaItemKey) {
-    Object.entries(boards || {}).forEach(([bk, b]) => {
+    Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([bk, b]) => {
       (b.groups || []).forEach(g => {
         (g.items || []).forEach(i => {
           if (`${bk}::${g.id}::${i.id}` === _iaItemKey) {
@@ -10892,7 +10892,7 @@ function _iaAnalisarCarteira() {
 
   // Última atividade no CRM por cliente
   const ultAtiv = {};
-  Object.entries(boards || {}).forEach(([, b]) => {
+  Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([, b]) => {
     (b.groups || []).forEach(g => {
       (g.items || []).forEach(i => {
         const cid = i._clientId || (clientsData.find(c => c.name === i.cliente || c.nome === i.cliente)?.id);
@@ -10911,7 +10911,7 @@ function _iaAnalisarCarteira() {
     const last = ultAtiv[c.id];
     const diasSem = last ? Math.round((hoje - last) / 86400000) : 'indefinido';
     const tarefas = [];
-    Object.entries(boards || {}).forEach(([, b]) => {
+    Object.entries(state || {}).filter(([, b]) => b && b.groups).forEach(([, b]) => {
       (b.groups || []).forEach(g => {
         (g.items || []).forEach(i => {
           if (i._clientId === c.id || i.cliente === nome) tarefas.push(`${i.status||'Pendente'}: ${i.name}`);
@@ -10957,7 +10957,7 @@ function _iaSugerirAcao(clientId) {
     // Get last CRM activity
     let lastDate = null;
     const tarefas = [];
-    Object.values(boards || {}).forEach(b => {
+    Object.values(state || {}).filter(b => b && b.groups).forEach(b => {
       (b.groups||[]).forEach(g => {
         (g.items||[]).forEach(i => {
           const cid = i._clientId || (clientsData.find(x=>x.name===i.cliente||x.nome===i.cliente)?.id);
@@ -11007,7 +11007,7 @@ function _resumoMensal(clientId) {
   const mesNome = now.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
 
   const clientItems = [];
-  Object.values(boards || {}).forEach(b => {
+  Object.values(state || {}).filter(b => b && b.groups).forEach(b => {
     (b.groups||[]).forEach(g => {
       (g.items||[]).forEach(i => {
         const cid = i._clientId || (clientsData.find(x=>x.name===i.cliente||x.nome===i.cliente)?.id);
