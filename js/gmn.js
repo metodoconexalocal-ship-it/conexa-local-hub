@@ -637,9 +637,7 @@
     try {
       dados = await window.GMNOAuth.listarPerfis();
     } catch (e) {
-      alert("Não foi possível ler os perfis do Google: " + e.message + "
-
-Conecte a conta em Dashboard de Métricas.");
+      alert("Não foi possível ler os perfis do Google: " + e.message + "\n\nConecte a conta em Dashboard de Métricas.");
       return;
     }
     const perfis = dados.perfis || [];
