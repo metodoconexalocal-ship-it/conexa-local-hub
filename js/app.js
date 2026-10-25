@@ -16156,7 +16156,7 @@ function _ctExportarCalendario() {
   <!-- Cabeçalho -->
   <div class="header">
     <div class="header-brand">
-      <img src="${window.location.origin}/img/logo-dc.png" alt="Conexa Local"
+      <img src="${window.location.origin}/img/conexa-logo.png" alt="Conexa Local"
         style="height:48px;max-width:160px;object-fit:contain"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="header-logo" style="display:none">DC</div>

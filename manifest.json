@@ -1,7 +1,7 @@
 {
-  "name": "DigitalCreate CRM",
+  "name": "Conexa Local Hub",
   "short_name": "DC CRM",
-  "description": "CRM interno da agência DigitalCreate",
+  "description": "Hub interno da Conexa Local",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
@@ -10,13 +10,13 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "img/icon.svg",
+      "src": "img/conexa-simbolo.png",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "img/logo.png.jpg",
+      "src": "img/conexa-logo.png",
       "sizes": "any",
       "type": "image/jpeg",
       "purpose": "any"

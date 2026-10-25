@@ -1,0 +1,118 @@
+{
+  "cliente": {
+    "id": "virginia-duarte-fotografia",
+    "nome": "Virginia Duarte Fotografia",
+    "cidade": "São José e Santo Amaro da Imperatriz/SC",
+    "segmento": "Fotografia"
+  },
+  "diagnostico": {
+    "id": "virginia-duarte-sj-2026-10-24",
+    "clienteId": "virginia-duarte-fotografia",
+    "data": "2026-10-24",
+    "titulo": "Perfil São José (Fotografia II)",
+    "status": "entregue",
+    "perfil": {
+      "nome": "Virginia Duarte Fotografia II",
+      "endereco": "Av. Presidente Kennedy, 179, Campinas, São José/SC",
+      "categoria": "Fotógrafo",
+      "nota": "5,0",
+      "avaliacoes": 5,
+      "fotos": 67
+    },
+    "manchete": {
+      "titulo": "Virginia Duarte Fotografia II:",
+      "destaque": "reputação de primeira, visibilidade de última.",
+      "texto": "Quem chega ao seu perfil encontra nota 5,0 e todas as avaliações respondidas. O problema é que quase ninguém chega: o perfil não aparece entre os 10 primeiros do Google Maps nas buscas por fotógrafo corporativo e por ensaio fotográfico em São José."
+    },
+    "veredito": {
+      "titulo": "Base boa, precisa de trabalho.",
+      "texto": "O que falta não é qualidade. Falta volume de avaliações, relevância para as buscas de São José e um perfil ativo.",
+      "ativo": "Um diferencial que nenhum concorrente do top 10 ocupa: ensaios de marca pessoal e posicionamento feminino, com 16 mil seguidores no Instagram que já conhecem esse trabalho."
+    },
+    "prioridades": [
+      { "titulo": "Mais avaliações", "texto": "São 5. O Jr Schmitt Fotografia, no mesmo prédio, tem 181 e aparece em 1º lugar." },
+      { "titulo": "Uma página da unidade São José no site", "texto": "Hoje o perfil leva a uma página inicial com cerca de 20 palavras, que não cita a cidade." },
+      { "titulo": "Perfil ativo e focado", "texto": "Há uma única postagem (30/jun/2026), repetida no perfil de Santo Amaro, e a descrição lista uns 15 serviços." }
+    ],
+    "etapas": {
+      "resumo": "Seu perfil vai bem nas últimas etapas e trava logo na primeira.",
+      "encontrado": { "nivel": 1, "texto": "Fora do top 10 nas duas buscas testadas. Poucas avaliações e site sem relevância local." },
+      "compreendido": { "nivel": 2, "texto": "Categoria genérica e descrição com 15 serviços. O foco em corporativo e marca pessoal se perde." },
+      "valorizado": { "nivel": 3, "texto": "67 fotos e 15 anos de estúdio. Faltam postagens recentes e casos de clientes de São José." },
+      "escolhido": { "nivel": 4, "texto": "Nota 5,0, respostas carinhosas a todas as avaliações e depoimentos que citam profissionalismo e naturalidade." }
+    },
+    "raiox": [
+      { "item": "Nome", "situacao": "Virginia Duarte Fotografia II", "status": "atencao", "leitura": "O \"II\" só é aceito se estiver na fachada e nos materiais" },
+      { "item": "Categoria principal", "situacao": "Fotógrafo", "status": "atencao", "leitura": "Genérica para quem busca fotografia corporativa" },
+      { "item": "Avaliações", "situacao": "5,0 com 5, todas respondidas", "status": "atencao", "leitura": "Qualidade ótima, volume baixo" },
+      { "item": "Fotos", "situacao": "67 (Santo Amaro tem 281)", "status": "atencao", "leitura": "Faltam fachada, sala e trabalhos recentes" },
+      { "item": "Postagens", "situacao": "1, de 30/jun/2026", "status": "critico", "leitura": "Parado há 4 meses e igual ao outro perfil" },
+      { "item": "Descrição", "situacao": "Cita 15 anos e cerca de 15 serviços", "status": "atencao", "leitura": "Sem foco e sem \"São José\" no começo" },
+      { "item": "Endereço", "situacao": "Sem número de sala", "status": "atencao", "leitura": "O prédio é o mesmo de um concorrente forte" },
+      { "item": "Horário", "situacao": "Fechado no fim de semana", "status": "atencao", "leitura": "Concorrentes atendem no domingo" },
+      { "item": "Atributos", "situacao": "Acolhe LGBTQ+ · Empresa de empreendedoras", "status": "ok", "leitura": "Bom para a imagem da marca" },
+      { "item": "Site", "situacao": "virginiaduarte.com.br (página inicial)", "status": "critico", "leitura": "Não há página da unidade São José" }
+    ],
+    "problemas": [
+      { "onde": "Os 2 perfis", "problema": "Mesmo telefone, mesmo site e postagens iguais", "gravidade": "critica", "correcao": "Cada unidade precisa ter atendimento real no horário divulgado, senão o Google pode suspender. Uma página do site para cada unidade e postagens diferentes em cada perfil." },
+      { "onde": "Perfil São José", "problema": "Só 5 avaliações", "gravidade": "critica", "correcao": "Pedir avaliação a todo cliente de São José com o link direto, sugerindo citar o serviço feito (ex.: ensaio corporativo)." },
+      { "onde": "Site", "problema": "Sem título, H1, texto ou cidade", "gravidade": "alta", "correcao": "Criar a página /sao-jose com endereço, mapa, serviços, avaliações e dados estruturados de empresa local." },
+      { "onde": "Categoria", "problema": "Só \"Fotógrafo\"", "gravidade": "alta", "correcao": "Conferir no painel as categorias secundárias: Fotógrafo comercial, Fotógrafo de retratos, Estúdio fotográfico, Fotógrafo de eventos, Videógrafo." },
+      { "onde": "Endereço", "problema": "Falta a sala", "gravidade": "media", "correcao": "Incluir o número da sala, para o Google não confundir com o Jr Schmitt." },
+      { "onde": "Facebook \"Fotografia II\"", "problema": "Mostra o endereço de Santo Amaro", "gravidade": "media", "correcao": "Corrigir para o endereço de São José. Os dados precisam ser iguais em todo lugar." },
+      { "onde": "Alboom e Casamentos.com.br", "problema": "Endereço antigo ou \"s/n\"", "gravidade": "media", "correcao": "Atualizar os dois cadastros." },
+      { "onde": "Postagens", "problema": "Paradas há 4 meses", "gravidade": "media", "correcao": "Uma postagem por semana com ensaios feitos em São José." },
+      { "onde": "Serviços", "problema": "Não verificável de fora", "gravidade": "media", "correcao": "Cadastrar cada serviço com descrição e faixa de preço." },
+      { "onde": "Busca pelo nome", "problema": "Homônimos aparecem no resultado", "gravidade": "baixa", "correcao": "Fortalecer a marca com LinkedIn próprio e citações locais, como a CDL-SJ." }
+    ],
+    "concorrencia": {
+      "titulo": "Quem aparece no Maps tem de 8 a 44 vezes mais avaliações",
+      "texto": "Avaliações no Google dos perfis que aparecem nas buscas \"fotógrafo corporativo São José SC\" e \"ensaio fotográfico São José SC\".",
+      "itens": [
+        { "nome": "Impulse Studio", "avaliacoes": 221, "tipo": "concorrente" },
+        { "nome": "Jr Schmitt Fotografia (mesmo prédio)", "avaliacoes": 181, "tipo": "concorrente" },
+        { "nome": "Casa na Árvore Estúdio", "avaliacoes": 73, "tipo": "concorrente" },
+        { "nome": "Liana Giannini", "avaliacoes": 58, "tipo": "concorrente" },
+        { "nome": "Estúdio Núcleo", "avaliacoes": 54, "tipo": "concorrente" },
+        { "nome": "Rodrigo Tavares", "avaliacoes": 42, "tipo": "concorrente" },
+        { "nome": "Virginia Duarte (Santo Amaro)", "avaliacoes": 28, "tipo": "referencia" },
+        { "nome": "Virginia Duarte II (São José)", "avaliacoes": 5, "tipo": "cliente" }
+      ],
+      "nota": "Todos os concorrentes listados têm nota entre 4,9 e 5,0. Nesse mercado a nota não diferencia ninguém: o que pesa é a quantidade de avaliações. Os dois perfis da Virginia não apareceram entre os 10 primeiros em nenhuma das duas buscas.",
+      "oportunidade": "Nenhum perfil do top 10 se apresenta como especialista em marca pessoal ou posicionamento feminino. É o território mais fácil de conquistar, e é o que você já comunica no Instagram."
+    },
+    "palavras": [
+      { "busca": "fotógrafo corporativo são josé", "concorrencia": "Média", "potencial": "alto", "onde": "Página da unidade e descrição" },
+      { "busca": "ensaio marca pessoal são josé / florianópolis", "concorrencia": "Baixa", "potencial": "alto", "onde": "Serviço no perfil e página no site" },
+      { "busca": "ensaio posicionamento feminino", "concorrencia": "Baixa", "potencial": "alto", "onde": "Postagens e página" },
+      { "busca": "fotos para linkedin são josé", "concorrencia": "Baixa", "potencial": "alto", "onde": "Serviço e postagem" },
+      { "busca": "retrato profissional são josé sc", "concorrencia": "Média", "potencial": "alto", "onde": "Serviço" },
+      { "busca": "fotografia empresarial grande florianópolis", "concorrencia": "Média", "potencial": "alto", "onde": "Página do site" },
+      { "busca": "estúdio fotográfico campinas são josé", "concorrencia": "Baixa", "potencial": "alto", "onde": "Descrição" },
+      { "busca": "ensaio gestante são josé", "concorrencia": "Média", "potencial": "medio", "onde": "Serviço" },
+      { "busca": "ensaio 15 anos são josé", "concorrencia": "Média", "potencial": "medio", "onde": "Serviço" },
+      { "busca": "cobertura de evento corporativo", "concorrencia": "Média", "potencial": "medio", "onde": "Serviço (já há avaliação citando workshop)" },
+      { "busca": "curso fotografia com celular", "concorrencia": "Baixa", "potencial": "medio", "onde": "Página do curso" },
+      { "busca": "quanto custa ensaio corporativo", "concorrencia": "Baixa", "potencial": "medio", "onde": "Perguntas frequentes no site" },
+      { "busca": "fotógrafo de casamento são josé", "concorrencia": "Alta", "potencial": "baixo", "onde": "Deixar para o perfil de Santo Amaro" }
+    ],
+    "plano": {
+      "semanaResumo": "cerca de 5 horas no total",
+      "semana": [
+        { "titulo": "Campanha de avaliações", "texto": "Link curto de avaliação enviado aos últimos 20 clientes de São José. Meta: 25 avaliações em 60 dias.", "impacto": "Impacto alto", "esforco": "1 h" },
+        { "titulo": "Nova descrição", "texto": "Foco em corporativo e marca pessoal, com São José nas primeiras linhas.", "impacto": "Impacto médio", "esforco": "30 min" },
+        { "titulo": "Categorias e serviços", "texto": "Revisar as categorias secundárias e cadastrar os serviços com faixa de preço.", "impacto": "Impacto alto", "esforco": "1 h" },
+        { "titulo": "Endereço igual em todo lugar", "texto": "Sala no perfil e correção no Facebook, Alboom e Casamentos.com.br.", "impacto": "Impacto médio", "esforco": "1 h" },
+        { "titulo": "15 fotos novas", "texto": "Fachada, sala, ensaios corporativos e bastidores.", "impacto": "Impacto médio", "esforco": "1 h" },
+        { "titulo": "Mensagens e horário", "texto": "Ativar mensagens pelo perfil e conferir se o horário bate com o atendimento real.", "impacto": "Impacto médio", "esforco": "15 min" }
+      ],
+      "trimestre": [
+        { "titulo": "Proteger os dois perfis", "texto": "Garantir atendimento real nas duas unidades no horário divulgado. Se São José funciona só com hora marcada, avaliar o formato certo com a Conexa antes de qualquer mudança.", "impacto": "Impacto crítico", "esforco": "Decisão" },
+        { "titulo": "Site com páginas por unidade e serviço", "texto": "Páginas /sao-jose e /santo-amaro, uma por serviço principal, com dados estruturados. Cada perfil aponta para a sua página.", "impacto": "Impacto alto", "esforco": "Vários dias" },
+        { "titulo": "Postagem semanal exclusiva", "texto": "Um caso de cliente por semana no perfil de São José, sempre citando a cidade.", "impacto": "Impacto médio", "esforco": "Contínuo" },
+        { "titulo": "Autoridade local", "texto": "CDL-SJ, AEMFLO, guias de São José e empresas já atendidas, como a Marmoraria Schmitz.", "impacto": "Impacto médio", "esforco": "1 dia" }
+      ]
+    },
+    "fontes": "Análise feita em 24/10/2026 a partir da visualização pública do Google Maps e da Pesquisa Google, do site virginiaduarte.com.br e de perfis públicos da marca. Posições no Maps variam conforme o local de quem busca. Volumes de busca são estimativas relativas; números exatos exigem acesso ao painel do perfil ou a uma ferramenta de SEO."
+  }
+}

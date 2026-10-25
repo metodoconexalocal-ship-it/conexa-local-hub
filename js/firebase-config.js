@@ -170,7 +170,7 @@
   // Faz upload de um File para o Supabase Storage e retorna a URL pública.
   window.storageUpload = async (file, path, onProgress) => {
     if (!window._supaStorageReady()) {
-      throw new Error('Armazenamento ainda não configurado. Avise a equipe DigitalCreate.');
+      throw new Error('Armazenamento ainda não configurado. Avise a equipe da Conexa Local.');
     }
     if (onProgress) onProgress(10);
     const dest = `${SUPA_STORAGE.url}/storage/v1/object/${SUPA_STORAGE.bucket}/${encodeURIComponent(path)}`;
