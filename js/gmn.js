@@ -80,7 +80,7 @@
     return h;
   }
   GMN.copiar = (texto) => {
-    navigator.clipboard.writeText(texto).then(() => toast('✅ Link copiado!')).catch(() => prompt('Copie o link:', texto));
+    navigator.clipboard.writeText(texto).then(() => toast('Link copiado!')).catch(() => prompt('Copie o link:', texto));
   };
   GMN.setF = (k, v) => { F[k] = v; render(); };
 
@@ -283,7 +283,7 @@
 
       <div class="gmn-panel">
         <div class="gmn-panel-title">
-          ${abaTipo === 'recorrencia' ? '🔄 Perfis em Recorrência' : '🚀 Perfis em Implementação'}
+          ${abaTipo === 'recorrencia' ? '🔄 Perfis em Recorrência' : 'Perfis em Implementação'}
           <span style="font-size:12px;color:var(--text-muted)">(${filtrados.length})</span>
         </div>
         ${filtrados.length === 0
@@ -419,7 +419,7 @@
       .filter((p) => p.deadline && new Date(p.deadline) < hoje && checklistPct(p) < 100)
       .map((p) => ({
         tipo: 'deadline',
-        titulo: `⚠️ Prazo vencido: ${checklistPct(p)}% completo`,
+        titulo: `Prazo vencido: ${checklistPct(p)}% completo`,
         perfil: p.nome,
         perfilId: p.id,
         data: p.deadline,
@@ -459,7 +459,7 @@
           📆 Esta semana (${tarefasEstaSemana.length})
         </button>
         <button class="btn ${periodoAba === 'proxsemana' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','proxsemana');GMN.render()" style="font-size:12px;white-space:nowrap">
-          ➡️ Próx. semana (${tarefasProxSemana.length})
+          ➡Próx. semana (${tarefasProxSemana.length})
         </button>
         <button class="btn ${periodoAba === 'atrasadas' ? 'btn-primary' : 'btn-ghost'}" onclick="GMN.setF('periodoAba','atrasadas');GMN.render()" style="font-size:12px;white-space:nowrap;color:var(--red)">
           🔴 Atrasadas (${tarefasAtrasadas.length})
@@ -468,7 +468,7 @@
 
       <div class="gmn-panel">
         <div class="gmn-panel-title">
-          ${periodoAba === 'hoje' ? '📅 Tarefas de hoje' : periodoAba === 'semana' ? '📆 Esta semana' : periodoAba === 'proxsemana' ? '➡️ Próxima semana' : '🔴 Tarefas atrasadas'}
+          ${periodoAba === 'hoje' ? '📅 Tarefas de hoje' : periodoAba === 'semana' ? '📆 Esta semana' : periodoAba === 'proxsemana' ? '➡Próxima semana' : '🔴 Tarefas atrasadas'}
         </div>
         ${
           periodoAba === 'hoje' ? renderTarefasList(tarefasHoje)
@@ -495,12 +495,13 @@
         <div class="stat-card"><div class="stat-label">Pendentes</div><div class="stat-val">${S.perfis.length - verif}</div></div>
       </div>
       <div class="toolbar">
-        <input type="text" placeholder="🔍 Buscar perfil, cliente, cidade…" value="${esc(F.buscaPerfis)}" oninput="GMN.setF('buscaPerfis',this.value)">
+        <input type="text" placeholder="Buscar perfil, cliente, cidade…" value="${esc(F.buscaPerfis)}" oninput="GMN.setF('buscaPerfis',this.value)">
         <select onchange="GMN.setF('statusPerfis',this.value)">
           <option value="">Todos os status</option>
           ${Object.entries(STATUS_PERFIL).map(([k, v]) => `<option value="${k}" ${F.statusPerfis === k ? 'selected' : ''}>${v.l}</option>`).join('')}
         </select>
         <div style="flex:1"></div>
+        <button class="btn btn-ghost" onclick="GMN.importarPerfisGoogle()" title="Traz os perfis conectados no Google para cá"><i class="bi bi-cloud-download"></i> Importar do Google</button>
         <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Novo Perfil</button>
       </div>
       ${lista.length === 0
@@ -581,7 +582,7 @@
         <div style="background:var(--bg-card);height:24px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">
           <div style="height:100%;background:linear-gradient(90deg, var(--accent), var(--accent2));width:${pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff">${pct > 10 ? pct + '%' : ''}</div>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Tipo: <strong>${p.tipo === 'recorrencia' ? '🔄 Recorrência' : '🚀 Implementação'}</strong></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Tipo: <strong>${p.tipo === 'recorrencia' ? '🔄 Recorrência' : 'Implementação'}</strong></div>
       </div>
 
       <div class="gmn-panel-title" style="margin-bottom:10px">Checklist de otimização
@@ -627,6 +628,36 @@
     p.checklist[key] = val;
     await window.dbSave('gmn_perfis', { id: p.id, checklist: p.checklist });
     render();
+  };
+
+  // Importa os perfis conectados no Google. Não duplica: casa pelo id do Google (gbpId).
+  // Perfis já existentes recebem só os dados do Google; status, obs e demais campos ficam como estão.
+  GMN.importarPerfisGoogle = async () => {
+    let dados;
+    try {
+      dados = await window.GMNOAuth.listarPerfis();
+    } catch (e) {
+      alert("Não foi possível ler os perfis do Google: " + e.message + "
+
+Conecte a conta em Dashboard de Métricas.");
+      return;
+    }
+    const perfis = dados.perfis || [];
+    if (!perfis.length) { alert("Nenhum perfil encontrado nesta conta Google."); return; }
+
+    let novos = 0, atualizados = 0;
+    for (const g of perfis) {
+      const existente = S.perfis.find((p) => p.gbpId === g.id);
+      if (existente) {
+        await window.dbSave("gmn_perfis", { id: existente.id, nome: g.nome, endereco: g.endereco, telefone: g.telefone || existente.telefone || "", linkPerfil: existente.linkPerfil || g.mapsUri || "" });
+        atualizados++;
+      } else {
+        await window.dbSave("gmn_perfis", { gbpId: g.id, nome: g.nome, endereco: g.endereco, telefone: g.telefone, linkPerfil: g.mapsUri || "", cliente: "", categoria: "", cidade: "", tipo: "recorrencia", status: "nao-verificado", emailAcesso: "", linkAvaliacao: "", obs: "" });
+        novos++;
+      }
+    }
+    await refresh();
+    toast(`Importados: ${novos} novo(s), ${atualizados} atualizado(s)`);
   };
 
   GMN.openPerfilModal = (id) => {
@@ -682,7 +713,7 @@
     };
     if (id) data.id = id;
     const ok = await window.dbSave('gmn_perfis', data);
-    if (ok) { GMN.closeModal(); await refresh(); toast(id ? '✅ Perfil atualizado' : '✅ Perfil cadastrado'); }
+    if (ok) { GMN.closeModal(); await refresh(); toast(id ? 'Perfil atualizado' : 'Perfil cadastrado'); }
   };
 
   GMN.delPerfil = async (id) => {
@@ -701,7 +732,7 @@
     const newSub = { id: Date.now().toString(), titulo: titulo.trim(), feito: false, criadoEm: new Date().toISOString() };
     p.subElementos.push(newSub);
     await window.dbSave('gmn_perfis', { id: p.id, subElementos: p.subElementos });
-    await refresh(); toast('✅ Sub-elemento adicionado');
+    await refresh(); toast('Sub-elemento adicionado');
   };
 
   GMN.toggleSubElemento = async (perfilId, subId) => {
@@ -720,7 +751,7 @@
     if (!p || !p.subElementos) return;
     p.subElementos = p.subElementos.filter((s) => s.id !== subId);
     await window.dbSave('gmn_perfis', { id: p.id, subElementos: p.subElementos });
-    await refresh(); toast('🗑️ Sub-elemento removido');
+    await refresh(); toast('🗑Sub-elemento removido');
   };
 
   /* ═══════════════════════════════ POSTAGENS ══════════════════════════════ */
@@ -816,7 +847,7 @@
     const d = { perfilId, titulo, data, tipo: $g('po-tipo').value, notas: $g('po-notas').value.trim() };
     if (id) d.id = id; else d.status = 'planejado';
     const ok = await window.dbSave('gmn_posts', d);
-    if (ok) { GMN.closeModal(); await refresh(); toast('✅ Post salvo'); }
+    if (ok) { GMN.closeModal(); await refresh(); toast('Post salvo'); }
   };
 
   GMN.togglePostFeito = async (id) => {
@@ -918,7 +949,7 @@
     };
     if (id) d.id = id;
     const ok = await window.dbSave('gmn_avaliacoes', d);
-    if (ok) { GMN.closeModal(); await refresh(); toast('✅ Avaliação salva'); }
+    if (ok) { GMN.closeModal(); await refresh(); toast('Avaliação salva'); }
   };
 
   GMN.toggleAvalResp = async (id) => {
@@ -1012,7 +1043,7 @@
     const perfilId = $g('rk-perfil').value, palavra = $g('rk-palavra').value.trim(), pos = $g('rk-pos').value;
     if (!perfilId || !palavra || !pos) { alert('Preencha perfil, palavra-chave e posição.'); return; }
     const ok = await window.dbSave('gmn_ranking', { perfilId, palavra, posicao: Number(pos), data: $g('rk-data').value || hojeISO() });
-    if (ok) { GMN.closeModal(); await refresh(); toast('✅ Posição registrada'); }
+    if (ok) { GMN.closeModal(); await refresh(); toast('Posição registrada'); }
   };
 
   GMN.delRank = async (id) => {
@@ -1312,7 +1343,7 @@
 
     return `<div class="page-wrap">
       <div class="page-header">
-        <h1>🔍 Auditoria GBP</h1>
+        <h1><i class="bi bi-search"></i> Auditoria GBP</h1>
         <p>Análise detalhada de cada perfil Google Business</p>
       </div>
 
@@ -1418,7 +1449,7 @@
                 <div style="font-size:11px;font-weight:600;color:var(--text-muted)">Impacto: +${rec.impacto}% no score</div>
               </div>
             `;
-          }).join('') : '<div class="gmn-empty" style="color:var(--green)">✅ Nenhuma recomendação crítica!</div>'}
+          }).join('') : '<div class="gmn-empty" style="color:var(--green)">Nenhuma recomendação crítica!</div>'}
         </div>
       </div>
     </div>`;
@@ -1918,7 +1949,7 @@
     } catch (e) {
       window._gmnPerfis = [];
       GMN.renderizarPerfisConectados();
-      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
   };
 
@@ -1961,10 +1992,10 @@
     try {
       const dados = await window.GMNOAuth.metricas(perfil.id, 30);
       GMN.renderizarMetricas(dados);
-      GMN.mostrarStatusMetrica(`✅ Métricas de ${dados.periodo.inicio} a ${dados.periodo.fim} (vindas do Google, não salvas)`, 'success');
+      GMN.mostrarStatusMetrica(`Métricas de ${dados.periodo.inicio} a ${dados.periodo.fim} (vindas do Google, não salvas)`, 'success');
       GMN.atualizarInfoGravacao(perfil.id);
     } catch (e) {
-      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
   };
 
@@ -1977,10 +2008,10 @@
       const r = await window.GMNOAuth.sincronizar(perfil.id, 30);
       const dados = await window.GMNOAuth.metricas(perfil.id, 30);
       GMN.renderizarMetricas(dados);
-      GMN.mostrarStatusMetrica(`✅ Salvo: ${r.diasComDados} dia(s) com dados gravados (${r.periodo.inicio} a ${r.periodo.fim}).`, 'success');
+      GMN.mostrarStatusMetrica(`Salvo: ${r.diasComDados} dia(s) com dados gravados (${r.periodo.inicio} a ${r.periodo.fim}).`, 'success');
       GMN.atualizarInfoGravacao(perfil.id);
     } catch (e) {
-      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
   };
 
@@ -2036,7 +2067,7 @@
       document.getElementById('gmn-edit-site').value = dados.site;
       document.getElementById('gmn-edit-descricao').value = dados.descricao;
     } catch (e) {
-      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
   };
 
@@ -2055,9 +2086,9 @@
       await window.GMNOAuth.salvarPerfil(perfil.id, campos);
       perfil.nome = campos.title;
       document.getElementById('gmn-perfil-nome').textContent = campos.title;
-      GMN.mostrarStatusMetrica('✅ Perfil atualizado no Google.', 'success');
+      GMN.mostrarStatusMetrica('Perfil atualizado no Google.', 'success');
     } catch (e) {
-      GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
   };
 
@@ -2066,7 +2097,7 @@
     try {
       await window.GMNOAuth.desconectar();
     } catch (e) {
-      return GMN.mostrarStatusMetrica('❌ ' + e.message, 'error');
+      return GMN.mostrarStatusMetrica('' + e.message, 'error');
     }
     window._gmnPerfis = [];
     window._gmnPerfilSelecionado = null;
