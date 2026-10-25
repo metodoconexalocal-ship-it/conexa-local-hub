@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "node tests/metricas-gbp.test.js && node tests/persistencia-gbp.test.js"
+    "test": "node tests/metricas-gbp.test.js && node tests/persistencia-gbp.test.js && node tests/checklist.test.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

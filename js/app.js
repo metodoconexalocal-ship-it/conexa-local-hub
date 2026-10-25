@@ -2024,6 +2024,7 @@ function showPage(page) {
     'gmn-ranking':        '<span>GMN</span> — Ranking no Mapa',
     'gmn-auditoria':      '<span>GMN</span> — Auditoria GBP',
     'gmn-metricas':       '<span>GMN</span> — Métricas em Tempo Real',
+    'gmn-checklist':      '<span>Projetos</span> — Tarefas do Dia',
     'portal-access':      '<span>Portal</span> — Gerenciar Acessos',
   };
   document.getElementById('page-title').innerHTML = titles[page] || page;
@@ -2058,6 +2059,7 @@ function showPage(page) {
   else if (page === 'leads-portal')        renderLeadsPortalPage();
   else if (page === 'mapas')               renderMapasPage();
   else if (page === 'portal-access')       renderPortalAccessPage();
+  else if (page === 'gmn-checklist')      { if (window.Checklist) window.Checklist.abrir(); }
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); else if (page === 'gmn-metricas') renderGMNMetricas(); }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   // Nav map: now first section has 4 items (Dashboard, CRM, Jornada, Lembretes)
