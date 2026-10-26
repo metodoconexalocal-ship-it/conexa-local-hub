@@ -505,7 +505,7 @@
         <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Novo Perfil</button>
       </div>
       ${lista.length === 0
-        ? `<div class="gmn-empty" style="padding:60px 20px;text-align:center">Nenhum perfil ${S.perfis.length ? 'encontrado com esse filtro' : 'cadastrado ainda'}.<br><br><button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Cadastrar primeiro perfil</button></div>`
+        ? `<div class="gmn-empty" style="padding:60px 20px;text-align:center">Nenhum perfil ${S.perfis.length ? 'encontrado com esse filtro' : 'cadastrado ainda'}.<br><br><button class="btn btn-ghost" onclick="GMN.importarPerfisGoogle()"><i class="bi bi-cloud-download"></i> Importar do Google</button> <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Cadastrar primeiro perfil</button></div>`
         : `<div class="gmn-grid">${lista.map(cardPerfil).join('')}</div>`}
     </div>`;
   }
