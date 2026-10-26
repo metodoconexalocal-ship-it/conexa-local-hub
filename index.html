@@ -162,6 +162,18 @@
       </div>
     </div>
     <div class="sidebar-section">
+      <div class="sidebar-label" onclick="toggleSection(this)"><span>Clientes e Gestão</span><i class="bi bi-chevron-down toggle-icon"></i></div>
+      <div class="nav-item" id="nav-clients" onclick="showPage('clients')">
+        <span class="nav-icon"><i class="bi bi-people"></i></span> Clientes
+      </div>
+      <div class="nav-item nav-financeiro" id="nav-financeiro" onclick="showPage('financeiro')">
+        <span class="nav-icon"><i class="bi bi-wallet2"></i></span> Financeiro
+      </div>
+      <div class="nav-item" id="nav-docs" onclick="showPage('docs')">
+        <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span> Documentos
+      </div>
+    </div>
+    <div class="sidebar-section">
       <div class="sidebar-label" onclick="toggleSection(this)"><span>Google Meu Negócio</span><i class="bi bi-chevron-down toggle-icon"></i></div>
       <div class="nav-item" id="nav-gmn-dashboard" onclick="showPage(&#39;gmn-dashboard&#39;)">
         <span class="nav-icon"><i class="bi bi-pin-map"></i></span> Visão GMN
@@ -186,18 +198,6 @@
       </div>
       <div class="nav-item" id="nav-gmn-checklist" onclick="showPage(&#39;gmn-checklist&#39;)" style="font-weight:600;color:var(--accent)">
         <span class="nav-icon"><i class="bi bi-kanban"></i></span> Projetos — Tarefas do Dia
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label" onclick="toggleSection(this)"><span>Gestão</span><i class="bi bi-chevron-down toggle-icon"></i></div>
-      <div class="nav-item" id="nav-clients" onclick="showPage('clients')">
-        <span class="nav-icon"><i class="bi bi-people"></i></span> Clientes
-      </div>
-      <div class="nav-item nav-financeiro" id="nav-financeiro" onclick="showPage('financeiro')">
-        <span class="nav-icon"><i class="bi bi-wallet2"></i></span> Financeiro
-      </div>
-      <div class="nav-item" id="nav-docs" onclick="showPage('docs')">
-        <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span> Documentos
       </div>
     </div>
     <div class="sidebar-section" id="nav-section-conteudo-2">
@@ -1387,7 +1387,7 @@
 </div>
 
 <div id="modal-root"></div>
-<script src="js/app.js?v=20260622d"></script>
+<script src="js/app.js?v=20261025b"></script>
 <script src="js/gmn-oauth.js?v=1"></script>
 <script src="js/gmn.js?v=1"></script>
 <script src="js/checklist.js?v=1"></script>

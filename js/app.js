@@ -2062,21 +2062,11 @@ function showPage(page) {
   else if (page === 'gmn-checklist')      { if (window.Checklist) window.Checklist.abrir(); }
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); else if (page === 'gmn-metricas') renderGMNMetricas(); }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  // Nav map: now first section has 4 items (Dashboard, CRM, Jornada, Lembretes)
-  // and second section has Gestão items
-  const navMap = { dashboard: 0, crm: 1, jornada: 2, lembretes: 3 };
-  const navItems = document.querySelectorAll('.sidebar-section:first-of-type .nav-item');
-  if (navMap[page] !== undefined && navItems[navMap[page]]) navItems[navMap[page]].classList.add('active');
-  // Second section: Gestão
-  const navMap2 = { clients: 0, financeiro: 1, prospeccao: 2, docs: 3, 'doc-editor': 3, files: 4 };
-  const navItems2 = document.querySelectorAll('.sidebar-section:nth-of-type(3) .nav-item');
-  if (navMap2[page] !== undefined && navItems2[navMap2[page]]) navItems2[navMap2[page]].classList.add('active');
-  // Marcar item ativo nos formulários (terceira seção)
-  if (page.startsWith('briefings-') || page === 'custom-forms' || page === 'custom-form-editor') {
-    const formNavMap = { 'custom-forms': 0, 'custom-form-editor': 0, 'briefings-trafego': 1, 'briefings-gmb': 2, 'briefings-contrato': 3, 'briefings-satisfacao': 4, 'briefings-sites': 5 };
-    const formNavItems = document.querySelectorAll('.sidebar-section:nth-of-type(4) .nav-item');
-    if (formNavItems[formNavMap[page]]) formNavItems[formNavMap[page]].classList.add('active');
-  }
+  // Destaca o item do menu que chama esta página (pelo onclick, independente da ordem das seções)
+  const paginaMenu = page === 'doc-editor' ? 'docs' : page === 'custom-form-editor' ? 'custom-forms' : page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if ((el.getAttribute('onclick') || '').includes(`showPage('${paginaMenu}')`)) el.classList.add('active');
+  });
   if (page.startsWith('gmn-')) { const el = document.getElementById('nav-' + page); if (el) el.classList.add('active'); }
   const mobMap = { crm: 'mob-crm', clients: 'mob-clients', financeiro: 'mob-financeiro', prospeccao: 'mob-prospeccao' };
   document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
@@ -11142,7 +11132,7 @@ function _gsQuery(q) {
   });
 
   // CRM tarefas
-  Object.values(boards||{}).forEach(b => {
+  Object.values(state || {}).filter(b => b && b.groups).forEach(b => {
     (b.groups||[]).forEach(g => {
       (g.items||[]).forEach(i => {
         if (match(i.name)||match(i.cliente)||match(i.text)) {
