@@ -5,7 +5,7 @@ const path = require('path');
 
 const colecoes = {};
 global.localStorage = { _m: {}, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = String(v); } };
-global.document = { getElementById: () => ({ innerHTML: '', value: '', textContent: '', style: {} }) };
+global.document = { getElementById: () => ({ innerHTML: '', value: '', textContent: '', style: {} }), querySelectorAll: () => [], createElement: () => ({ style: {}, classList: { add() {}, remove() {} } }) };
 global.window = {
   dbList: async (col) => (colecoes[col] || []).slice(),
   dbSave: async (col, data) => {

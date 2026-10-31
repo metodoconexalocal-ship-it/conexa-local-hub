@@ -1,7 +1,7 @@
 /**
  * Projetos — tarefas do dia por cliente.
- * Projetos podem ser agrupados, reordenados por arrastar, vinculados a um cliente
- * da base e receber etiquetas. Ditado por voz cria tarefas no projeto certo.
+ * Projetos podem ser agrupados, reordenados por arrastar (com previa do espaço),
+ * vinculados a um cliente da base e receber etiquetas. Ditado por voz cria tarefas.
  * Dados em Firestore: gmn_checklist_projetos, gmn_checklist_grupos, gmn_checklist_ditados.
  */
 window.Checklist = (() => {
@@ -35,8 +35,14 @@ window.Checklist = (() => {
   let grupos = [];
   let ditados = [];
   let gravando = null;
-  let pendente = null; // { projetoId, texto, falado } aguardando confirmação
-  let arrastando = null;
+  let pendente = null;      // { projetoId, texto, falado } aguardando confirmação
+  let arrastando = null;    // id do projeto que está sendo arrastado
+  let previa = null;        // elemento que mostra onde o projeto vai cair
+  let alturaArrasto = 0;
+  let formulario = null;    // { tipo: 'novo-projeto' | 'novo-grupo' | 'renomear', id? }
+  let confirmando = null;   // 'p:<id>' ou 'g:<id>' aguardando segundo clique para excluir
+  let blocoNome = '';
+  let blocoProjetos = [];
 
   const $ = (id) => document.getElementById(id);
   const main = () => $('main-content');
@@ -46,6 +52,7 @@ window.Checklist = (() => {
     .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
   const projetoPorId = (id) => projetos.find((p) => p.id === id);
   const grupoPorId = (id) => grupos.find((g) => g.id === id);
+  const aviso = (msg) => { const el = $('ck-speech'); if (el) el.textContent = msg; };
 
   async function carregar() {
     projetos = porOrdem((await window.dbList(COL, 'ordem', 'asc')) || []);
@@ -68,19 +75,34 @@ window.Checklist = (() => {
   }
 
   // ── Renderização ───────────────────────────────────────────────────────────
+  function formularioHTML(tipo) {
+    const ph = tipo === 'novo-grupo' ? 'Nome do grupo (ex.: Recorrente)' : 'Nome do projeto (ex.: nome da empresa)';
+    const botao = tipo === 'novo-grupo' ? 'Criar grupo' : 'Criar projeto';
+    return `
+    <div class="ck-form">
+      <input id="ck-form-input" placeholder="${ph}" onkeydown="Checklist.teclaForm(event)" autocomplete="off">
+      <button class="ck-btn ck-btn-primary" onclick="Checklist.salvarForm()">${botao}</button>
+      <button class="ck-btn" onclick="Checklist.cancelarForm()">Cancelar</button>
+    </div>`;
+  }
+
   function cardHTML(p) {
     const total = p.tarefas.length;
     const feitas = p.tarefas.filter((t) => t.feita).length;
     const cliente = clientes().find((c) => c.id === p.clienteId);
+    const renomeando = formulario && formulario.tipo === 'renomear' && formulario.id === p.id;
+    const excluindo = confirmando === 'p:' + p.id;
     return `
-    <div class="ck-card" draggable="true" ondragstart="Checklist.dragStart(event,'${p.id}')" ondragend="Checklist.dragEnd()" ondragover="Checklist.dragOver(event)" ondrop="Checklist.dropCard(event,'${p.id}')">
+    <div class="ck-card" data-id="${p.id}" draggable="true" ondragstart="Checklist.dragStart(event,'${p.id}')" ondragend="Checklist.dragEnd()" ondragover="Checklist.dragOverCard(event,'${p.id}')" ondrop="Checklist.dropCard(event,'${p.id}')">
       <div class="ck-card-head">
-        <h3 title="Clique para renomear" onclick="Checklist.renomearProjeto('${p.id}')">${esc(p.nome)}</h3>
-        <button class="ck-x" title="Excluir projeto" onclick="Checklist.excluirProjeto('${p.id}')"><i class="bi bi-trash"></i></button>
+        ${renomeando
+          ? `<input id="ck-form-input" class="ck-rename" value="${esc(p.nome)}" onkeydown="Checklist.teclaForm(event)" onblur="Checklist.salvarForm()">`
+          : `<h3 title="Clique para renomear" onclick="Checklist.abrirForm('renomear','${p.id}')">${esc(p.nome)}</h3>`}
+        <button class="ck-x ${excluindo ? 'ck-x-confirmar' : ''}" title="${excluindo ? 'Clique de novo para excluir' : 'Excluir projeto'}" onclick="Checklist.excluirProjeto('${p.id}')">${excluindo ? 'Confirmar' : '<i class="bi bi-trash"></i>'}</button>
       </div>
       <div class="ck-meta">
         <select title="Cliente da base" onchange="Checklist.definirCliente('${p.id}', this.value)">
-          <option value="">Sem cliente vinculado</option>
+          <option value="">Sem cliente</option>
           ${clientes().map((c) => `<option value="${esc(c.id)}" ${c.id === p.clienteId ? 'selected' : ''}>${esc(c.nome)}${c.empresa ? ' · ' + esc(c.empresa) : ''}</option>`).join('')}
         </select>
         <select title="Grupo" onchange="Checklist.moverParaGrupo('${p.id}', this.value)">
@@ -92,16 +114,16 @@ window.Checklist = (() => {
         ${(p.etiquetas || []).map((e, i) => `<span class="ck-tag">${esc(e)} <button onclick="Checklist.removerEtiqueta('${p.id}', ${i})">×</button></span>`).join('')}
         <input class="ck-tag-input" placeholder="+ etiqueta" onkeydown="if(event.key==='Enter')Checklist.adicionarEtiqueta('${p.id}', this)">
       </div>
-      <div class="ck-prog">${feitas}/${total} feitas</div>
+      <div class="ck-prog"><span>${feitas} de ${total} feitas</span>${total ? `<div class="ck-barra"><div style="width:${Math.round((feitas / total) * 100)}%"></div></div>` : ''}</div>
       ${total ? p.tarefas.map((t) => `
         <div class="ck-item ${t.feita ? 'feita' : ''}">
           <input type="checkbox" ${t.feita ? 'checked' : ''} onchange="Checklist.alternar('${p.id}','${t.id}')">
           <span>${esc(t.texto)}</span>
-          <button class="ck-x" title="Remover" onclick="Checklist.remover('${p.id}','${t.id}')">✕</button>
+          <button class="ck-x" title="Remover tarefa" onclick="Checklist.remover('${p.id}','${t.id}')">✕</button>
         </div>`).join('') : '<div class="ck-vazio">Sem tarefas</div>'}
       <div class="ck-add">
         <input id="add-${p.id}" placeholder="Nova tarefa" onkeydown="if(event.key==='Enter')Checklist.adicionar('${p.id}')">
-        <button class="ck-btn" onclick="Checklist.adicionar('${p.id}')">+</button>
+        <button class="ck-btn" onclick="Checklist.adicionar('${p.id}')">Adicionar</button>
       </div>
       ${cliente ? `<div class="ck-cliente"><i class="bi bi-person"></i> ${esc(cliente.nome)}</div>` : ''}
     </div>`;
@@ -109,12 +131,13 @@ window.Checklist = (() => {
 
   function secaoHTML(g) {
     const lista = porOrdem(projetos.filter((p) => (p.grupo || '') === g.id));
+    const excluindo = g.id && confirmando === 'g:' + g.id;
     return `
-    <section class="ck-secao" ondragover="Checklist.dragOver(event)" ondrop="Checklist.dropSecao(event,'${g.id}')">
+    <section class="ck-secao" data-grupo="${g.id}" ondragover="Checklist.dragOverSecao(event)" ondrop="Checklist.dropSecao(event,'${g.id}')">
       <div class="ck-secao-head">
         <span>${esc(g.nome)}</span>
         <small>${lista.length} projeto${lista.length !== 1 ? 's' : ''}</small>
-        ${g.id ? `<button class="ck-btn ck-btn-sm" onclick="Checklist.excluirGrupo('${g.id}')"><i class="bi bi-trash"></i> Excluir grupo</button>` : ''}
+        ${g.id ? `<button class="ck-btn ck-btn-sm ${excluindo ? 'ck-btn-perigo' : ''}" onclick="Checklist.excluirGrupo('${g.id}')">${excluindo ? 'Confirmar exclusão' : 'Excluir grupo'}</button>` : ''}
       </div>
       <div class="ck-grid">
         ${lista.map(cardHTML).join('') || '<div class="ck-vazio ck-drop">Arraste projetos para este grupo</div>'}
@@ -125,62 +148,75 @@ window.Checklist = (() => {
   function render() {
     const total = projetos.reduce((t, p) => t + p.tarefas.length, 0);
     const feitas = projetos.reduce((t, p) => t + p.tarefas.filter((x) => x.feita).length, 0);
-    const semGrupo = { id: '', nome: 'Sem grupo' };
     main().innerHTML = `
     <div class="page-wrap">
       <style>
         .ck-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
         .ck-title{font-size:18px;font-weight:700;color:var(--text-primary);flex:1}
-        .ck-btn{border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
-        .ck-btn-sm{padding:4px 10px;font-size:11px}
-        .ck-btn-primary{background:linear-gradient(135deg,#7c5cfc,#41e7f3);color:#fff;border:none}
-        .ck-btn-rec{background:#ef4444;color:#fff;border:none}
-        .ck-secao{margin-bottom:22px}
-        .ck-secao-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:14px;font-weight:700;color:var(--text-primary)}
-        .ck-secao-head small{font-weight:500;color:var(--text-muted)}
-        .ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;min-height:40px}
-        .ck-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:grab}
+        .ck-resumo{font-size:12px;color:var(--text-muted)}
+        .ck-btn{border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px}
+        .ck-btn:hover{border-color:var(--text-muted)}
+        .ck-btn-sm{padding:3px 10px;font-size:11px}
+        .ck-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .ck-btn-rec{background:#dc2626;color:#fff;border-color:#dc2626}
+        .ck-btn-perigo{background:#dc2626;color:#fff;border-color:#dc2626}
+        .ck-form{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px}
+        .ck-form input{flex:1;min-width:220px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-primary);font-size:13px}
+        .ck-secao{margin-bottom:24px}
+        .ck-secao-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:14px;font-weight:600;color:var(--text-primary);padding-bottom:6px;border-bottom:1px solid var(--border)}
+        .ck-secao-head small{font-weight:400;color:var(--text-muted)}
+        .ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;min-height:40px;align-items:start}
+        .ck-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:grab;transition:opacity .15s}
         .ck-card:active{cursor:grabbing}
-        .ck-card-head{display:flex;align-items:center;gap:8px}
+        .ck-card.ck-dragging{opacity:.35}
+        .ck-ph{border:2px dashed var(--accent);border-radius:10px;background:rgba(124,92,252,.06);pointer-events:none;transition:height .12s}
+        .ck-card-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
         .ck-card-head h3{font-size:14px;margin:0;color:var(--text-primary);flex:1;cursor:text}
+        .ck-rename{flex:1;padding:4px 8px;border-radius:6px;border:1px solid var(--accent);background:var(--bg-card2);color:var(--text-primary);font-size:14px;font-weight:600}
         .ck-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
-        .ck-meta select,.ck-tag-input,.ck-add input,.ck-pend input,.ck-pend select{padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-primary);font-size:12px;min-width:0}
-        .ck-etiquetas{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px}
-        .ck-tag{font-size:11px;background:rgba(124,92,252,.15);color:#a78bfa;padding:2px 8px;border-radius:999px}
+        .ck-meta select,.ck-tag-input,.ck-add input{padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-primary);font-size:12px;min-width:0}
+        .ck-etiquetas{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px}
+        .ck-tag{font-size:11px;background:var(--bg-card2);color:var(--text-secondary);padding:2px 8px;border-radius:6px;border:1px solid var(--border)}
         .ck-tag button{background:none;border:none;color:inherit;cursor:pointer;padding:0 0 0 2px}
         .ck-tag-input{width:90px}
-        .ck-prog{font-size:11px;color:var(--text-muted);margin:4px 0 8px}
-        .ck-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:var(--text-primary)}
+        .ck-prog{display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px}
+        .ck-barra{flex:1;height:4px;background:var(--bg-card2);border-radius:4px;overflow:hidden;max-width:110px}
+        .ck-barra div{height:100%;background:var(--accent)}
+        .ck-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--text-primary)}
         .ck-item.feita span{text-decoration:line-through;color:var(--text-muted)}
         .ck-item span{flex:1}
-        .ck-x{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px}
+        .ck-x{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px}
+        .ck-x:hover{color:var(--text-primary)}
+        .ck-x-confirmar{color:#dc2626;font-size:11px;font-weight:600}
         .ck-add{display:flex;gap:6px;margin-top:8px}
         .ck-add input{flex:1}
         .ck-cliente{font-size:11px;color:var(--text-muted);margin-top:8px}
         .ck-vazio{font-size:12px;color:var(--text-muted);padding:6px 2px}
         .ck-drop{border:1px dashed var(--border);border-radius:10px;padding:14px;text-align:center}
-        .ck-pend{background:var(--bg-card);border:1px solid #7c5cfc;border-radius:12px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
+        .ck-pend{background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
         .ck-hist{margin-top:22px;font-size:12px;color:var(--text-secondary)}
         .ck-hist li{margin-bottom:4px}
-        .ck-speech{font-size:12px;color:var(--text-muted);margin-top:6px;min-height:16px}
+        .ck-speech{font-size:12px;color:var(--text-muted);margin:6px 0;min-height:16px}
       </style>
 
       <div class="ck-head">
-        <div class="ck-title"><i class="bi bi-kanban"></i> Projetos — tarefas do dia</div>
-        <div style="font-size:12px;color:var(--text-muted)">${feitas}/${total} feitas</div>
-        <button class="ck-btn" onclick="Checklist.novoGrupo()"><i class="bi bi-folder-plus"></i> Novo grupo</button>
-        <button class="ck-btn" onclick="Checklist.novoProjeto()"><i class="bi bi-plus-lg"></i> Novo projeto</button>
+        <div class="ck-title">Projetos — tarefas do dia</div>
+        <div class="ck-resumo">${feitas} de ${total} tarefas feitas</div>
+        <button class="ck-btn" onclick="Checklist.abrirForm('novo-grupo')"><i class="bi bi-folder-plus"></i> Novo grupo</button>
+        <button class="ck-btn" onclick="Checklist.abrirForm('novo-projeto')"><i class="bi bi-plus-lg"></i> Novo projeto</button>
         <button class="ck-btn ${gravando ? 'ck-btn-rec' : 'ck-btn-primary'}" onclick="Checklist.alternarDitado()">
           <i class="bi ${gravando ? 'bi-stop-circle' : 'bi-mic'}"></i> ${gravando ? 'Parar' : 'Ditar tarefa'}
         </button>
       </div>
       <div class="ck-speech" id="ck-speech"></div>
 
+      ${formulario && formulario.tipo !== 'renomear' ? formularioHTML(formulario.tipo) : ''}
+
       ${pendente ? `
       <div class="ck-pend">
         <div style="font-size:12px;color:var(--text-muted)">Confira antes de salvar:</div>
         <select id="ck-pend-proj">
-          <option value="">— escolha o projeto —</option>
+          <option value="">Escolha o projeto</option>
           ${projetos.map((p) => `<option value="${esc(p.id)}" ${p.id === pendente.projetoId ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}
         </select>
         <input id="ck-pend-texto" value="${esc(pendente.texto)}" placeholder="Texto da tarefa">
@@ -191,13 +227,51 @@ window.Checklist = (() => {
       </div>` : ''}
 
       ${grupos.map(secaoHTML).join('')}
-      ${secaoHTML(semGrupo)}
+      ${secaoHTML({ id: '', nome: 'Sem grupo' })}
 
       <div class="ck-hist">
         <strong>Últimas tarefas criadas por ditado</strong>
         <ul>${ditados.slice(0, 15).map((d) => `<li>${esc(new Date(d.criadoEm).toLocaleString('pt-BR'))} — <b>${esc(d.projetoNome)}</b>: ${esc(d.texto)} <i style="color:var(--text-muted)">(falou: “${esc(d.falado)}”)</i></li>`).join('') || '<li>Nenhuma ainda.</li>'}</ul>
       </div>
     </div>`;
+    if (formulario) setTimeout(() => { const el = $('ck-form-input'); if (el) el.focus(); }, 0);
+  }
+
+  // ── Formulários inline (no lugar de janelas do navegador) ─────────────────
+  function abrirForm(tipo, id) {
+    formulario = { tipo, id };
+    render();
+  }
+
+  function cancelarForm() {
+    formulario = null;
+    render();
+  }
+
+  function teclaForm(ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); salvarForm(); }
+    if (ev.key === 'Escape') cancelarForm();
+  }
+
+  async function salvarForm() {
+    if (!formulario) return;
+    const valor = ($('ck-form-input')?.value || '').trim();
+    const f = formulario;
+    formulario = null;
+    if (!valor) return render();
+    if (f.tipo === 'novo-grupo') {
+      const campos = { nome: valor, ordem: grupos.length };
+      const id = await window.dbSave(COL_GRUPOS, campos);
+      grupos.push({ id, ...campos });
+    } else if (f.tipo === 'novo-projeto') {
+      const campos = { nome: valor, ordem: projetos.length, grupo: '', etiquetas: [], tarefas: [] };
+      const id = await window.dbSave(COL, campos);
+      projetos.push({ id, ...campos });
+    } else if (f.tipo === 'renomear') {
+      const p = projetoPorId(f.id);
+      if (p && valor !== p.nome) await salvar(p, { nome: valor });
+    }
+    render();
   }
 
   // ── Tarefas ────────────────────────────────────────────────────────────────
@@ -225,30 +299,25 @@ window.Checklist = (() => {
     render();
   }
 
-  // ── Projetos ───────────────────────────────────────────────────────────────
-  async function novoProjeto() {
-    const nome = prompt('Nome do projeto (ex.: nome do cliente ou da empresa):');
-    if (!nome || !nome.trim()) return;
-    const campos = { nome: nome.trim(), ordem: projetos.length, grupo: '', etiquetas: [], tarefas: [] };
-    const id = await window.dbSave(COL, campos);
-    projetos.push({ id, ...campos });
-    render();
-  }
-
-  async function renomearProjeto(id) {
-    const p = projetoPorId(id);
-    const nome = prompt('Novo nome do projeto:', p.nome);
-    if (!nome || !nome.trim() || nome.trim() === p.nome) return;
-    await salvar(p, { nome: nome.trim() });
-    render();
+  // ── Projetos e grupos ──────────────────────────────────────────────────────
+  // Excluir pede um segundo clique (sem janela do navegador)
+  function pedirConfirmacao(chave, executar) {
+    if (confirmando !== chave) {
+      confirmando = chave;
+      render();
+      setTimeout(() => { if (confirmando === chave) { confirmando = null; render(); } }, 4000);
+      return;
+    }
+    confirmando = null;
+    executar();
   }
 
   async function excluirProjeto(id) {
-    const p = projetoPorId(id);
-    if (!confirm(`Excluir o projeto "${p.nome}" e todas as tarefas dele?`)) return;
-    await window.dbDelete(COL, id);
-    projetos = projetos.filter((x) => x.id !== id);
-    render();
+    pedirConfirmacao('p:' + id, async () => {
+      await window.dbDelete(COL, id);
+      projetos = projetos.filter((x) => x.id !== id);
+      render();
+    });
   }
 
   async function definirCliente(id, clienteId) {
@@ -270,23 +339,14 @@ window.Checklist = (() => {
     render();
   }
 
-  // ── Grupos ─────────────────────────────────────────────────────────────────
-  async function novoGrupo() {
-    const nome = prompt('Nome do grupo (ex.: Recorrente, Implementação):');
-    if (!nome || !nome.trim()) return;
-    const campos = { nome: nome.trim(), ordem: grupos.length };
-    const id = await window.dbSave(COL_GRUPOS, campos);
-    grupos.push({ id, ...campos });
-    render();
-  }
-
   async function excluirGrupo(id) {
     const g = grupoPorId(id);
-    if (!confirm(`Excluir o grupo "${g.nome}"? Os projetos dele voltam para "Sem grupo".`)) return;
-    await window.dbDelete(COL_GRUPOS, id);
-    grupos = grupos.filter((x) => x.id !== id);
-    for (const p of projetos.filter((x) => x.grupo === id)) await salvar(p, { grupo: '' });
-    render();
+    pedirConfirmacao('g:' + id, async () => {
+      await window.dbDelete(COL_GRUPOS, id);
+      grupos = grupos.filter((x) => x.id !== id);
+      for (const p of projetos.filter((x) => x.grupo === id)) await salvar(p, { grupo: '' });
+      render();
+    });
   }
 
   async function moverParaGrupo(id, grupoId) {
@@ -294,32 +354,92 @@ window.Checklist = (() => {
     render();
   }
 
-  // ── Arrastar e soltar ──────────────────────────────────────────────────────
+  // ── Arrastar e soltar com previa ───────────────────────────────────────────
+  // Ao passar sobre um projeto, uma caixa tracejada aparece na posição em que ele vai cair,
+  // e os outros projetos se afastam para abrir o espaço.
+  function obterPrevia() {
+    if (!previa) {
+      previa = document.createElement('div');
+      previa.className = 'ck-ph';
+    }
+    previa.style.height = alturaArrasto + 'px';
+    return previa;
+  }
+
+  function limparArrasto() {
+    if (previa) previa.remove();
+    previa = null;
+    arrastando = null;
+    document.querySelectorAll('.ck-card.ck-dragging').forEach((el) => el.classList.remove('ck-dragging'));
+  }
+
   function dragStart(ev, id) {
     arrastando = id;
+    const card = ev.currentTarget;
+    alturaArrasto = card ? card.offsetHeight : 0;
     ev.dataTransfer.effectAllowed = 'move';
     ev.dataTransfer.setData('text/plain', id);
+    // Adia a marcação para o navegador já ter tirado a "foto" do card
+    if (card) setTimeout(() => card.classList.add('ck-dragging'), 0);
   }
-  function dragEnd() { arrastando = null; }
-  function dragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; }
 
-  // Solta um projeto antes de outro, herdando o grupo dele
+  function dragEnd() { limparArrasto(); }
+
+  function dragOverCard(ev, id) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!arrastando || id === arrastando) return;
+    const card = ev.currentTarget;
+    const meio = card.getBoundingClientRect().top + card.offsetHeight / 2;
+    const ph = obterPrevia();
+    if (ev.clientY > meio) card.after(ph);
+    else card.before(ph);
+  }
+
+  function dragOverSecao(ev) {
+    ev.preventDefault();
+    if (!arrastando) return;
+    if (ev.target.closest && ev.target.closest('.ck-card')) return; // tratado pelo card
+    const grade = ev.currentTarget.querySelector('.ck-grid');
+    if (!grade) return;
+    // Remove o texto de "arraste aqui" quando a previa entra no grupo
+    grade.querySelectorAll('.ck-drop').forEach((el) => el.remove());
+    if (!obterPrevia().isConnected || previa.parentElement !== grade) grade.appendChild(obterPrevia());
+  }
+
+  // Calcula onde o projeto arrastado vai parar a partir da previa
+  function destinoDaPrevia() {
+    if (!previa || !previa.isConnected) return null;
+    const secao = previa.closest('.ck-secao');
+    const grupo = secao?.dataset.grupo || '';
+    let proximo = previa.nextElementSibling;
+    while (proximo && !(proximo.classList.contains('ck-card') && proximo.dataset.id !== arrastando)) {
+      proximo = proximo.nextElementSibling;
+    }
+    return { antesDe: proximo ? proximo.dataset.id : null, grupo };
+  }
+
   function dropCard(ev, alvoId) {
     ev.preventDefault();
     ev.stopPropagation();
-    if (!arrastando || arrastando === alvoId) return;
-    reposicionar(arrastando, { antesDe: alvoId, grupo: projetoPorId(alvoId).grupo || '' });
+    if (!arrastando) return;
+    const id = arrastando;
+    const destino = destinoDaPrevia() || { antesDe: alvoId, grupo: projetoPorId(alvoId)?.grupo || '' };
+    limparArrasto();
+    if (destino.antesDe === id) return;
+    reposicionar(id, destino);
   }
 
-  // Solta um projeto dentro de um grupo (fica no fim dele)
   function dropSecao(ev, grupoId) {
     ev.preventDefault();
     if (!arrastando) return;
-    reposicionar(arrastando, { antesDe: null, grupo: grupoId || '' });
+    const id = arrastando;
+    const destino = destinoDaPrevia() || { antesDe: null, grupo: grupoId || '' };
+    limparArrasto();
+    reposicionar(id, destino);
   }
 
   async function reposicionar(id, { antesDe, grupo }) {
-    // Guarda o estado original para saber, no fim, quais documentos precisam ser gravados
     const original = new Map(projetos.map((p) => [p.id, { ordem: p.ordem, grupo: p.grupo || '' }]));
     const movido = projetoPorId(id);
     const restantes = projetos.filter((p) => p.id !== id);
@@ -338,7 +458,6 @@ window.Checklist = (() => {
       if (antes.ordem !== p.ordem || antes.grupo !== (p.grupo || '')) alterados.push(p);
     });
     projetos = restantes;
-    arrastando = null;
     await Promise.all(alterados.map((p) => window.dbSave(COL, { id: p.id, ordem: p.ordem, grupo: p.grupo || '' })));
     render();
   }
@@ -372,7 +491,7 @@ window.Checklist = (() => {
     if (gravando) return pararDitado();
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Rec) {
-      $('ck-speech').textContent = 'Este navegador não tem ditado. Use o Chrome ou o Edge.';
+      aviso('Este navegador não tem ditado. Use o Chrome ou o Edge.');
       return;
     }
     const r = new Rec();
@@ -386,17 +505,17 @@ window.Checklist = (() => {
         if (res.isFinal) final += res[0].transcript;
         else parcial += res[0].transcript;
       }
-      $('ck-speech').textContent = `Ouvindo: ${final}${parcial}`;
+      aviso(`Ouvindo: ${final}${parcial}`);
     };
-    r.onerror = (e) => { $('ck-speech').textContent = 'Erro no ditado: ' + e.error; gravando = null; render(); };
+    r.onerror = (e) => { aviso('Erro no ditado: ' + e.error); gravando = null; render(); };
     r.onend = () => {
       gravando = null;
       const falado = final.trim();
       if (falado) {
         pendente = { ...interpretar(falado), falado };
-        $('ck-speech').textContent = `Entendi: “${falado}”. Confira abaixo.`;
+        aviso(`Entendi: “${falado}”. Confira abaixo.`);
       } else {
-        $('ck-speech').textContent = 'Não entendi nada. Tente de novo.';
+        aviso('Não entendi nada. Tente de novo.');
       }
       render();
     };
@@ -417,8 +536,8 @@ window.Checklist = (() => {
   async function confirmarDitado() {
     const projetoId = $('ck-pend-proj').value;
     const texto = $('ck-pend-texto').value.trim();
-    if (!projetoId) return alert('Escolha o projeto.');
-    if (!texto) return alert('A tarefa está vazia.');
+    if (!projetoId) return aviso('Escolha o projeto para salvar a tarefa.');
+    if (!texto) return aviso('A tarefa está vazia.');
     const p = projetoPorId(projetoId);
     const falado = pendente.falado;
     await salvar(p, { tarefas: [...p.tarefas, { id: uid(), texto, feita: false }] });
@@ -426,15 +545,10 @@ window.Checklist = (() => {
     await window.dbSave(COL_DITADOS, registro);
     ditados.unshift(registro);
     pendente = null;
-    $('ck-speech').textContent = '';
     render();
   }
 
   // ── Faixa dentro das atualizações de uma tarefa do CRM ─────────────────────
-  // Mostra os projetos do cliente dessa tarefa e permite marcar tarefas sem sair do CRM.
-  let blocoNome = '';
-  let blocoProjetos = [];
-
   async function montarBlocoCliente(nomeCliente) {
     blocoNome = nomeCliente || '';
     const corpo = $('updates-body');
@@ -453,13 +567,13 @@ window.Checklist = (() => {
 
     slot.innerHTML = `
       <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px"><i class="bi bi-kanban"></i> Tarefas do dia · ${esc(blocoNome)}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">Tarefas do dia · ${esc(blocoNome)}</div>
         ${blocoProjetos.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
           ${blocoProjetos.map((p) => {
             const feitas = p.tarefas.filter((t) => t.feita).length;
             return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-card)">
               <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:2px">${esc(p.nome)}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${feitas}/${p.tarefas.length} feitas</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${feitas} de ${p.tarefas.length} feitas</div>
               ${p.tarefas.slice(0, 8).map((t) => `<label style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--text-primary);${t.feita ? 'text-decoration:line-through;opacity:.6' : ''}">
                 <input type="checkbox" ${t.feita ? 'checked' : ''} onchange="Checklist.alternarBloco('${p.id}','${t.id}')"> ${esc(t.texto)}</label>`).join('')}
               ${p.tarefas.length > 8 ? `<div style="font-size:10px;color:var(--text-muted)">+ ${p.tarefas.length - 8} tarefas no Projetos</div>` : ''}
@@ -486,9 +600,10 @@ window.Checklist = (() => {
 
   return {
     abrir, alternar, remover, adicionar,
-    novoProjeto, renomearProjeto, excluirProjeto, definirCliente, adicionarEtiqueta, removerEtiqueta,
-    novoGrupo, excluirGrupo, moverParaGrupo,
-    dragStart, dragEnd, dragOver, dropCard, dropSecao,
+    abrirForm, cancelarForm, salvarForm, teclaForm,
+    excluirProjeto, definirCliente, adicionarEtiqueta, removerEtiqueta,
+    excluirGrupo, moverParaGrupo,
+    dragStart, dragEnd, dragOverCard, dragOverSecao, dropCard, dropSecao,
     alternarDitado, descartarDitado, confirmarDitado,
     montarBlocoCliente, alternarBloco,
     interpretar, // exposto para teste

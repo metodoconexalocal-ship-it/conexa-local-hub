@@ -459,7 +459,7 @@ tbody tr:hover { background: var(--bg-card); }
 .fin-tabs { display:flex;gap:4px;margin-bottom:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content; }
 .fin-tab { padding:7px 18px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text-secondary);transition:all .15s; }
 .fin-tab:hover { color:var(--text-primary); }
-.fin-tab.active { background:var(--accent-grad);color:#fff;box-shadow:0 2px 10px rgba(124,92,252,.3); }
+.fin-tab.active { background:var(--accent);color:#fff; }
 .fin-tab.admin-only { position:relative; }
 .fin-tab.admin-only::after { content:'ADM';font-size:8px;font-weight:700;background:rgba(124,92,252,.25);color:var(--purple);padding:1px 5px;border-radius:99px;margin-left:6px;vertical-align:middle; }
 
@@ -470,14 +470,14 @@ tbody tr:hover { background: var(--bg-card); }
 .fin-card-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 14px 8px; }
 .fin-client { font-size: 13px; font-weight: 700; }
 .fin-service { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.fin-amount { font-size: 22px; font-weight: 700; font-family: var(--mono); color: var(--green); padding: 0 14px 10px; }
+.fin-amount { font-size: 22px; font-weight: 700; font-family: var(--mono); color: var(--text-primary); padding: 0 14px 10px; }
 .fin-details { padding: 10px 14px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
 .fin-row { display: flex; align-items: center; justify-content: space-between; }
 .fin-key { font-size: 11px; color: var(--text-muted); }
 .fin-val { font-size: 11.5px; color: var(--text-secondary); }
 .fin-status-pill { padding: 2px 10px; border-radius: 99px; font-size: 10.5px; font-weight: 600; }
-.pay-pago { background: rgba(45,206,137,.15); color: var(--green); }
-.pay-pendente { background: rgba(244,196,48,.12); color: var(--yellow); }
+.pay-pago { background: var(--bg-card2); color: var(--text-secondary); }
+.pay-pendente { background: var(--bg-card2); color: var(--text-secondary); }
 .pay-atrasado { background: rgba(245,54,92,.12); color: var(--red); }
 
 /* FINANCEIRO EMPRESA (ADM only) */

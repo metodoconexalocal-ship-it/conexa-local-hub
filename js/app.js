@@ -3602,10 +3602,10 @@ function renderVerba() {
     <div class="fin-tab active" onclick="setFinTab('verba')"><i class="bi bi-cash-coin"></i> Verba de Campanhas</div>
   </div>
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">Contratos com verba</div><div class="stat-val purple">${contracts.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Contratos com verba</div><div class="stat-val">${contracts.length}</div></div>
     <div class="stat-card"><div class="stat-label">Total de verbas</div><div class="stat-val" style="font-size:17px">${fmt(totalVerba)}</div></div>
     <div class="stat-card"><div class="stat-label">Total gasto</div><div class="stat-val red" style="font-size:17px">${fmt(totalGasto)}</div></div>
-    <div class="stat-card"><div class="stat-label">Saldo restante</div><div class="stat-val green" style="font-size:17px">${fmt(totalVerba-totalGasto)}</div></div>
+    <div class="stat-card"><div class="stat-label">Saldo restante</div><div class="stat-val" style="font-size:17px">${fmt(totalVerba-totalGasto)}</div></div>
   </div>
   <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px">`;
 
@@ -3705,13 +3705,13 @@ function renderFinContratos(fmt) {
 
   let html = `
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">Contratos ativos</div><div class="stat-val purple">${finState.filter(f=>!f.archived).length}</div></div>
+    <div class="stat-card"><div class="stat-label">Contratos ativos</div><div class="stat-val">${finState.filter(f=>!f.archived).length}</div></div>
     <div class="stat-card"><div class="stat-label">Faturamento total</div><div class="stat-val" style="font-size:17px;color:var(--text-primary)">${fmt(totalMensal)}</div></div>
-    <div class="stat-card"><div class="stat-label">Recebido</div><div class="stat-val green" style="font-size:17px">${fmt(totalPago)}</div></div>
-    <div class="stat-card"><div class="stat-label">A receber</div><div class="stat-val yellow" style="font-size:17px">${fmt(totalPendente)}</div></div>
+    <div class="stat-card"><div class="stat-label">Recebido</div><div class="stat-val" style="font-size:17px">${fmt(totalPago)}</div></div>
+    <div class="stat-card"><div class="stat-label">A receber</div><div class="stat-val" style="font-size:17px">${fmt(totalPendente)}</div></div>
     <div class="stat-card"><div class="stat-label">Atrasado</div><div class="stat-val red" style="font-size:17px">${fmt(totalAtrasado)}</div></div>
-    <div class="stat-card"><div class="stat-label"><i class="bi bi-person"></i> Pessoal (pago)</div><div class="stat-val" style="font-size:17px;color:#fb6340">${fmt(totalPessoal)}</div></div>
-    <div class="stat-card"><div class="stat-label"><i class="bi bi-building"></i> Empresa (pago)</div><div class="stat-val" style="font-size:17px;color:var(--accent)">${fmt(totalEmpresa)}</div></div>
+    <div class="stat-card"><div class="stat-label"><i class="bi bi-person"></i> Pessoal (pago)</div><div class="stat-val" style="font-size:17px;color:var(--text-primary)">${fmt(totalPessoal)}</div></div>
+    <div class="stat-card"><div class="stat-label"><i class="bi bi-building"></i> Empresa (pago)</div><div class="stat-val" style="font-size:17px;color:var(--text-primary)">${fmt(totalEmpresa)}</div></div>
   </div>
   <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <button class="btn btn-primary" onclick="openNewFinModal()">+ Novo contrato</button>
@@ -3745,7 +3745,7 @@ function renderFinContratos(fmt) {
       </div>
       <div class="fin-amount">${f.valor}</div>
       <div style="margin-bottom:4px">
-        ${f.classificacao==='pessoal'?'<span style="font-size:10px;background:rgba(251,99,64,.15);color:#fb6340;border-radius:5px;padding:2px 7px;font-weight:700"><i class="bi bi-person"></i> Pessoal</span>':'<span style="font-size:10px;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:2px 7px;font-weight:700"><i class="bi bi-building"></i> Empresa</span>'}
+        ${f.classificacao==='pessoal'?'<span style="font-size:10px;background:var(--bg-card2);border:1px solid var(--border);color:var(--text-primary);border-radius:5px;padding:2px 7px;font-weight:700"><i class="bi bi-person"></i> Pessoal</span>':'<span style="font-size:10px;background:var(--accent-soft);color:var(--text-primary);border-radius:5px;padding:2px 7px;font-weight:700"><i class="bi bi-building"></i> Empresa</span>'}
         ${f.valorPessoal&&f.classificacao==='empresa'?`<span style="font-size:10px;color:var(--text-muted);margin-left:4px">Amanda: R$ ${f.valorPessoal}</span>`:''}
       </div>
       <div class="fin-details">
@@ -3756,8 +3756,8 @@ function renderFinContratos(fmt) {
             <option ${f.paystatus==='Atrasado'?'selected':''}>Atrasado</option>
           </select>
         </div>
-        <div class="fin-row"><span class="fin-key">Tipo</span><span class="fin-val">${f.tipo}${f.lancamentoTipo&&f.lancamentoTipo!=='contrato'?` · <span style="color:var(--yellow);font-size:10px">${f.lancamentoTipo==='cobranca'?'<i class="bi bi-credit-card"></i> Cobrança em aberto':'<i class="bi bi-receipt"></i> Serviço avulso'}</span>`:''}</span></div>
-        ${f.verbaCampanha?`<div class="fin-row"><span class="fin-key"><i class="bi bi-cash"></i> Verba campanha</span><span class="fin-val" style="color:var(--green);font-weight:600">R$ ${f.verbaCampanha}</span></div>`:''}
+        <div class="fin-row"><span class="fin-key">Tipo</span><span class="fin-val">${f.tipo}${f.lancamentoTipo&&f.lancamentoTipo!=='contrato'?` · <span style="color:var(--text-muted);font-size:10px">${f.lancamentoTipo==='cobranca'?'<i class="bi bi-credit-card"></i> Cobrança em aberto':'<i class="bi bi-receipt"></i> Serviço avulso'}</span>`:''}</span></div>
+        ${f.verbaCampanha?`<div class="fin-row"><span class="fin-key"><i class="bi bi-cash"></i> Verba campanha</span><span class="fin-val" style="color:var(--text-primary);font-weight:600">R$ ${f.verbaCampanha}</span></div>`:''}
         ${f.venc?`<div class="fin-row"><span class="fin-key">Vencimento</span><span class="fin-val">Dia ${f.venc}</span></div>`:''}
         <div class="fin-row"><span class="fin-key">Vigência</span><span class="fin-val" style="font-size:10.5px">${fmtDate(f.start)} <i class="bi bi-arrow-right"></i> ${fmtDate(f.end)}</span></div>
         ${f.notes?`<div style="margin-top:8px;font-size:10.5px;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:8px">${f.notes}</div>`:''}
@@ -3810,11 +3810,11 @@ function renderFinEmpresa(fmt) {
   let html = `
   <!-- MARGEM RESUMO -->
   <div class="margem-box">
-    <div class="margem-item"><div class="margem-label"><i class="bi bi-circle-fill" style="color:#22c55e"></i> Receita (pago)</div><div class="margem-val" style="color:var(--green)">${fmt(totalReceita)}</div></div>
+    <div class="margem-item"><div class="margem-label"><i class="bi bi-circle-fill" style="color:#22c55e"></i> Receita (pago)</div><div class="margem-val" style="color:var(--text-primary)">${fmt(totalReceita)}</div></div>
     <div class="margem-divider"></div>
     <div class="margem-item"><div class="margem-label"><i class="bi bi-circle-fill" style="color:#ef4444"></i> Total saídas</div><div class="margem-val" style="color:var(--red)">${fmt(totalSaidas)}</div></div>
     <div class="margem-divider"></div>
-    <div class="margem-item"><div class="margem-label"><i class="bi bi-circle-fill" style="color:#f59e0b"></i> Equipe</div><div class="margem-val" style="color:var(--yellow)">${fmt(totalEquipe)}</div></div>
+    <div class="margem-item"><div class="margem-label"><i class="bi bi-circle-fill" style="color:#f59e0b"></i> Equipe</div><div class="margem-val" style="color:var(--text-muted)">${fmt(totalEquipe)}</div></div>
     <div class="margem-divider"></div>
     <div class="margem-item"><div class="margem-label"><i class="bi bi-bar-chart"></i> Margem bruta</div><div class="margem-val" style="color:${margem>=0?'var(--green)':'var(--red)'}">${fmt(margem)}</div></div>
     <div class="margem-divider"></div>
@@ -3922,7 +3922,7 @@ function renderFinEmpresa(fmt) {
               <button class="icon-btn" style="color:var(--red)" onclick="deleteInvestimento('${inv.id}')"><i class="bi bi-trash"></i></button>
             </div>
           </div>
-          ${inv.valor?`<div class="empresa-card-val" style="color:var(--accent)">~${inv.valor}</div>`:'<div style="height:6px"></div>'}
+          ${inv.valor?`<div class="empresa-card-val" style="color:var(--text-primary)">~${inv.valor}</div>`:'<div style="height:6px"></div>'}
           <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
             <span style="font-size:10px;font-weight:700;color:${prioColor};background:${prioColor}18;border-radius:5px;padding:2px 7px">● ${(inv.prioridade||'media').charAt(0).toUpperCase()+(inv.prioridade||'media').slice(1)} prioridade</span>
           </div>
