@@ -490,6 +490,7 @@ window.Checklist = (() => {
     novoGrupo, excluirGrupo, moverParaGrupo,
     dragStart, dragEnd, dragOver, dropCard, dropSecao,
     alternarDitado, descartarDitado, confirmarDitado,
+    montarBlocoCliente, alternarBloco,
     interpretar, // exposto para teste
   };
 })();

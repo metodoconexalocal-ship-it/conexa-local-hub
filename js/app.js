@@ -665,6 +665,8 @@ function openUpdates(boardKey, groupId, itemId) {
   updatesTab = 'updates';
   document.querySelectorAll('.updates-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   renderUpdatesBody();
+  // Faixa com os projetos de checklist do cliente desta tarefa
+  if (window.Checklist) window.Checklist.montarBlocoCliente(item.cliente || '');
   setTimeout(() => document.getElementById('compose-input').focus(), 300);
 }
 
