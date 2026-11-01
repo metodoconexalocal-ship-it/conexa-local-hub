@@ -527,7 +527,7 @@ function saveTemplateEditor() {
   const name = document.getElementById('tpl-editor-name').value.trim();
   if (!name) { document.getElementById('tpl-editor-name').focus(); return; }
   const subs = document.getElementById('tpl-editor-items').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!subs.length) { alert('Adicione pelo menos um subelemento.'); return; }
+  if (!subs.length) { UI.aviso('Adicione pelo menos um subelemento.'); return; }
   if (window._editingTemplateId) {
     const t = templates.find(x => x.id === window._editingTemplateId);
     if (t) { t.name = name; t.subitems = subs; }
@@ -611,7 +611,7 @@ function saveLinkModal() {
   if (!linkModalItemRef) return;
   const label = document.getElementById('lm-label').value.trim();
   const url = document.getElementById('lm-url').value.trim();
-  if (!url) { alert('Insira uma URL válida.'); return; }
+  if (!url) { UI.aviso('Insira uma URL válida.'); return; }
   const { boardKey, groupId, itemId } = linkModalItemRef;
   const g = state[boardKey].groups.find(x => x.id === groupId);
   if (!g) return;
@@ -809,7 +809,7 @@ function attachFiles(input) {
   const files = Array.from(input.files);
   const MAX = 5 * 1024 * 1024; // 5MB per file
   files.forEach(file => {
-    if (file.size > MAX) { alert(`"${file.name}" é maior que 5MB e não pode ser anexado.`); return; }
+    if (file.size > MAX) { UI.aviso(`"${file.name}" é maior que 5MB e não pode ser anexado.`); return; }
     const reader = new FileReader();
     reader.onload = e => {
       _composeAttachments.push({ name: file.name, data: e.target.result, type: file.type, size: file.size });
@@ -855,7 +855,7 @@ function setScheduleQuick(type) {
 
 function setScheduleCustom() {
   const val = document.getElementById('schedule-datetime').value;
-  if (!val) { alert('Selecione uma data e hora.'); return; }
+  if (!val) { UI.aviso('Selecione uma data e hora.'); return; }
   applySchedule(new Date(val));
 }
 
@@ -1709,7 +1709,7 @@ function _statusCreate(boardKey, groupId, itemId, subParam) {
   const name  = nameEl?.value?.trim();
   const color = colorEl?.value || '#06b6d4';
   if (!name) { nameEl?.focus(); return; }
-  if (_labels.find(l => l.name.toLowerCase() === name.toLowerCase())) { alert('Já existe um status com esse nome.'); return; }
+  if (_labels.find(l => l.name.toLowerCase() === name.toLowerCase())) { UI.aviso('Já existe um status com esse nome.'); return; }
   _labels.push({ id: 'l' + Date.now(), name, color });
   saveLabels();
   selectStatus(boardKey, groupId, itemId, name, subParam);
@@ -2661,7 +2661,7 @@ function updateClientStepUI() {
 
 function saveClientReg() {
   const data = collectClientForm();
-  if (!data.nome) { alert('Por favor, informe o nome do cliente.'); clientModalStep=1; updateClientStepUI(); return; }
+  if (!data.nome) { UI.aviso('Por favor, informe o nome do cliente.'); clientModalStep=1; updateClientStepUI(); return; }
 
   if (editingClientId) {
     const idx = clientsData.findIndex(c => c.id === editingClientId);
@@ -3183,13 +3183,13 @@ function salvarCronograma() {
   const inicio = document.getElementById('cron-inicio').value;
   const fim = document.getElementById('cron-fim').value;
 
-  if (!descricao) { alert('Descreva o que será feito'); return; }
-  if (!inicio || !fim) { alert('Informe datas de início e término'); return; }
+  if (!descricao) { UI.aviso('Descreva o que será feito'); return; }
+  if (!inicio || !fim) { UI.aviso('Informe datas de início e término'); return; }
 
   let dias = [];
   if (tipo === 'semana') {
     dias = Array.from(document.querySelectorAll('.cron-dia:checked')).map(cb => cb.value);
-    if (!dias.length) { alert('Selecione pelo menos um dia da semana'); return; }
+    if (!dias.length) { UI.aviso('Selecione pelo menos um dia da semana'); return; }
   }
 
   window._cronogramas.push({
@@ -3549,7 +3549,7 @@ function closeVerbaModal() {
 
 function _verbaConfirmLancamento(contratoId, totalBudget) {
   const valor = document.getElementById('vb-valor').value.trim();
-  if (!valor) { alert('Informe o valor gasto.'); return; }
+  if (!valor) { UI.aviso('Informe o valor gasto.'); return; }
   const plat = document.getElementById('vb-plat').value;
   const data = document.getElementById('vb-data').value;
   const desc = document.getElementById('vb-desc').value.trim();
@@ -4134,7 +4134,7 @@ function _itemDrivePickSaved() {
   if (!picker) return;
   if (picker.style.display !== 'none') { picker.style.display = 'none'; return; }
   const links = _getDriveLinks();
-  if (!links.length) { alert('Nenhuma pasta salva. Use "Colar link novo" para adicionar.'); return; }
+  if (!links.length) { UI.aviso('Nenhuma pasta salva. Use "Colar link novo" para adicionar.'); return; }
   picker.innerHTML = links.map((lk, i) => `
     <div onclick="_itemDriveSelectSaved(${i})" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;hover:background:var(--bg-card)">
       <span><i class="bi bi-folder"></i></span>
@@ -4346,7 +4346,7 @@ function saveItem() {
     else newItem.links[0] = { url: linkUrl, label: linkLabel||linkUrl };
   }
   const board = state[boardKey];
-  if (!board) { alert('Board não encontrado.'); return; }
+  if (!board) { UI.aviso('Board não encontrado.'); return; }
   let targetGroup = groupId ? board.groups.find(g => g.id === groupId) : board.groups[0];
   if (!targetGroup) targetGroup = board.groups[0];
   if (isEdit) {
@@ -4762,7 +4762,7 @@ async function renameBoardMember(key) {
 }
 
 function removeTeamMember(key) {
-  if (teamMembers.length <= 1) { alert('Precisa ter ao menos um membro.'); return; }
+  if (teamMembers.length <= 1) { UI.aviso('Precisa ter ao menos um membro.'); return; }
   const m = teamMembers.find(x => x.key === key);
   if (!confirm(`Remover "${m?.label||key}" e apagar o board de tarefas?`)) return;
   teamMembers = teamMembers.filter(x => x.key !== key);
@@ -4904,7 +4904,7 @@ function bulkMarkStatus(status) {
 function bulkSetDate(field) {
   // Usa input de data em um mini popup
   const d = prompt(`Data para ${field === 'start' ? 'INÍCIO' : 'FIM'} (formato AAAA-MM-DD):\nEx: 2026-06-15`);
-  if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) { if (d !== null) alert('Formato inválido. Use AAAA-MM-DD.'); return; }
+  if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) { if (d !== null) UI.aviso('Formato inválido. Use AAAA-MM-DD.'); return; }
   selectedItems.forEach(key => {
     const [boardKey, groupId, itemId] = key.split('|');
     const g = state[boardKey]?.groups.find(x => x.id === groupId);
@@ -5338,7 +5338,7 @@ async function driveConnect() {
     renderDrivePanel();
   } else {
     renderDrivePanel();
-    setTimeout(() => alert('Não foi possível conectar ao Drive. Tente novamente.'), 50);
+    setTimeout(() => UI.aviso('Não foi possível conectar ao Drive. Tente novamente.'), 50);
   }
 }
 
@@ -5349,8 +5349,8 @@ async function driveReconnect() {
 function driveSaveLink() {
   const name = (document.getElementById('drive-link-name')?.value || '').trim();
   const url = (document.getElementById('drive-link-url')?.value || '').trim();
-  if (!url) { alert('Cole o link da pasta do Google Drive.'); return; }
-  if (!url.includes('drive.google.com')) { alert('O link deve ser do Google Drive.'); return; }
+  if (!url) { UI.aviso('Cole o link da pasta do Google Drive.'); return; }
+  if (!url.includes('drive.google.com')) { UI.aviso('O link deve ser do Google Drive.'); return; }
   const folderId = extractDriveFolderId(url);
   const links = _getDriveLinks();
   const matchedClient = clientsData.find(c => (c.nome||c.empresa||'').toLowerCase() === (name||'').toLowerCase().trim());
@@ -5479,8 +5479,8 @@ function removeDriveLink(idx) { driveRemoveLink(idx); }
 function openDriveFolderSaved() {
   const links = _getDriveLinks();
   if (links.length === 1) window.open(links[0].url, '_blank');
-  else if (links.length > 1) alert('Use o botão "Abrir" ao lado da pasta desejada.');
-  else alert('Nenhuma pasta vinculada ainda.');
+  else if (links.length > 1) UI.aviso('Use o botão "Abrir" ao lado da pasta desejada.');
+  else UI.aviso('Nenhuma pasta vinculada ainda.');
 }
 
 
@@ -5569,7 +5569,7 @@ function deletePrspLead(id) {
 }
 
 function exportProspCSV() {
-  if (!prospLeads.length) { alert('Nenhum lead para exportar.'); return; }
+  if (!prospLeads.length) { UI.aviso('Nenhum lead para exportar.'); return; }
   const filterDate = document.getElementById('prosp-filter-date')?.value || '';
   const filterStatus = window._prspFilterStatus || '';
   let leads = prospLeads.filter(l => {
@@ -5608,7 +5608,7 @@ function importProspCSV(input) {
   reader.onload = (e) => {
     const text = e.target.result.replace(/^\uFEFF/, ''); // remove BOM
     const lines = text.split('\n').filter(l => l.trim());
-    if (lines.length < 2) { alert('Arquivo CSV vazio ou inválido.'); return; }
+    if (lines.length < 2) { UI.aviso('Arquivo CSV vazio ou inválido.'); return; }
     // Parse header to detect column order
     const parseCSVLine = (line) => {
       const result = [];
@@ -5662,9 +5662,9 @@ function importProspCSV(input) {
     }
     saveState();
     renderProspeccao();
-    alert(`<i class="bi bi-check-circle-fill"></i> Importação concluída!\n${importados} lead${importados!==1?'s':''} importado${importados!==1?'s':''}${ignorados?' · '+ignorados+' linha(s) ignorada(s) (sem nome)':''}\n\nAs colunas são detectadas automaticamente. Certifique-se de ter uma coluna "Nome" ou "Empresa".`);
+    UI.aviso(`<i class="bi bi-check-circle-fill"></i> Importação concluída!\n${importados} lead${importados!==1?'s':''} importado${importados!==1?'s':''}${ignorados?' · '+ignorados+' linha(s) ignorada(s) (sem nome)':''}\n\nAs colunas são detectadas automaticamente. Certifique-se de ter uma coluna "Nome" ou "Empresa".`);
   };
-  reader.onerror = () => alert('Erro ao ler o arquivo.');
+  reader.onerror = () => UI.aviso('Erro ao ler o arquivo.');
   reader.readAsText(file, 'utf-8');
   input.value = ''; // reset input
 }
@@ -5674,7 +5674,7 @@ function importProspCSV(input) {
 
 // ─── USERS MODAL ──────────────────────────────────────────────────────────────
 async function openUsersModal() {
-  if (window.currentRole !== 'admin') { alert('Apenas Admins podem gerenciar usuários.'); return; }
+  if (window.currentRole !== 'admin') { UI.aviso('Apenas Admins podem gerenciar usuários.'); return; }
   document.getElementById('modal-users').classList.add('open');
   await renderUsersList();
   await renderPreCadList();
@@ -5734,7 +5734,7 @@ async function removeUser(uid, name) {
   // Also remove from crm_users document so they can't bypass
   try { await window.saveUserRole(uid, null); } catch(e) {}
   await renderUsersList();
-  alert(`<i class="bi bi-check-circle-fill"></i> Acesso de "${name}" removido com sucesso.`);
+  UI.aviso(`<i class="bi bi-check-circle-fill"></i> Acesso de "${name}" removido com sucesso.`);
 }
 
 // ─── PRÉ-CADASTRO DE USUÁRIOS ─────────────────────────────────────────────────
@@ -5755,9 +5755,9 @@ async function renderPreCadList() {
 async function preCadastrarUsuario() {
   const email = document.getElementById('precad-email').value.trim().toLowerCase();
   const role = document.getElementById('precad-role').value;
-  if (!email || !email.includes('@')) { alert('Digite um e-mail válido.'); return; }
+  if (!email || !email.includes('@')) { UI.aviso('Digite um e-mail válido.'); return; }
   const list = await window.loadPreCad();
-  if (list.find(p => p.email === email)) { alert('Este e-mail já está pré-cadastrado.'); return; }
+  if (list.find(p => p.email === email)) { UI.aviso('Este e-mail já está pré-cadastrado.'); return; }
   list.push({ email, role });
   await window.savePreCad(list);
   document.getElementById('precad-email').value = '';
@@ -5844,12 +5844,12 @@ document.addEventListener('click', e => {
 }, true);
 const _origDeleteItem = deleteItem;
 window.deleteItem = function(boardKey, groupId, itemId, e) {
-  if (!window._canDelete) { alert('Seu cargo não permite deletar itens.'); return; }
+  if (!window._canDelete) { UI.aviso('Seu cargo não permite deletar itens.'); return; }
   _origDeleteItem(boardKey, groupId, itemId, e);
 };
 const _origDeleteSubitem = deleteSubitem;
 window.deleteSubitem = function(boardKey, groupId, itemId, subId, e) {
-  if (!window._canDelete) { alert('Seu cargo não permite deletar itens.'); return; }
+  if (!window._canDelete) { UI.aviso('Seu cargo não permite deletar itens.'); return; }
   _origDeleteSubitem(boardKey, groupId, itemId, subId, e);
 };
 
@@ -6653,7 +6653,7 @@ async function _feClonarEditavel() {
     createdBy: user?.email || '', createdByName: user?.name || 'Equipe',
   };
   const id = await (window.saveCustomForm ? window.saveCustomForm(formData) : Promise.resolve(null));
-  if (!id) { alert('Erro ao criar cópia.'); return; }
+  if (!id) { UI.aviso('Erro ao criar cópia.'); return; }
   if (window.addNotif) addNotif('Cópia editável criada em Meus Formulários!', 'success');
   // Carrega a lista e abre o editor da cópia
   _cfForms = window.loadCustomForms ? await window.loadCustomForms() : [];
@@ -6722,12 +6722,12 @@ async function _feSave() {
   });
 
   const invalid = _feQuestions.filter(q => !q.label.trim());
-  if (invalid.length) { alert(`${invalid.length} pergunta(s) sem texto. Preencha o título de todas as perguntas.`); return; }
+  if (invalid.length) { UI.aviso(`${invalid.length} pergunta(s) sem texto. Preencha o título de todas as perguntas.`); return; }
 
   const noOpts = _feQuestions.filter(q => (q.type==='radio'||q.type==='checkbox') && (q.options||[]).filter(o=>o.trim()).length < 2);
-  if (noOpts.length) { alert('Perguntas de múltipla escolha e caixas de seleção precisam ter pelo menos 2 opções.'); return; }
+  if (noOpts.length) { UI.aviso('Perguntas de múltipla escolha e caixas de seleção precisam ter pelo menos 2 opções.'); return; }
 
-  if (!window.saveFormConfig) { alert('Firebase não disponível.'); return; }
+  if (!window.saveFormConfig) { UI.aviso('Firebase não disponível.'); return; }
 
   const cleanQs = _feQuestions.map(q => ({
     ...q,
@@ -6745,7 +6745,7 @@ async function _feSave() {
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity .4s'; setTimeout(()=>toast.remove(),400); }, 3000);
   } else {
-    alert('Erro ao salvar. Tente novamente.');
+    UI.aviso('Erro ao salvar. Tente novamente.');
   }
 }
 
@@ -7171,7 +7171,7 @@ function _docPrintPDF() {
   if (ed) doc.content = ed.innerHTML;
   // Abre janela de impressão com CSS limpo
   const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+  if (!win) { UI.aviso('Permita pop-ups para baixar o PDF.'); return; }
   // Coleta fontes carregadas
   const fontLink = document.querySelector('link[href*="fonts.googleapis"]')?.href || '';
   win.document.write(`<!DOCTYPE html><html><head>
@@ -7634,13 +7634,13 @@ async function _docTableIA() {
     let html = (data.content || '').trim();
     const mt = html.match(/<table[\s\S]*<\/table>/i);
     html = mt ? mt[0] : html;
-    if (!html.includes('<table')) { alert('A IA não retornou uma tabela válida. Tente descrever de outra forma.'); return; }
+    if (!html.includes('<table')) { UI.aviso('A IA não retornou uma tabela válida. Tente descrever de outra forma.'); return; }
     _docRestoreRange();
     document.execCommand('insertHTML', false, html + '<p><br></p>');
     _docScheduleSave && _docScheduleSave();
   } catch(e) {
     document.getElementById('doc-ia-loading')?.remove();
-    alert('Erro ao gerar tabela: ' + (e.message || e));
+    UI.aviso('Erro ao gerar tabela: ' + (e.message || e));
   }
 }
 
@@ -8075,14 +8075,14 @@ function _filesOnInputChange(input) {
 async function _filesUploadAll(files) {
   if (_filesUploading) return;
   if (!window.storageUpload || !window.storageGenId) {
-    alert('Serviço de armazenamento não disponível. Aguarde o carregamento da página e tente novamente.');
+    UI.aviso('Serviço de armazenamento não disponível. Aguarde o carregamento da página e tente novamente.');
     return;
   }
 
   const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
   const oversized = files.filter(f => f.size > MAX_SIZE);
   if (oversized.length) {
-    alert(`Arquivo(s) muito grande(s):\n${oversized.map(f => f.name + ' (' + _fmtBytes(f.size) + ')').join('\n')}\n\nLimite: 50 MB por arquivo.`);
+    UI.aviso(`Arquivo(s) muito grande(s):\n${oversized.map(f => f.name + ' (' + _fmtBytes(f.size) + ')').join('\n')}\n\nLimite: 50 MB por arquivo.`);
     return;
   }
 
@@ -8168,7 +8168,7 @@ async function _filesDelete(id) {
     _renderFilesList();
   } catch(err) {
     console.error('Delete error:', err);
-    alert('Erro ao excluir arquivo: ' + (err.message || err));
+    UI.aviso('Erro ao excluir arquivo: ' + (err.message || err));
   }
 }
 
@@ -8595,10 +8595,10 @@ function _cfDrop(e, targetId) {
 async function _cfSave() {
   const title = document.getElementById('cf-title')?.value?.trim();
   const desc  = document.getElementById('cf-desc')?.value?.trim();
-  if (!title) { alert('Digite o título do formulário.'); document.getElementById('cf-title')?.focus(); return; }
-  if (_cfFields.length === 0) { alert('Adicione pelo menos um campo.'); return; }
+  if (!title) { UI.aviso('Digite o título do formulário.'); document.getElementById('cf-title')?.focus(); return; }
+  if (_cfFields.length === 0) { UI.aviso('Adicione pelo menos um campo.'); return; }
   const emptyLabel = _cfFields.find(f => !f.label.trim());
-  if (emptyLabel) { alert('Preencha o label de todos os campos.'); return; }
+  if (emptyLabel) { UI.aviso('Preencha o label de todos os campos.'); return; }
 
   const user = window.currentUser;
   const formData = {
@@ -8610,7 +8610,7 @@ async function _cfSave() {
   };
 
   const id = await window.saveCustomForm(formData);
-  if (!id) { alert('Erro ao salvar formulário. Tente novamente.'); return; }
+  if (!id) { UI.aviso('Erro ao salvar formulário. Tente novamente.'); return; }
 
   formData.id = id;
   if (_cfEditing) {
@@ -8629,7 +8629,7 @@ function _cfCopyLink(id) {
   const url = 'https://conexa-local-hub.vercel.app/forms/ficha-custom.html?formId=' + id;
 
   navigator.clipboard.writeText(url).then(() => {
-    alert('Link copiado!\n\n' + url + '\n\nCompartilhe com o cliente.');
+    UI.aviso('Link copiado!\n\n' + url + '\n\nCompartilhe com o cliente.');
   }).catch(() => {
     prompt('Copie o link abaixo:', url);
   });
@@ -9418,13 +9418,13 @@ async function salvarLembrete() {
     if (chip.dataset.sel === '1') mencionados.push({ uid: chip.dataset.uid, name: chip.dataset.name });
   });
 
-  if (!titulo || !dataHora) { alert('Preencha o título e a data.'); return; }
+  if (!titulo || !dataHora) { UI.aviso('Preencha o título e a data.'); return; }
 
   const data = { titulo, tipo, dataHora, clienteId, clienteNome, descricao, mencionados, feito: false };
   if (_lembrEditId) data.id = _lembrEditId;
 
   const id = await window.saveLembrete(data);
-  if (!id) { alert('Erro ao salvar lembrete.'); return; }
+  if (!id) { UI.aviso('Erro ao salvar lembrete.'); return; }
 
   // Notificar mencionados via Firebase
   const authorName = window.currentUser?.name || 'Alguém';
@@ -9540,7 +9540,7 @@ async function saveQuickNote() {
   const clientSel = document.getElementById('qn-client');
   const texto = document.getElementById('qn-text')?.value.trim();
   const tag = document.getElementById('qn-tag')?.value;
-  if (!texto) { alert('Escreva uma anotação.'); return; }
+  if (!texto) { UI.aviso('Escreva uma anotação.'); return; }
 
   const clienteId = clientSel?.value || '';
   const clienteNome = clientSel?.options[clientSel?.selectedIndex]?.text || '';
@@ -9556,7 +9556,7 @@ async function saveQuickNote() {
     closeQuickNote();
     addNotif('Nota salva com sucesso', 'info');
   } else {
-    alert('Erro ao salvar nota.');
+    UI.aviso('Erro ao salvar nota.');
   }
 }
 
@@ -9779,7 +9779,7 @@ async function _salvarAvaliacao(clientId) {
   });
   const obs = document.getElementById('aval-obs')?.value.trim();
   const hasNote = Object.values(notas).some(v => v > 0);
-  if (!hasNote) { alert('Dê pelo menos uma nota antes de salvar.'); return; }
+  if (!hasNote) { UI.aviso('Dê pelo menos uma nota antes de salvar.'); return; }
 
   const data = { clientId, notas, obs, mes: new Date().toISOString().slice(0,7) };
   const id = await window.saveAvaliacao(data);
@@ -9788,7 +9788,7 @@ async function _salvarAvaliacao(clientId) {
     const c = clientsData.find(x => x.id === clientId);
     if (c) _renderTabAvaliacao(c);
   } else {
-    alert('Erro ao salvar avaliação.');
+    UI.aviso('Erro ao salvar avaliação.');
   }
 }
 
@@ -9951,7 +9951,7 @@ function _setCalStar(n) { _calStarVal = n; _renderCalStars(n); }
 
 async function _saveCalDay(clientId, dateStr, existingId) {
   const texto = document.getElementById('cal-note-text')?.value.trim();
-  if (!texto) { alert('Escreva uma anotação antes de salvar.'); return; }
+  if (!texto) { UI.aviso('Escreva uma anotação antes de salvar.'); return; }
   const estrelas = parseInt(document.getElementById('cal-star-val')?.value || 0);
   const data = { clientId, data: dateStr, texto, estrelas };
   if (existingId) data.id = existingId;
@@ -10053,7 +10053,7 @@ async function _salvarAlerta(clientId) {
   const gravidade = document.getElementById('alerta-gravidade')?.value;
   const tipo = document.getElementById('alerta-tipo')?.value;
   const desc = document.getElementById('alerta-desc')?.value.trim();
-  if (!titulo) { alert('Informe um título para o alerta.'); return; }
+  if (!titulo) { UI.aviso('Informe um título para o alerta.'); return; }
 
   const data = { clientId, titulo, gravidade, tipo, desc };
   const id = await window.saveAlerta(data);
@@ -10062,7 +10062,7 @@ async function _salvarAlerta(clientId) {
     const c = clientsData.find(x => x.id === clientId);
     if (c) _renderTabAlertas(c);
   } else {
-    alert('Erro ao salvar alerta.');
+    UI.aviso('Erro ao salvar alerta.');
   }
 }
 
@@ -10131,7 +10131,7 @@ async function _renderTabNotas(c) {
 
 async function _saveNotaInline(clientId, clienteNome) {
   const texto = document.getElementById('nota-inline-text')?.value.trim();
-  if (!texto) { alert('Escreva uma nota antes de salvar.'); return; }
+  if (!texto) { UI.aviso('Escreva uma nota antes de salvar.'); return; }
   const tag = document.getElementById('nota-inline-tag')?.value;
   const data = {
     clienteId: clientId, clienteNome,
@@ -10232,7 +10232,7 @@ async function openProfileModal() {
 function previewPerfilFoto(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { alert('A foto deve ter no máximo 5MB.'); return; }
+  if (file.size > 5 * 1024 * 1024) { UI.aviso('A foto deve ter no máximo 5MB.'); return; }
 
   window._perfilNovaFotoBlob = file;
   const reader = new FileReader();
@@ -13781,7 +13781,7 @@ async function _lpSalvarPortal(id) {
   const g = (sid) => document.getElementById(sid)?.value?.trim() || '';
   const clientName = g('lp-clientName');
   const accessCode = g('lp-accessCode');
-  if (!clientName || !accessCode) { alert('Preencha Nome do Cliente e Código de Acesso.'); return; }
+  if (!clientName || !accessCode) { UI.aviso('Preencha Nome do Cliente e Código de Acesso.'); return; }
 
   const activeFields = LP_FIELDS.map(f => f.id).filter(fid => document.getElementById(`lp-field-${fid}`)?.checked);
   const toArr = (v) => v.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -13805,7 +13805,7 @@ async function _lpSalvarPortal(id) {
   if (savedId) {
     _LP.portals = await (window.loadPortalConfigs ? window.loadPortalConfigs() : Promise.resolve([]));
     _lpRenderList();
-  } else { alert('Erro ao salvar.'); }
+  } else { UI.aviso('Erro ao salvar.'); }
 }
 
 async function _lpExcluirPortal(id) {
@@ -14121,7 +14121,7 @@ function _lpExportarPDF() {
 
   const w = window.open('','_blank');
   if (w) { w.document.write(html); w.document.close(); }
-  else alert('Permita pop-ups para exportar o PDF.');
+  else UI.aviso('Permita pop-ups para exportar o PDF.');
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -15167,7 +15167,7 @@ function _ctBuildHashtagsList() {
 async function _ctSalvarHashtagGrupo() {
   const name = document.getElementById('ct-ht-name')?.value.trim();
   const tags = document.getElementById('ct-ht-tags')?.value.trim();
-  if (!name || !tags) { alert('Preencha nome e hashtags.'); return; }
+  if (!name || !tags) { UI.aviso('Preencha nome e hashtags.'); return; }
   const data = { clientId: _CT.clienteAtual.id, name, hashtags: tags };
   await (window.saveHashtagGroup ? window.saveHashtagGroup(data) : Promise.resolve());
   document.getElementById('ct-ht-name').value = '';
@@ -15410,7 +15410,7 @@ function _ctBuildMetricasBody() {
 async function _ctSalvarMetrica() {
   const mes   = document.getElementById('ct-mt-mes')?.value;
   const rede  = document.getElementById('ct-mt-rede')?.value;
-  if (!mes)  { alert('Selecione o mês.'); return; }
+  if (!mes)  { UI.aviso('Selecione o mês.'); return; }
   const data = { clientId: _CT.clienteAtual.id, mes, rede };
   _CT_METRICAS_CAMPOS.forEach(c => {
     const v = document.getElementById(`ct-mt-${c.id}`)?.value;
@@ -15738,8 +15738,8 @@ async function _ctSavePost() {
     p.scheduledAt = `${y}-${mo}-${d}T${timeRaw}:00`;
   }
 
-  if (!p.title) { alert('Informe o título do conteúdo.'); return; }
-  if (!(p.socialNetworks||[]).length) { alert('Selecione pelo menos uma rede social.'); return; }
+  if (!p.title) { UI.aviso('Informe o título do conteúdo.'); return; }
+  if (!(p.socialNetworks||[]).length) { UI.aviso('Selecione pelo menos uma rede social.'); return; }
 
   const btn = document.getElementById('ct-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
@@ -15749,7 +15749,7 @@ async function _ctSavePost() {
     _ctCloseModal();
     await _ctRenderClienteCalendario();
   } else {
-    alert('Erro ao salvar. Tente novamente.');
+    UI.aviso('Erro ao salvar. Tente novamente.');
     if (btn) { btn.disabled = false; btn.innerHTML = p.id ? '<i class="bi bi-check-lg"></i> Salvar' : '<i class="bi bi-check-lg"></i> Criar Conteúdo'; }
   }
 }
@@ -16210,7 +16210,7 @@ function _ctExportarCalendario() {
     win.document.write(html);
     win.document.close();
   } else {
-    alert('Permita pop-ups para gerar o documento.');
+    UI.aviso('Permita pop-ups para gerar o documento.');
   }
 }
 
@@ -17188,14 +17188,14 @@ function _mmExport(fmt) {
       a.href = cnv.toDataURL('image/png'); a.download = mapName + '.png';
       document.body.appendChild(a); a.click(); a.remove();
     };
-    img.onerror = () => { URL.revokeObjectURL(url); alert('Erro ao gerar PNG. Tente exportar como SVG.'); };
+    img.onerror = () => { URL.revokeObjectURL(url); UI.aviso('Erro ao gerar PNG. Tente exportar como SVG.'); };
     img.src = url;
     return;
   }
 
   if (fmt === 'pdf') {
     const win = window.open('', '_blank', 'width=1200,height=800');
-    if (!win) { alert('Popup bloqueado. Permita popups para exportar PDF.'); return; }
+    if (!win) { UI.aviso('Popup bloqueado. Permita popups para exportar PDF.'); return; }
     win.document.write(`<!DOCTYPE html><html><head>
       <title>${mapName}</title>
       <style>

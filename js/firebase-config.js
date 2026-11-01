@@ -26,7 +26,7 @@
       }
       const ref2 = await addDoc(collection(getFirestore(), col), { ...rest, createdAt: new Date().toISOString() });
       return ref2.id;
-    } catch (e) { console.error('dbSave ' + col + ':', e); alert('Erro ao salvar: ' + e.message); return null; }
+    } catch (e) { console.error('dbSave ' + col + ':', e); UI.aviso('Erro ao salvar: ' + e.message); return null; }
   };
   window.dbDelete = async (col, id) => {
     try { await deleteDoc(doc(getFirestore(), col, id)); return true; }
@@ -87,7 +87,7 @@
       });
     } catch (e) {
       console.error('Erro ao conectar Google:', e);
-      alert('Erro ao conectar conta Google: ' + e.message);
+      UI.aviso('Erro ao conectar conta Google: ' + e.message);
     }
   };
 
@@ -97,7 +97,7 @@
       if (!p) return;
       p.googleAuth = { code: authCode, connectedAt: new Date().toISOString(), status: 'pendente' };
       await setDoc(doc(db, 'gmn_perfis', perfilId), { googleAuth: p.googleAuth }, { merge: true });
-      alert('✅ Conta Google conectada! Sincronizando dados...');
+      UI.aviso('✅ Conta Google conectada! Sincronizando dados...');
       await window.syncGoogleData(perfilId);
     } catch (e) {
       console.error('Erro ao salvar token:', e);
@@ -139,7 +139,7 @@
 
       p.googleSync = { ...googleData, sincronizadoEm: new Date().toISOString() };
       await setDoc(doc(db, 'gmn_perfis', perfilId), { googleSync: p.googleSync }, { merge: true });
-      alert('✅ Dados Google sincronizados!');
+      UI.aviso('✅ Dados Google sincronizados!');
     } catch (e) {
       console.error('Erro ao sincronizar:', e);
     }
@@ -149,10 +149,10 @@
     try {
       // Enviar resposta para Google (em produção, via API)
       const p = window.S?.perfis?.find((pf) => pf.id === perfilId);
-      if (!p || !p.googleAuth) { alert('Conta Google não conectada'); return; }
+      if (!p || !p.googleAuth) { UI.aviso('Conta Google não conectada'); return; }
 
       // Simular envio
-      alert(`📤 Respondendo avaliação em ${esc(p.nome)}...\n\n"${resposta}"\n\n✅ Enviado para Google!`);
+      UI.aviso(`📤 Respondendo avaliação em ${esc(p.nome)}...\n\n"${resposta}"\n\n✅ Enviado para Google!`);
     } catch (e) {
       console.error('Erro ao responder:', e);
     }
@@ -423,7 +423,7 @@
         window._googleAccessToken = credential.accessToken;
         localStorage.setItem('dc_drive_token', credential.accessToken);
       }
-    } catch(e) { alert('Erro ao entrar: ' + e.message); }
+    } catch(e) { UI.aviso('Erro ao entrar: ' + e.message); }
   };
 
   window.refreshDriveToken = async () => {
@@ -624,7 +624,7 @@
       document.getElementById('app-root').style.display = 'none';
       await auth.signOut();
       showLoginScreen();
-      setTimeout(() => alert('❌ Acesso negado. Seu e-mail não está autorizado.\nFale com o administrador.'), 100);
+      setTimeout(() => UI.aviso('❌ Acesso negado. Seu e-mail não está autorizado.\nFale com o administrador.'), 100);
       return;
     }
 
@@ -976,7 +976,7 @@
       const ref2 = await addDoc(collection(db, 'ghub_portal_configs'), { ...clean, createdAt: new Date().toISOString() });
       await setDoc(doc(db, 'ghub_portal_public', ref2.id), { ...pub, createdAt: new Date().toISOString() });
       return ref2.id;
-    } catch(e) { console.error('savePortalConfig:', e); alert('Erro ao salvar portal: ' + (e.message||e)); return null; }
+    } catch(e) { console.error('savePortalConfig:', e); UI.aviso('Erro ao salvar portal: ' + (e.message||e)); return null; }
   };
   window.loadPortalConfigs = async () => {
     try {

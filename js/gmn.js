@@ -118,6 +118,8 @@
       if (!pagina.startsWith('gmn-')) return; // usuário navegou para outra página enquanto carregava
     }
     render();
+    // O cartão de conexão Google só é ligado aqui; sem isso ele fica escondido ao navegar pelo menu
+    if (pagina === 'gmn-metricas' && GMN.inicializarDashboardMetricas) GMN.inicializarDashboardMetricas();
   };
   function render() {
     const fn = {
@@ -501,11 +503,12 @@
           ${Object.entries(STATUS_PERFIL).map(([k, v]) => `<option value="${k}" ${F.statusPerfis === k ? 'selected' : ''}>${v.l}</option>`).join('')}
         </select>
         <div style="flex:1"></div>
+        <button class="btn btn-ghost" onclick="GMNOAuth.conectar()" title="Entra com a conta Google que gerencia os perfis"><i class="bi bi-google"></i> Conectar Google</button>
         <button class="btn btn-ghost" onclick="GMN.importarPerfisGoogle()" title="Traz os perfis conectados no Google para cá"><i class="bi bi-cloud-download"></i> Importar do Google</button>
         <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Novo Perfil</button>
       </div>
       ${lista.length === 0
-        ? `<div class="gmn-empty" style="padding:60px 20px;text-align:center">Nenhum perfil ${S.perfis.length ? 'encontrado com esse filtro' : 'cadastrado ainda'}.<br><br><button class="btn btn-ghost" onclick="GMN.importarPerfisGoogle()"><i class="bi bi-cloud-download"></i> Importar do Google</button> <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Cadastrar primeiro perfil</button></div>`
+        ? `<div class="gmn-empty" style="padding:60px 20px;text-align:center">Nenhum perfil ${S.perfis.length ? 'encontrado com esse filtro' : 'cadastrado ainda'}.<br><br><button class="btn btn-ghost" onclick="GMNOAuth.conectar()"><i class="bi bi-google"></i> Conectar Google</button> <button class="btn btn-ghost" onclick="GMN.importarPerfisGoogle()"><i class="bi bi-cloud-download"></i> Importar do Google</button> <button class="btn btn-primary" onclick="GMN.openPerfilModal()">+ Cadastrar primeiro perfil</button></div>`
         : `<div class="gmn-grid">${lista.map(cardPerfil).join('')}</div>`}
     </div>`;
   }
@@ -637,11 +640,11 @@
     try {
       dados = await window.GMNOAuth.listarPerfis();
     } catch (e) {
-      alert("Não foi possível ler os perfis do Google: " + e.message + "\n\nConecte a conta em Dashboard de Métricas.");
+      UI.aviso("Não foi possível ler os perfis do Google: " + e.message + "\n\nConecte a conta em Dashboard de Métricas.");
       return;
     }
     const perfis = dados.perfis || [];
-    if (!perfis.length) { alert("Nenhum perfil encontrado nesta conta Google."); return; }
+    if (!perfis.length) { UI.aviso("Nenhum perfil encontrado nesta conta Google."); return; }
 
     let novos = 0, atualizados = 0;
     for (const g of perfis) {
@@ -712,7 +715,7 @@
 
   GMN.savePerfil = async (id) => {
     const nome = $g('pf-nome').value.trim();
-    if (!nome) { alert('Informe o nome do negócio.'); return; }
+    if (!nome) { UI.aviso('Informe o nome do negócio.'); return; }
     const data = {
       nome,
       cliente: $g('pf-cliente').value.trim(),
@@ -836,7 +839,7 @@
 
   GMN.openPostModal = (id, perfilPre) => {
     const p = id ? S.posts.find((x) => x.id === id) : { perfilId: perfilPre || F.perfilPosts || '', data: hojeISO() };
-    if (!S.perfis.length) { alert('Cadastre um perfil GMN primeiro.'); return; }
+    if (!S.perfis.length) { UI.aviso('Cadastre um perfil GMN primeiro.'); return; }
     openModal(`
       <div class="modal-header">
         <div class="modal-title">${id ? 'Editar post' : 'Planejar post'}</div>
@@ -859,7 +862,7 @@
 
   GMN.savePost = async (id) => {
     const perfilId = $g('po-perfil').value, titulo = $g('po-titulo').value.trim(), data = $g('po-data').value;
-    if (!perfilId || !titulo || !data) { alert('Preencha perfil, título e data.'); return; }
+    if (!perfilId || !titulo || !data) { UI.aviso('Preencha perfil, título e data.'); return; }
     const d = { perfilId, titulo, data, tipo: $g('po-tipo').value, notas: $g('po-notas').value.trim() };
     if (id) d.id = id; else d.status = 'planejado';
     const ok = await window.dbSave('gmn_posts', d);
@@ -928,7 +931,7 @@
 
   GMN.openAvalModal = (id) => {
     const a = id ? S.avaliacoes.find((x) => x.id === id) : { perfilId: F.perfilAval || '', data: hojeISO(), nota: 5 };
-    if (!S.perfis.length) { alert('Cadastre um perfil GMN primeiro.'); return; }
+    if (!S.perfis.length) { UI.aviso('Cadastre um perfil GMN primeiro.'); return; }
     openModal(`
       <div class="modal-header">
         <div class="modal-title">${id ? 'Editar avaliação' : 'Registrar avaliação'}</div>
@@ -954,7 +957,7 @@
 
   GMN.saveAval = async (id) => {
     const perfilId = $g('av-perfil').value;
-    if (!perfilId) { alert('Selecione o perfil.'); return; }
+    if (!perfilId) { UI.aviso('Selecione o perfil.'); return; }
     const d = {
       perfilId,
       autor: $g('av-autor').value.trim(),
@@ -1037,7 +1040,7 @@
   }
 
   GMN.openRankModal = (id, perfilPre, palavraPre) => {
-    if (!S.perfis.length) { alert('Cadastre um perfil GMN primeiro.'); return; }
+    if (!S.perfis.length) { UI.aviso('Cadastre um perfil GMN primeiro.'); return; }
     openModal(`
       <div class="modal-header">
         <div class="modal-title">Registrar posição no mapa</div>
@@ -1057,7 +1060,7 @@
 
   GMN.saveRank = async () => {
     const perfilId = $g('rk-perfil').value, palavra = $g('rk-palavra').value.trim(), pos = $g('rk-pos').value;
-    if (!perfilId || !palavra || !pos) { alert('Preencha perfil, palavra-chave e posição.'); return; }
+    if (!perfilId || !palavra || !pos) { UI.aviso('Preencha perfil, palavra-chave e posição.'); return; }
     const ok = await window.dbSave('gmn_ranking', { perfilId, palavra, posicao: Number(pos), data: $g('rk-data').value || hojeISO() });
     if (ok) { GMN.closeModal(); await refresh(); toast('Posição registrada'); }
   };
