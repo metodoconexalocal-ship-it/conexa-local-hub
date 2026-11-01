@@ -1907,14 +1907,16 @@
   };
 
   GMN.mostrarConexaoGoogle = function (status) {
+    // /saude devolve 'google'; /status devolve 'conectado'. Aceita os dois.
+    const conectado = !!(status.google ?? status.conectado);
     const cardConectar = document.getElementById('gmn-card-conectar');
     const seletor = document.getElementById('gmn-perfis-conectados');
     const header = document.getElementById('gmn-perfil-selecionado-header');
     const conta = document.getElementById('gmn-conta-google');
-    if (cardConectar) cardConectar.style.display = status.conectado ? 'none' : 'flex';
-    if (seletor) seletor.style.display = status.conectado ? 'block' : 'none';
+    if (cardConectar) cardConectar.style.display = conectado ? 'none' : 'flex';
+    if (seletor) seletor.style.display = conectado ? 'block' : 'none';
     if (header) header.style.display = 'none';
-    if (conta) conta.textContent = status.conectado ? `Conectado como ${status.email}` : '';
+    if (conta) conta.textContent = conectado ? `Conectado como ${status.email}` : '';
   };
 
   GMN.mostrarSaude = function (saude) {
