@@ -1953,24 +1953,33 @@
     if (status.google) await GMN.carregarPerfisConectados();
   };
 
+  // Mensagem dentro da própria lista (a faixa de status fica embaixo e some rápido)
+  const avisoLista = (titulo, detalhe, tipo) => {
+    const lista = document.getElementById('gmn-perfis-lista');
+    if (lista) lista.innerHTML = `<div style="grid-column:1/-1;padding:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2)">
+      <div style="font-size:13px;font-weight:600;color:${tipo==='erro'?'var(--red)':'var(--text-primary)'};margin-bottom:4px">${esc(titulo)}</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${esc(detalhe)}</div></div>`;
+  };
+
   GMN.carregarPerfisConectados = async function () {
     const lista = document.getElementById('gmn-perfis-lista');
     if (lista) lista.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Carregando perfis do Google…</div>';
     try {
       const dados = await window.GMNOAuth.listarPerfis();
       window._gmnPerfis = dados.perfis || [];
-      GMN.renderizarPerfisConectados();
       if (!window._gmnPerfis.length) {
-        GMN.mostrarStatusMetrica('Nenhum perfil encontrado nesta conta Google. Confirme que ela tem acesso de gerente aos perfis.', 'error');
-      } else if (!dados.salvo) {
-        GMN.mostrarStatusMetrica(`Mostrando ${window._gmnPerfis.length} perfil(is), mas a lista NÃO foi salva: banco não conectado.`, 'error');
-      } else {
-        GMN.mostrarStatusMetrica(`${window._gmnPerfis.length} perfil(is) carregado(s) e salvo(s) no banco.`, 'success');
+        window._gmnPerfis = [];
+        avisoLista('Nenhum perfil encontrado nesta conta Google',
+          `Conta conectada: ${dados.conta || '—'}. Se os seus perfis estão em outro e-mail, clique em Desconectar e entre com a conta que gerencia os perfis. Também confirme que essa conta tem acesso de gerente aos perfis no Google Meu Negócio.`,
+          'info');
+        return;
       }
+      GMN.renderizarPerfisConectados();
+      if (!dados.salvo) GMN.mostrarStatusMetrica(`${window._gmnPerfis.length} perfil(is) carregado(s). A lista não foi salva porque o banco não está conectado.`, 'error');
+      else GMN.mostrarStatusMetrica(`${window._gmnPerfis.length} perfil(is) carregado(s) e salvo(s).`, 'success');
     } catch (e) {
       window._gmnPerfis = [];
-      GMN.renderizarPerfisConectados();
-      GMN.mostrarStatusMetrica('' + e.message, 'error');
+      avisoLista('Não foi possível ler os perfis do Google', e.message, 'erro');
     }
   };
 
