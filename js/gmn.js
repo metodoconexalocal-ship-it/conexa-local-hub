@@ -1938,6 +1938,7 @@
     const retorno = params.get('oauth');
     if (retorno) {
       if (retorno === 'ok') GMN.mostrarStatusMetrica('Conta Google conectada.', 'success');
+      else if (params.get('motivo') === 'permissao_gbp_nao_concedida') GMN.mostrarStatusMetrica('A permissão de gerenciar perfis não foi marcada na tela do Google. Clique em Conectar de novo e marque todas as permissões.', 'error');
       else GMN.mostrarStatusMetrica('Não foi possível conectar: ' + (params.get('motivo') || 'erro desconhecido'), 'error');
       history.replaceState(null, '', '/?tab=gmn-metricas');
     }

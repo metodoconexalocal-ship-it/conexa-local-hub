@@ -35,6 +35,12 @@ function tratarErro(res, e) {
   if (String(motivo).includes('invalid_grant')) {
     return res.status(401).json({ erro: 'Sessão Google expirada. Clique em "Conectar" novamente.' });
   }
+  if (String(motivo).includes('insufficient authentication scopes')) {
+    return res.status(403).json({
+      erro: 'A conexão Google foi feita sem a permissão de gerenciar perfis.',
+      dica: 'Clique em Desconectar e depois em Conectar. Na tela do Google, marque todas as permissões, principalmente "Gerenciar seu perfil de empresa".',
+    });
+  }
   if (e.status === 403) {
     return res.status(403).json({
       erro: `Google recusou o acesso: ${e.message}`,
@@ -85,6 +91,11 @@ router.get('/google/callback', async (req, res) => {
 
     const client = g.criarClient(req);
     const { tokens } = await client.getToken(code);
+    // Sem esta permissão, a conta não consegue ler nem editar perfis. Não cria a sessão.
+    const concedidas = (tokens.scope || '').split(' ');
+    if (!concedidas.includes('https://www.googleapis.com/auth/business.manage')) {
+      return voltar('oauth=erro&motivo=permissao_gbp_nao_concedida');
+    }
     if (!tokens.refresh_token) {
       // Google só emite refresh_token quando o consentimento é dado; sem ele a sessão não dura.
       return voltar('oauth=erro&motivo=sem_refresh_token');
