@@ -8,6 +8,10 @@ const { db, isConnected } = require('../lib/firebase-config');
 
 const router = express.Router();
 
+// Lista de perfis por sessão, por 5 minutos. Evita repetir consultas ao Google a cada abertura da tela.
+const cacheListas = new Map();
+const CACHE_MS = 5 * 60 * 1000;
+
 const URL_CONTAS = 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts';
 const URL_LOCAIS = 'https://mybusinessbusinessinformation.googleapis.com/v1';
 const URL_PERFORMANCE = 'https://businessprofileperformance.googleapis.com/v1';
@@ -34,6 +38,12 @@ function tratarErro(res, e) {
   console.error('[Google API]', e.status || '', motivo);
   if (String(motivo).includes('invalid_grant')) {
     return res.status(401).json({ erro: 'Sessão Google expirada. Clique em "Conectar" novamente.' });
+  }
+  if (e.status === 429 || String(motivo).includes('Quota exceeded')) {
+    return res.status(429).json({
+      erro: 'O Google limitou as consultas por alguns minutos.',
+      dica: 'Aguarde 1 minuto e recarregue a tela. Se acontecer sempre, peça aumento de cota no Google Cloud (IAM e administrador → Cotas), pesquisando "My Business".',
+    });
   }
   if (String(motivo).includes('insufficient authentication scopes')) {
     return res.status(403).json({
@@ -142,6 +152,12 @@ router.get('/google/perfis', async (req, res) => {
     const sess = await g.accessTokenDaSessao(req);
     if (!sess) return sessaoNaoConectada(res);
 
+    const chave = crypto.createHash('sha256').update(sess.sessao.refreshToken).digest('hex');
+    const emCache = cacheListas.get(chave);
+    if (emCache && Date.now() - emCache.ts < CACHE_MS && !req.query.atualizar) {
+      return res.json({ ...emCache.dados, doCache: true });
+    }
+
     const { accounts = [] } = await g.googleGet(sess.token, URL_CONTAS);
     const perfis = [];
 
@@ -166,14 +182,9 @@ router.get('/google/perfis', async (req, res) => {
     if (isConnected()) {
       salvos = await persistencia.salvarPerfis(db, sess.sessao.email, perfis);
     }
-    res.json({
-      ok: true,
-      conta: sess.sessao.email,
-      total: perfis.length,
-      perfis,
-      salvo: isConnected(),
-      perfisSalvos: salvos,
-    });
+    const dados = { ok: true, conta: sess.sessao.email, total: perfis.length, perfis, salvo: isConnected(), perfisSalvos: salvos };
+    cacheListas.set(chave, { ts: Date.now(), dados });
+    res.json(dados);
   } catch (e) {
     tratarErro(res, e);
   }
