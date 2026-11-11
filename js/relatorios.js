@@ -191,8 +191,18 @@
       prog('');
       toast('Relatório importado!');
       await R.editar(id);
-    } catch (e) { console.error(e); prog(''); alert('Não consegui importar: ' + e.message); }
+    } catch (e) { console.error(e); prog(''); alert('Não consegui importar: ' + e.message + '\n\n' + await quemSou()); }
   };
+
+  // Mostra com qual conta o Firebase reconheceu a pessoa (para diagnosticar erro de permissão)
+  async function quemSou() {
+    try {
+      const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      const u = getAuth().currentUser;
+      if (!u) return 'Conta no Firebase: nenhuma (não está logada no Firebase).';
+      return 'Conta no Firebase: ' + (u.email || '(sem e-mail)') + (u.emailVerified ? '' : ' — e-mail NÃO verificado') + (u.isAnonymous ? ' — anônima' : '');
+    } catch (e) { return 'Conta no Firebase: não consegui verificar.'; }
+  }
 
   /* ── Editor ─────────────────────────────────────────────────────────────── */
   R.editar = async (id) => {
