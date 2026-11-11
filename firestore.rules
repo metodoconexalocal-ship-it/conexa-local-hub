@@ -197,6 +197,30 @@ service cloud.firestore {
       allow write: if isAuth();                         // só internos criam/editam
     }
 
+    // ── Relatórios do Perfil ─────────────────────────────────────────────
+    // ghub_relatorios (interno) cai na regra padrão (login).
+    // O cliente abre pelo link com um token aleatório de 24 caracteres.
+    match /ghub_relatorios_public/{token} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    match /ghub_relatorios_img/{imgId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    match /ghub_relatorios_respostas/{token} {
+      allow read: if true;
+      // o cliente só grava respostas de um relatório que existe, e só estes campos
+      allow create, update: if isAuth() || (
+        exists(/databases/$(database)/documents/ghub_relatorios_public/$(token)) &&
+        request.resource.data.keys().hasOnly(['respostas', 'atualizadoEm', 'enviado', 'enviadoEm', 'texto']) &&
+        request.resource.data.respostas is map &&
+        request.resource.data.respostas.size() <= 60 &&
+        (!('texto' in request.resource.data) || request.resource.data.texto.size() <= 20000)
+      );
+      allow delete: if isAuth();
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  BLOQUEIO PADRÃO — qualquer coleção não listada acima é bloqueada
     //  Isso garante que novos módulos criados sem regra explícita

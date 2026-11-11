@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Relatório do Perfil · Conexa Local</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/relatorio.css?v=1">
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="logo"><img class="sym" src="img/relatorio-sym.png" alt=""><img class="wm" src="img/relatorio-wm.png" alt="Conexa Local"></div>
+  <nav id="nav"></nav>
+</div></header>
+<main id="app"><div class="loading">Carregando o seu relatório…</div></main>
+<footer><div class="wrap">
+  <div class="logo"><img class="sym" src="img/relatorio-sym.png" alt=""><img class="wm" src="img/relatorio-wm.png" alt="Conexa Local"></div>
+  <div>Conecta • Posiciona • Transforma</div>
+</div></footer>
+<script src="js/relatorio-render.js?v=1"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app = document.getElementById('app');
+  const token = new URLSearchParams(location.search).get('r') || '';
+  const DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const falha = (t) => { app.innerHTML = '<div class="loading">' + t + '</div>'; };
+
+  // Leitura e gravação: Firestore em produção, localStorage no localhost (mesmo esquema do Hub)
+  let db = null;
+  if (!DEV) {
+    db = getFirestore(initializeApp({
+      apiKey: "AIzaSyB3FKKUyhVtwnAM5_g2t_JdI_WnrOTiORI",
+      authDomain: "conexa-local-hub.firebaseapp.com",
+      projectId: "conexa-local-hub",
+      storageBucket: "conexa-local-hub.firebasestorage.app",
+      messagingSenderId: "708029453150",
+      appId: "1:708029453150:web:1a7cc74e14efc9a257b5cf"
+    }));
+  }
+  const ler = async (col, id) => {
+    if (DEV) { try { return (JSON.parse(localStorage.getItem('_devdata_' + col) || '[]')).find(d => d.id === id) || null; } catch (e) { return null; } }
+    const s = await getDoc(doc(db, col, id)); return s.exists() ? s.data() : null;
+  };
+  const gravar = async (col, id, data) => {
+    if (DEV) {
+      const k = '_devdata_' + col; let l = []; try { l = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+      l = l.filter(d => d.id !== id); l.push({ id, ...data }); localStorage.setItem(k, JSON.stringify(l)); return;
+    }
+    await setDoc(doc(db, col, id), data);
+  };
+
+  // Modo prévia: o Hub manda os dados por postMessage (mesma origem) e nada é gravado
+  if (new URLSearchParams(location.search).get('previa') === '1') {
+    window.addEventListener('message', (e) => {
+      if (e.origin !== location.origin || !e.data || e.data.tipo !== 'relatorio-previa') return;
+      RelatorioRender.render(e.data.dados, { app, nav: document.getElementById('nav'), state: e.data.respostas || {}, enviado: false });
+      if (e.data.ancora) { const el = document.getElementById(e.data.ancora); if (el) el.scrollIntoView(); }
+    });
+    if (window.parent !== window) window.parent.postMessage({ tipo: 'relatorio-previa-pronta' }, location.origin);
+  } else (async () => {
+    if (!/^[A-Za-z0-9]{16,64}$/.test(token)) return falha('Link inválido. Peça um novo link para a equipe da Conexa Local.');
+    let pub, resp;
+    try { [pub, resp] = await Promise.all([ler('ghub_relatorios_public', token), ler('ghub_relatorios_respostas', token).catch(() => null)]); }
+    catch (e) { console.error(e); return falha('Não foi possível abrir o relatório agora. Tente de novo em alguns minutos.'); }
+    if (!pub || !pub.dados) return falha('Este relatório não está mais disponível. Fale com a equipe da Conexa Local.');
+    const D = await RelatorioRender.resolverImagens(pub.dados, async (id) => { const d = await ler('ghub_relatorios_img', id); return d && d.data; });
+    document.title = 'Relatório do Perfil · ' + ((D.cliente && D.cliente.nome) || '');
+
+    // estado local (rascunho do cliente) tem prioridade só se for mais novo que o salvo
+    let state = (resp && resp.respostas) || {};
+    const KEY = 'rel-' + token;
+    try { const loc = JSON.parse(localStorage.getItem(KEY) || 'null'); if (loc && (!resp || (loc.t || '') > (resp.atualizadoEm || ''))) state = loc.s || state; } catch (e) {}
+
+    let timer = null;
+    const salvar = (s, el, extra) => gravar('ghub_relatorios_respostas', token, {
+      respostas: s, atualizadoEm: new Date().toISOString(), enviado: !!(extra && extra.enviado) || !!(resp && resp.enviado),
+      ...(extra || {})
+    });
+    RelatorioRender.render(D, {
+      app, nav: document.getElementById('nav'), state, enviado: !!(resp && resp.enviado),
+      onState: (s, el) => {
+        try { localStorage.setItem(KEY, JSON.stringify({ s, t: new Date().toISOString() })); } catch (e) {}
+        if (el) el.textContent = 'salvando…';
+        clearTimeout(timer);
+        timer = setTimeout(() => salvar(s).then(() => { if (el) el.textContent = '· salvo'; }, () => { if (el) el.textContent = '· sem conexão, salvo neste aparelho'; }), 1200);
+      },
+      onEnviar: async (s, texto) => {
+        clearTimeout(timer);
+        await salvar(s, null, { enviado: true, enviadoEm: new Date().toISOString(), texto });
+        resp = { ...(resp || {}), enviado: true };
+      }
+    });
+    if (location.hash) { const el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }
+  })();
+</script>
+</body>
+</html>

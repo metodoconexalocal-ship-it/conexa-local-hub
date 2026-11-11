@@ -32,6 +32,31 @@
     try { await deleteDoc(doc(getFirestore(), col, id)); return true; }
     catch (e) { console.error('dbDelete ' + col + ':', e); return false; }
   };
+
+  // ── Documento por id (usado pelo módulo Relatórios do Perfil) ─────────────
+  // Em DEV MODE (localhost) grava no localStorage, como o dbList.
+  const _devDocs = (col) => { try { return JSON.parse(localStorage.getItem('_devdata_' + col) || '[]'); } catch (e) { return []; } };
+  window.dbGet = async (col, id) => {
+    if (window._devMode) return _devDocs(col).find(d => d.id === id) || null;
+    const s = await getDoc(doc(getFirestore(), col, id));
+    return s.exists() ? { id: s.id, ...s.data() } : null;
+  };
+  window.dbSet = async (col, id, data) => {
+    const { id: _ignora, ...rest } = data;
+    const body = { ...rest, updatedAt: new Date().toISOString() };
+    if (window._devMode) {
+      const list = _devDocs(col).filter(d => d.id !== id);
+      list.push({ id, ...body });
+      localStorage.setItem('_devdata_' + col, JSON.stringify(list));
+      return id;
+    }
+    await setDoc(doc(getFirestore(), col, id), body);
+    return id;
+  };
+  window.dbRemove = async (col, id) => {
+    if (window._devMode) { localStorage.setItem('_devdata_' + col, JSON.stringify(_devDocs(col).filter(d => d.id !== id))); return true; }
+    return window.dbDelete(col, id);
+  };
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
