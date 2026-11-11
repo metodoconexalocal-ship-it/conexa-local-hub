@@ -4,8 +4,12 @@ service cloud.firestore {
 
     // ── Função auxiliar: apenas usuário autenticado e com e-mail verificado ──
     function isAuth() {
+      // Só a dona (super admin) e quem estiver em ghub_acesso/{email}.
+      // Qualquer conta Google consegue logar no Firebase; o login sozinho não basta.
       return request.auth != null
-          && request.auth.token.email_verified == true;
+          && request.auth.token.email_verified == true
+          && (request.auth.token.email == 'conexalocal@gmail.com'
+              || exists(/databases/$(database)/documents/ghub_acesso/$(request.auth.token.email)));
     }
 
     // ══════════════════════════════════════════════════════════════════════
