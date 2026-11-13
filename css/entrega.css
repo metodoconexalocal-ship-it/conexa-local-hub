@@ -1,0 +1,129 @@
+/* GMN HUB — Entrega Final: slides 1280×720 no visual da Conexa Local */
+.ef-slide {
+  --ef-bg: #05030d; --ef-card: #0f0b1d; --ef-card2: #151028; --ef-borda: rgba(167,96,253,.22); --ef-borda2: rgba(255,255,255,.08);
+  --ef-txt: #f3f0fb; --ef-muted: #b9b2cc; --ef-dim: #8a83a0; --ef-roxo: #a760fd; --ef-ciano: #65e7f3; --ef-verde: #4ade80; --ef-verm: #fb7185;
+  width: 1280px; height: 720px; position: relative; overflow: hidden; box-sizing: border-box;
+  background: radial-gradient(900px 500px at 105% -10%, rgba(167,96,253,.20), transparent 60%), radial-gradient(700px 420px at -10% 110%, rgba(101,231,243,.10), transparent 60%), var(--ef-bg);
+  color: var(--ef-txt); font-family: 'Inter', system-ui, sans-serif; font-size: 18px; line-height: 1.5;
+  padding: 56px 64px 70px; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.ef-slide *, .ef-slide *::before { box-sizing: border-box }
+.ef-kicker { font-family: 'Sora', sans-serif; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: var(--ef-ciano); font-weight: 600; margin-bottom: 10px }
+.ef-h1 { font-family: 'Sora', sans-serif; font-size: 58px; line-height: 1.05; font-weight: 800; letter-spacing: -.025em; margin: 0 0 18px; max-width: 900px }
+.ef-h2 { font-family: 'Sora', sans-serif; font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.02em; margin: 0 0 14px; max-width: 1000px; text-wrap: balance }
+.ef-txt { color: var(--ef-muted); font-size: 18px; margin: 0 0 16px; max-width: 980px }
+.ef-pts { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 9px }
+.ef-pts li { position: relative; padding-left: 22px; font-size: 16.5px; color: var(--ef-txt) }
+.ef-pts li::before { content: ''; position: absolute; left: 0; top: .55em; width: 9px; height: 9px; border-radius: 3px; background: linear-gradient(135deg, var(--ef-roxo), var(--ef-ciano)) }
+.ef-pts-grid { grid-template-columns: 1fr 1fr; column-gap: 34px }
+.ef-pts-linha { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 16px }
+.ef-pts-linha li { font-size: 15px; color: var(--ef-muted) }
+
+.ef-um { height: 100%; display: flex; flex-direction: column }
+.ef-duas { height: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center }
+.ef-duas-larga { grid-template-columns: .85fr 1.15fr }
+.ef-duas.ef-sem-img { grid-template-columns: 1fr }
+.ef-col-txt { min-width: 0 }
+.ef-col-img { height: 100%; min-height: 0; display: grid; gap: 14px }
+.ef-col-img.ef-n2 { grid-template-columns: 1fr 1fr }
+.ef-col-img.ef-n3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr }
+.ef-col-img.ef-n3 .ef-fig:first-child { grid-row: span 2 }
+.ef-col-img.ef-n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr }
+
+.ef-fig { margin: 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 6px }
+.ef-fig-box { flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; background: #fff; border: 1px solid var(--ef-borda2); display: flex; align-items: center; justify-content: center; box-shadow: 0 18px 40px rgba(0,0,0,.35) }
+.ef-fig-box img { width: 100%; height: 100%; object-fit: contain; display: block }
+.ef-fig figcaption { font-size: 13px; color: var(--ef-dim); text-align: center; line-height: 1.3 }
+.ef-fig-vazia .ef-fig-box { background: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 10px, transparent 10px 20px), var(--ef-card); border: 1.5px dashed var(--ef-borda) }
+.ef-fig-vazia .ef-fig-box span { color: var(--ef-muted); font-size: 15px; padding: 18px; text-align: center }
+
+.ef-grade { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); gap: 14px; margin-top: 6px }
+.ef-grade-baixa { flex: 0 0 200px }
+
+.ef-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 6px }
+.ef-sem-img .ef-cats { grid-template-columns: repeat(4, 1fr) }
+.ef-cat { background: var(--ef-card); border: 1px solid var(--ef-borda2); border-radius: 12px; padding: 12px 14px }
+.ef-cat-t { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ef-roxo); font-weight: 700; margin-bottom: 6px }
+.ef-cat-i { font-size: 14px; color: var(--ef-txt); line-height: 1.35; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.05) }
+.ef-cat-i:first-of-type { border-top: 0 }
+
+.ef-nums { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 16px; margin: 10px 0 22px }
+.ef-num { background: var(--ef-card); border: 1px solid var(--ef-borda); border-radius: 16px; padding: 20px 20px 18px }
+.ef-num b { display: block; font-family: 'Sora', sans-serif; font-size: 40px; line-height: 1.05; font-weight: 800; background: linear-gradient(120deg, #fff, var(--ef-ciano)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 6px }
+.ef-num span { font-size: 14.5px; color: var(--ef-muted); line-height: 1.4; display: block }
+.ef-num.ef-good b { background: none; color: var(--ef-verde) }
+.ef-num.ef-alert b { background: none; color: var(--ef-verm) }
+
+.ef-cards { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 16px; margin-top: 8px; flex: 1; align-content: start }
+.ef-card { background: linear-gradient(180deg, var(--ef-card2), var(--ef-card)); border: 1px solid var(--ef-borda); border-radius: 16px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px }
+.ef-card b { font-family: 'Sora', sans-serif; font-size: 18px; line-height: 1.25 }
+.ef-card p { margin: 0; color: var(--ef-muted); font-size: 14.5px; line-height: 1.45 }
+.ef-card-n { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px; color: var(--ef-roxo) }
+.ef-tag { align-self: flex-start; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ef-ciano); border: 1px solid rgba(101,231,243,.4); border-radius: 999px; padding: 2px 10px }
+
+.ef-pacs { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 18px; margin-top: 6px; flex: 1; min-height: 0 }
+.ef-pac { position: relative; background: var(--ef-card); border: 1px solid var(--ef-borda2); border-radius: 18px; padding: 20px 20px 16px; display: flex; flex-direction: column; min-height: 0 }
+.ef-pac-rec { border: 2px solid var(--ef-roxo); background: linear-gradient(180deg, rgba(167,96,253,.16), var(--ef-card) 55%); box-shadow: 0 0 0 6px rgba(167,96,253,.08), 0 24px 50px rgba(167,96,253,.18) }
+.ef-pac-selo { position: absolute; top: -13px; left: 20px; background: linear-gradient(90deg, var(--ef-roxo), var(--ef-ciano)); color: #05030d; font-weight: 800; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; border-radius: 999px; padding: 4px 12px; font-family: 'Sora', sans-serif }
+.ef-pac-nome { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px }
+.ef-pac-preco { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 36px; line-height: 1.1; margin: 4px 0 2px; color: #fff }
+.ef-pac-preco small { font-size: 15px; font-weight: 600; color: var(--ef-dim); margin-left: 2px }
+.ef-pac-cham { font-size: 14px; color: var(--ef-ciano); margin-bottom: 8px }
+.ef-pac ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; flex: 1; align-content: start }
+.ef-pac li { position: relative; padding-left: 20px; font-size: 13.5px; line-height: 1.35; color: var(--ef-txt) }
+.ef-pac li::before { content: '✓'; position: absolute; left: 0; color: var(--ef-ciano); font-weight: 700 }
+.ef-pac-alin { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--ef-borda2); font-size: 13px; color: var(--ef-muted) }
+.ef-nota { margin-top: 14px; font-size: 14px; color: var(--ef-dim) }
+
+.ef-capa, .ef-fim { height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative }
+.ef-capa-glow { position: absolute; width: 520px; height: 520px; right: -140px; top: -160px; border-radius: 50%; background: radial-gradient(circle, rgba(167,96,253,.35), transparent 65%); pointer-events: none }
+.ef-capa-sym { width: 64px; height: 64px; object-fit: contain; margin-bottom: 26px }
+.ef-capa-sub { font-size: 21px; color: var(--ef-muted); max-width: 820px; margin: 0 0 34px }
+.ef-capa-info { display: flex; gap: 40px; flex-wrap: wrap; border-top: 1px solid var(--ef-borda); padding-top: 22px }
+.ef-capa-info span { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ef-dim) }
+.ef-capa-info b { font-size: 18px; font-weight: 600 }
+.ef-fim { align-items: flex-start }
+.ef-fim .ef-h2 { font-size: 46px; max-width: 980px }
+.ef-pts-fim li { font-size: 19px }
+.ef-fim-wm { position: absolute; right: 0; bottom: 0; height: 30px; opacity: .8 }
+
+.ef-foot { position: absolute; left: 64px; right: 64px; bottom: 22px; display: flex; align-items: center; gap: 16px; font-size: 12.5px; color: var(--ef-dim) }
+.ef-foot img { height: 16px; opacity: .85 }
+.ef-foot span:last-child { margin-left: auto; font-variant-numeric: tabular-nums }
+
+/* Roteiro (documento interno, A4) */
+.ef-rot { font-family: 'Inter', system-ui, sans-serif; color: #1b1530; max-width: 780px; margin: 0 auto; font-size: 14px; line-height: 1.55 }
+.ef-rot h1 { font-family: 'Sora', sans-serif; font-size: 22px; margin: 0 0 4px; color: #3b1d73 }
+.ef-rot-sub { color: #6b6380; margin: 0 0 16px }
+.ef-rot-box { background: #f6f0ff; border: 1px solid #e2d3ff; border-radius: 10px; padding: 10px 16px; margin-bottom: 16px }
+.ef-rot-box h3 { margin: 4px 0; font-size: 14px; color: #6d28d9 }
+.ef-rot-box ul { margin: 4px 0; padding-left: 18px }
+.ef-rot-item { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid #eee; break-inside: avoid }
+.ef-rot-n { font-family: 'Sora', sans-serif; font-weight: 800; color: #a760fd; font-size: 18px }
+.ef-rot-t { font-weight: 700; margin-bottom: 2px }
+.ef-rot-f { color: #2f2843; white-space: normal }
+.ef-rot-vazio { color: #aaa }
+
+/* Modo apresentação dentro do Hub */
+.ef-show { position: fixed; inset: 0; z-index: 2147483000; background: #020106; display: flex; flex-direction: column }
+.ef-show-palco { flex: 1; min-height: 0; position: relative; overflow: hidden }
+.ef-show-palco .ef-slide { position: absolute; left: 50%; top: 50%; transform-origin: center center; box-shadow: 0 30px 80px rgba(0,0,0,.6) }
+.ef-show-barra { display: flex; align-items: center; gap: 8px; padding: 8px 14px; color: #cfc8e6; font-family: 'Inter', sans-serif; font-size: 13px; border-top: 1px solid rgba(255,255,255,.08) }
+.ef-show-barra button { background: rgba(255,255,255,.06); color: #fff; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 6px 11px; cursor: pointer; font: inherit }
+.ef-show-notas { max-height: 30vh; overflow: auto; background: #0d0a18; color: #e9e4f7; border-top: 1px solid rgba(167,96,253,.3); padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.55; white-space: pre-wrap }
+.ef-mini { width: 1280px; height: 720px; transform-origin: top left }
+
+/* ajustes: slides com pouco conteúdo ficam centralizados; NFC sem moldura */
+.ef-t-cards .ef-um, .ef-t-metricas .ef-um, .ef-t-pacotes .ef-um { justify-content: center }
+.ef-t-cards .ef-cards { flex: 0 0 auto; gap: 18px; margin-top: 14px }
+.ef-t-cards .ef-card { padding: 24px 22px 22px; gap: 8px }
+.ef-t-cards .ef-card b { font-size: 21px }
+.ef-t-cards .ef-card p { font-size: 16px }
+.ef-t-cards .ef-txt, .ef-t-metricas .ef-txt { font-size: 19px }
+.ef-t-metricas .ef-num { padding: 26px 22px 22px }
+.ef-t-metricas .ef-num b { font-size: 52px }
+.ef-t-metricas .ef-num span { font-size: 16px }
+.ef-t-metricas .ef-pts li { font-size: 18px }
+.ef-t-nfc .ef-col-img.ef-n2 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr }
+.ef-t-nfc .ef-fig-box { background: transparent; border: 0; box-shadow: none }
+.ef-t-nfc .ef-fig-box img { border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.45); width: auto; max-width: 100%; height: 100% }

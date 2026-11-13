@@ -2026,6 +2026,7 @@ function showPage(page) {
     'gmn-ranking':        '<span>GMN</span> — Ranking no Mapa',
     'gmn-auditoria':      '<span>GMN</span> — Auditoria GBP',
     'gmn-relatorios':     '<span>GMN</span> — Relatórios do Perfil',
+    'gmn-entregas':       '<span>GMN</span> — Entrega Final',
     'gmn-metricas':       '<span>GMN</span> — Métricas em Tempo Real',
     'gmn-checklist':      '<span>Projetos</span> — Tarefas do Dia',
     'portal-access':      '<span>Portal</span> — Gerenciar Acessos',
@@ -2064,6 +2065,7 @@ function showPage(page) {
   else if (page === 'portal-access')       renderPortalAccessPage();
   else if (page === 'gmn-checklist')      { if (window.Checklist) window.Checklist.abrir(); }
   else if (page === 'gmn-relatorios')     { if (window.Relatorios) window.Relatorios.abrir(); }
+  else if (page === 'gmn-entregas')       { if (window.Entregas) window.Entregas.abrir(); }
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); else if (page === 'gmn-metricas') renderGMNMetricas(); }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   // Destaca o item do menu que chama esta página (pelo onclick, independente da ordem das seções)
