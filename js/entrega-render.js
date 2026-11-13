@@ -100,6 +100,7 @@
     return `<div class="ef-rot"><h1>Roteiro da reunião · ${esc(c.empresa || c.nome || '')}</h1>
       <p class="ef-rot-sub">${esc(d.data || '')} · ${arr.length} slides${pac ? ` · pacote indicado: <b>${esc(pac.nome)} (${brl(pac.preco)}/mês)</b>` : ''}. Documento interno, não enviar ao cliente.</p>
       ${lista(d.notasInternas).length ? `<div class="ef-rot-box"><h3>Antes da reunião</h3><ul>${lista(d.notasInternas).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+      ${(() => { const h = d.historico || {}, ch = (h.chamados || []).map((x) => (x && x.id) || x).filter((x) => typeof x === 'string' && x.trim()); return h.descricao || ch.length ? `<div class="ef-rot-box"><h3>Histórico do perfil</h3>${h.descricao ? `<p style="margin:4px 0">${br(h.descricao)}</p>` : ''}${ch.length ? `<p style="margin:4px 0"><b>Chamados:</b> ${ch.map(esc).join(' · ')}</p>` : ''}</div>` : ''; })()}
       ${arr.map((s, i) => `<div class="ef-rot-item"><div class="ef-rot-n">${i + 1}</div><div><div class="ef-rot-t">${esc(s.titulo || s.kicker || s.tipo)}</div>${s.fala ? `<div class="ef-rot-f">${br(s.fala)}</div>` : '<div class="ef-rot-f ef-rot-vazio">(sem roteiro)</div>'}</div></div>`).join('')}</div>`;
   }
 

@@ -153,7 +153,7 @@
       s('encerramento', 'Próximos passos', 'Um perfil bem estruturado gera presença. Um perfil fortalecido gera autoridade.'),
     ];
   }
-  const dadosVazios = (empresa) => ({ cliente: { empresa: empresa || '', nome: '', cidade: '' }, data: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }), responsavel: 'Amanda Sestren Silveira · Conexa Local', pacoteRecomendado: 'avancado', notasInternas: [], slides: slidesPadrao(empresa) });
+  const dadosVazios = (empresa) => ({ cliente: { empresa: empresa || '', nome: '', cidade: '' }, data: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }), responsavel: 'Amanda Sestren Silveira · Conexa Local', pacoteRecomendado: 'avancado', notasInternas: [], historico: { descricao: '', chamados: [{ id: '' }] }, slides: slidesPadrao(empresa) });
 
   E.nova = async () => {
     const nome = prompt('Nome da empresa:');
@@ -228,7 +228,7 @@
       <div style="display:flex;flex-direction:column;gap:3px">${mini('↑', `Entregas.mover('${path}',${i},-1)`)}${mini('↓', `Entregas.mover('${path}',${i},1)`)}${mini('<i class="bi bi-trash"></i>', `Entregas.remover('${path}',${i})`)}</div></div>`).join('') +
       `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${mini('<i class="bi bi-plus"></i> ' + (opt.add || 'Adicionar'), `Entregas.adicionar('${path}')`)}${opt.img ? upload(`Entregas.uploadVarios('${path}', this.files)`, 'Enviar várias imagens', true) : ''}</div>`;
   }
-  const NOVO = { imagens: () => ({ img: '', legenda: '' }), pontos: () => '', itens: () => ({ titulo: '', texto: '', tag: '', categoria: '', nome: '' }), numeros: () => ({ valor: '', label: '', tom: '' }), notasInternas: () => '' };
+  const NOVO = { imagens: () => ({ img: '', legenda: '' }), pontos: () => '', itens: () => ({ titulo: '', texto: '', tag: '', categoria: '', nome: '' }), numeros: () => ({ valor: '', label: '', tom: '' }), notasInternas: () => '', chamados: () => ({ id: '' }) };
 
   function abaGeral() {
     const r = S.atual, d = r.dados;
@@ -239,6 +239,10 @@
         <label style="flex:1;min-width:200px"><span style="display:block;font-size:11.5px;color:var(--text-secondary);margin-bottom:3px">Pacote que o cliente fechou</span><select class="form-input" style="width:100%" onchange="Entregas.fechou(this.value)"><option value="">— ainda não / não fechou —</option>${S.pacotes.map((p) => `<option value="${esc(p.id)}" ${p.id === r.pacoteFechado ? 'selected' : ''}>${esc(p.nome)} · ${brl(p.preco)}</option>`).join('')}</select></label>
         <label style="flex:1;min-width:200px"><span style="display:block;font-size:11.5px;color:var(--text-secondary);margin-bottom:3px">Perfil no GMN Hub</span><select class="form-input" style="width:100%" onchange="Entregas.setRoot('perfilId',this.value)"><option value="">— nenhum —</option>${S.perfis.map((p) => `<option value="${esc(p.id)}" ${p.id === r.perfilId ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select></label></div>`) +
       bloco('Antes da reunião (só para você, sai no Roteiro)', campo('notasInternas', 'Checklist / pontos de atenção', { lines: true, rows: 8, cls: 'ef-fala' })) +
+      bloco('Histórico do perfil (validação, exclusão de perfil e chamados)',
+        campo('historico.descricao', 'Como aconteceu: o que era, o que foi feito e como terminou', { area: true, rows: 6 }) +
+        `<div style="font-weight:600;font-size:12.5px;margin:4px 0 2px">IDs de chamado do Google</div>` +
+        linhas('historico.chamados', [{ k: 'id', l: 'ID do chamado', w: 2 }], { add: 'Adicionar ID de chamado' })) +
       bloco('Apagar', mini('<i class="bi bi-trash"></i> Apagar esta entrega', 'Entregas.apagar()'));
   }
 
