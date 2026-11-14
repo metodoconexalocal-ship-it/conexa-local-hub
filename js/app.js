@@ -16393,7 +16393,36 @@ window.DCPicker = (function () {
     ensurePanel(); renderDate(); place(input); bindOutside(input);
   }
 
+  function renderAnos() {
+    const p = ensurePanel();
+    const base = st.anoBase;
+    const anos = Array.from({ length: 12 }, (_, i) => base + i);
+    p.style.minWidth = '262px';
+    p.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <button onclick="DCPicker._navAno(-1)" title="12 anos antes" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:2px 8px">‹</button>
+        <div style="font-size:12px;font-weight:700">${base} – ${base + 11}</div>
+        <button onclick="DCPicker._navAno(1)" title="12 anos depois" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:2px 8px">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        ${anos.map(a => `<div onclick="DCPicker._ano(${a})" style="text-align:center;padding:8px 0;border-radius:8px;cursor:pointer;font-size:12px;font-weight:${a === st.year ? '700' : '400'};background:${a === st.year ? 'var(--accent)' : 'transparent'};color:${a === st.year ? '#fff' : 'var(--text-primary)'};border:1px solid var(--border)" onmouseover="if(${a !== st.year})this.style.background='var(--accent-soft)'" onmouseout="this.style.background='${a === st.year ? 'var(--accent)' : 'transparent'}'">${a}</div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        <button onclick="DCPicker._voltarDias()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px">Voltar ao calendário</button>
+      </div>`;
+  }
+
+  function abrirAnos() {
+    st.mode = 'ano';
+    st.anoBase = st.year - 6;
+    renderAnos();
+  }
+  function navAno(dir) { st.anoBase += dir * 12; renderAnos(); }
+  function escolherAno(a) { st.year = a; st.mode = 'date'; renderDate(); }
+  function voltarDias() { st.mode = 'date'; renderDate(); }
+
   function renderDate() {
+    if (st.mode === 'ano') return renderAnos();
     const p = ensurePanel();
     const first = new Date(st.year, st.month, 1).getDay();
     const days  = new Date(st.year, st.month + 1, 0).getDate();
@@ -16413,7 +16442,7 @@ window.DCPicker = (function () {
     p.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <button onclick="DCPicker._nav(-1)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:2px 8px">‹</button>
-        <div style="font-size:12px;font-weight:700;text-transform:capitalize">${MESES[st.month]} ${st.year}</div>
+        <div onclick="DCPicker._anos()" title="Escolher o ano" style="font-size:12px;font-weight:700;text-transform:capitalize;cursor:pointer;padding:4px 8px;border-radius:6px" onmouseover="this.style.background='var(--accent-soft)'" onmouseout="this.style.background='transparent'">${MESES[st.month]} ${st.year} <i class="bi bi-chevron-down" style="font-size:9px"></i></div>
         <button onclick="DCPicker._nav(1)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:2px 8px">›</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,32px);gap:2px;justify-content:center">
@@ -16477,6 +16506,7 @@ window.DCPicker = (function () {
   return {
     openDate, openTime, hide,
     _nav: nav, _pick: pick, _today: today, _clear: clearDate,
+    _anos: abrirAnos, _navAno: navAno, _ano: escolherAno, _voltarDias: voltarDias,
     _h: (d)=>{ st.h=(st.h+d+24)%24; renderTime(); },
     _m: (d)=>{ st.min=(st.min+d+60)%60; renderTime(); },
     _seth: (hh)=>{ st.h=hh; st.min=0; renderTime(); },
