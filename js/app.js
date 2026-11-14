@@ -12648,6 +12648,7 @@ async function _calDelete(id, dateStr) {
 let _calTarget = 'agencia'; // 'agencia' = Calendário · 'pessoal' = Minha Agenda
 
 function _calOpenModal(defaultDate) {
+  _calTarget = 'agencia';
   _calEditingId = null;
   _calModalState = {
     recurrence:   'once',
@@ -12663,6 +12664,7 @@ function _calOpenModal(defaultDate) {
 function _calOpenEditModal(taskId) {
   const task = _calTasks.find(t => t.id === taskId);
   if (!task) return;
+  _calTarget = 'agencia';
   _calEditingId = taskId;
   _calModalState = {
     recurrence:   task.recurrence || 'once',
@@ -14454,9 +14456,15 @@ async function _agSalvarPessoal(data) {
     ordem: atual ? atual.ordem : _AG.personal.length,
   };
   if (id) item.id = id;
-  const novoId = await (window.savePersonalTask ? window.savePersonalTask(item) : Promise.resolve(null));
+  // O Firestore recusa campos vazios (undefined): cópia limpa antes de gravar
+  const limpo = JSON.parse(JSON.stringify(item));
+  const novoId = await (window.savePersonalTask ? window.savePersonalTask(limpo) : Promise.resolve(null));
+  if (!novoId) {
+    UI.aviso('Não foi possível salvar a tarefa. Confira a conexão e tente de novo.', 'erro');
+    return;
+  }
   if (id && atual) Object.assign(atual, item);
-  else if (novoId) _AG.personal.push({ ...item, id: novoId });
+  else _AG.personal.push({ ...item, id: novoId });
   _calCloseModal();
   _agRenderCal();
   _agAtualizarBadge();
