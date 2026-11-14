@@ -12547,6 +12547,7 @@ function _calCard(task, dateStr, isAdmin, curUid) {
     <span onclick="_calToggle('${task.id}','${dateStr}',${done})" style="font-size:11px;flex-shrink:0;cursor:pointer;margin-top:1px">${done ? '<i class="bi bi-check-square-fill"></i>' : '<i class="bi bi-square"></i>'}</span>
     <span onclick="_calToggle('${task.id}','${dateStr}',${done})" style="font-size:11px;font-weight:600;color:var(--text-primary);flex:1;word-break:break-word;line-height:1.3;cursor:pointer;${done ? 'text-decoration:line-through' : ''}">${task.title}</span>
     <div style="display:flex;gap:2px;flex-shrink:0">
+      <span onclick="event.stopPropagation();Subtarefas.abrir('agencia','${task.id}')" style="font-size:10px;color:var(--text-muted);cursor:pointer;padding:0 2px;line-height:1.5" title="Subtarefas">${(task.subtarefas||[]).length ? `<i class="bi bi-list-check"></i> ${(task.subtarefas||[]).filter(x=>x.feita).length}/${task.subtarefas.length}` : '<i class="bi bi-list-check"></i>'}</span>
       ${canEdit ? `<span onclick="event.stopPropagation();_calOpenEditModal('${task.id}')" style="font-size:10px;color:var(--accent);cursor:pointer;padding:0 2px;line-height:1.5" title="Editar"><i class="bi bi-pencil"></i></span>` : ''}
       ${isAdmin ? `<span onclick="event.stopPropagation();_calDelete('${task.id}','${dateStr}')" style="font-size:11px;color:var(--text-muted);cursor:pointer;padding:0 2px;line-height:1.5" title="Excluir"><i class="bi bi-x-lg"></i></span>` : ''}
     </div>
@@ -14236,6 +14237,7 @@ function _agRenderCal() {
           <span style="font-size:10.5px;font-weight:600;color:var(--text-primary);word-break:break-word;flex:1;${done?'text-decoration:line-through':''}">${_esc(t.title)}</span>
         </div>
         ${t.time?`<div style="font-size:9px;color:var(--text-muted);margin-top:2px"><i class="bi bi-clock"></i> ${t.time}</div>`:''}
+        <span onclick="event.stopPropagation();Subtarefas.abrir('agencia','${t.id}')" style="font-size:10px;color:var(--text-muted);cursor:pointer;margin-top:2px;display:inline-block" title="Subtarefas"><i class="bi bi-list-check"></i>${(t.subtarefas||[]).length ? ' '+(t.subtarefas||[]).filter(x=>x.feita).length+'/'+t.subtarefas.length : ''}</span>
       </div>`;
     }).join('');
 
@@ -14249,6 +14251,7 @@ function _agRenderCal() {
           <span style="cursor:grab;color:var(--text-muted);font-size:11px;flex-shrink:0" title="Arraste para reordenar">⠿</span>
           <span onclick="_agToggleItem('${p.id}','${ds}')" style="font-size:10px;cursor:pointer;flex-shrink:0">${_agFeito(p, ds)?'<i class="bi bi-check-square-fill"></i>':'<i class="bi bi-square"></i>'}</span>
           <span onclick="_agEditItem('${p.id}')" style="font-size:10.5px;font-weight:500;color:var(--text-secondary);word-break:break-word;flex:1;cursor:text;${_agFeito(p, ds)?'text-decoration:line-through':''}" title="Clique para editar">${_esc(p.titulo)}</span>
+          <span onclick="event.stopPropagation();Subtarefas.abrir('pessoal','${p.id}')" style="cursor:pointer;color:var(--text-muted);font-size:11px;flex-shrink:0" title="Subtarefas"><i class="bi bi-list-check"></i>${(p.subtarefas||[]).length ? ' '+(p.subtarefas||[]).filter(x=>x.feita).length+'/'+p.subtarefas.length : ''}</span>
           <span onclick="_agDelItem('${p.id}')" style="cursor:pointer;color:var(--text-muted);font-size:13px;flex-shrink:0" title="Excluir">×</span>
         </div>
         ${p.hora?`<div onclick="_agEditItem('${p.id}')" style="font-size:9px;color:#94a3b8;margin-top:2px;cursor:pointer"><i class="bi bi-clock"></i> ${p.hora}</div>`:''}
@@ -14447,6 +14450,7 @@ async function _agSalvarPessoal(data) {
     visibilidade: data.visibility || 'public',
     concluida: atual ? !!atual.concluida : false,
     concluidasEm: atual ? (atual.concluidasEm || []) : [],
+    subtarefas: atual ? (atual.subtarefas || []) : [],
     ordem: atual ? atual.ordem : _AG.personal.length,
   };
   if (id) item.id = id;
