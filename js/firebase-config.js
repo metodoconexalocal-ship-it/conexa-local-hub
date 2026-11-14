@@ -1050,13 +1050,12 @@
   window.loadPersonalTasks = async (userId) => {
     try {
       const { where } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-      const q = query(
-        collection(db, 'personal_tasks'),
-        where('userId', '==', userId),
-        orderBy('ordem', 'asc')
-      );
+      // Sem orderBy: filtro + ordenação exigiriam índice composto no Firestore (sem ele a lista volta vazia).
+      // A ordem é feita aqui.
+      const q = query(collection(db, 'personal_tasks'), where('userId', '==', userId));
       const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
     } catch(e) { console.error('loadPersonalTasks:', e); return []; }
   };
 
