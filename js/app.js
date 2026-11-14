@@ -12580,6 +12580,7 @@ async function _calToggle(taskId, dateStr, wasDone) {
 // ── Excluir ────────────────────────────────────────────────────────────────
 
 async function _calDelete(id, dateStr) {
+  if (_calTarget === 'pessoal') { _calCloseModal(); return _agDelItem(id); }
   const task = _calTasks.find(t => t.id === id);
   if (!task) return;
 
@@ -12619,6 +12620,8 @@ async function _calDelete(id, dateStr) {
 }
 
 // ── Modal: abrir/fechar ────────────────────────────────────────────────────
+
+let _calTarget = 'agencia'; // 'agencia' = Calendário · 'pessoal' = Minha Agenda
 
 function _calOpenModal(defaultDate) {
   _calEditingId = null;
@@ -12771,6 +12774,7 @@ function _calBuildModal(defaultDate, editTask) {
 function _calCloseModal() {
   const m = document.getElementById('cal-modal');
   if (m) m.style.display = 'none';
+  _calTarget = 'agencia';
 }
 
 // ── Participantes multi-select ─────────────────────────────────────────────
@@ -12989,6 +12993,8 @@ async function _calSave() {
     visibility:      st.visibility || 'public',
     color:           st.color || _CAL_COLORS[0],
   };
+
+  if (_calTarget === 'pessoal') return _agSalvarPessoal(data);
 
   try {
     if (_calEditingId) {
@@ -14171,7 +14177,10 @@ function _agAgencyForDay(d) {
 // A ordem inicial é definida no salvar (com horário primeiro), mas o usuário
 // pode arrastar e reordenar como quiser depois.
 function _agPersonalForDay(ds) {
-  return _AG.personal.filter(t => (t.data || '') === ds)
+  const dow = new Date(ds + 'T00:00:00').getDay();
+  return _AG.personal.filter(t => t.recorrencia === 'weekly'
+      ? (t.dias || []).includes(dow)
+      : (t.data || '') === ds)
     .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
 }
 
@@ -14212,11 +14221,11 @@ function _agRenderCal() {
       <div id="agp-${p.id}" data-id="${p.id}" data-day="${ds}" draggable="true"
         ondragstart="_agItemDragStart(event,'${p.id}','${ds}')" ondragend="_agItemDragEnd(event)"
         ondragover="_agItemDragOver(event)" ondragleave="_agItemDragLeave(event)" ondrop="_agItemDrop(event,'${p.id}','${ds}')"
-        style="background:${p.concluida?'transparent':'rgba(148,163,184,.14)'};border:1px solid var(--border);border-left:3px solid #94a3b8;border-radius:7px;padding:5px 7px;opacity:${p.concluida?.55:1};transition:box-shadow .12s">
+        style="background:${_agFeito(p, ds)?'transparent':'rgba(148,163,184,.14)'};border:1px solid var(--border);border-left:3px solid #94a3b8;border-radius:7px;padding:5px 7px;opacity:${_agFeito(p, ds)?.55:1};transition:box-shadow .12s">
         <div style="display:flex;align-items:center;gap:4px">
           <span style="cursor:grab;color:var(--text-muted);font-size:11px;flex-shrink:0" title="Arraste para reordenar">⠿</span>
-          <span onclick="_agToggleItem('${p.id}')" style="font-size:10px;cursor:pointer;flex-shrink:0">${p.concluida?'<i class="bi bi-check-square-fill"></i>':'<i class="bi bi-square"></i>'}</span>
-          <span onclick="_agEditItem('${p.id}')" style="font-size:10.5px;font-weight:500;color:var(--text-secondary);word-break:break-word;flex:1;cursor:text;${p.concluida?'text-decoration:line-through':''}" title="Clique para editar">${_esc(p.titulo)}</span>
+          <span onclick="_agToggleItem('${p.id}','${ds}')" style="font-size:10px;cursor:pointer;flex-shrink:0">${_agFeito(p, ds)?'<i class="bi bi-check-square-fill"></i>':'<i class="bi bi-square"></i>'}</span>
+          <span onclick="_agEditItem('${p.id}')" style="font-size:10.5px;font-weight:500;color:var(--text-secondary);word-break:break-word;flex:1;cursor:text;${_agFeito(p, ds)?'text-decoration:line-through':''}" title="Clique para editar">${_esc(p.titulo)}</span>
           <span onclick="_agDelItem('${p.id}')" style="cursor:pointer;color:var(--text-muted);font-size:13px;flex-shrink:0" title="Excluir">×</span>
         </div>
         ${p.hora?`<div onclick="_agEditItem('${p.id}')" style="font-size:9px;color:#94a3b8;margin-top:2px;cursor:pointer"><i class="bi bi-clock"></i> ${p.hora}</div>`:''}
@@ -14372,15 +14381,75 @@ async function _agQuickSave() {
   _agAtualizarBadge();
 }
 
+// ── Formulário completo (mesma janela do Calendário) para a agenda pessoal ──
+function _agOpenModal(ds) {
+  _calTarget = 'pessoal';
+  _calEditingId = null;
+  _calModalState = { recurrence: 'once', participants: [], links: [], visibility: 'public', color: _CAL_COLORS[0], days: [] };
+  _calBuildModal(ds || _calDateStr(new Date()), null);
+}
+
+function _agOpenEditModal(id) {
+  const t = _AG.personal.find(x => x.id === id);
+  if (!t) return;
+  _calTarget = 'pessoal';
+  _calEditingId = id;
+  _calModalState = {
+    recurrence:   t.recorrencia || 'once',
+    participants: (t.participantes || []).map(p => ({ ...p })),
+    links:        (t.links || []).map(l => ({ ...l })),
+    visibility:   t.visibilidade || 'public',
+    color:        t.cor || _CAL_COLORS[0],
+    days:         [...(t.dias || [])],
+  };
+  // A janela lê título, descrição e horário no mesmo formato do Calendário
+  _calBuildModal(t.data || _calDateStr(new Date()), { title: t.titulo || '', description: t.descricao || '', time: t.hora || '' });
+}
+
+// Salva um item pessoal (criação ou edição) vindo da janela
+async function _agSalvarPessoal(data) {
+  const id = _calEditingId;
+  const atual = id ? _AG.personal.find(x => x.id === id) : null;
+  const item = {
+    userId: _AG.uid,
+    titulo: data.title,
+    descricao: data.description || '',
+    recorrencia: data.recurrence,
+    data: data.recurrence === 'once' ? data.date : null,
+    dias: data.recurrence === 'weekly' ? [...(data.days || [])] : [],
+    hora: data.time || '',
+    cor: data.color,
+    participantes: data.participants || [],
+    links: data.links || [],
+    visibilidade: data.visibility || 'public',
+    concluida: atual ? !!atual.concluida : false,
+    concluidasEm: atual ? (atual.concluidasEm || []) : [],
+    ordem: atual ? atual.ordem : _AG.personal.length,
+  };
+  if (id) item.id = id;
+  const novoId = await (window.savePersonalTask ? window.savePersonalTask(item) : Promise.resolve(null));
+  if (id && atual) Object.assign(atual, item);
+  else if (novoId) _AG.personal.push({ ...item, id: novoId });
+  _calCloseModal();
+  _agRenderCal();
+  _agAtualizarBadge();
+  addNotif(id ? 'Tarefa atualizada!' : 'Tarefa criada!', 'success');
+}
+
+// Feito: tarefa semanal é por dia; tarefa de data única é pelo próprio item
+function _agFeito(p, ds) {
+  if (p.recorrencia === 'weekly') return (p.concluidasEm || []).includes(ds);
+  return !!p.concluida;
+}
+
 // ── Adicionar tarefa DETALHADA (uma só, com título + horário) ─────────────
 function _agAddDetalhada(ds) {
-  _agEditModal({ data: ds });
+  _agOpenModal(ds);
 }
 
 // ── Editar item existente ─────────────────────────────────────────────────
 function _agEditItem(id) {
-  const t = _AG.personal.find(x => x.id === id);
-  if (t) _agEditModal(t);
+  _agOpenEditModal(id);
 }
 
 // Modal de criar/editar um item detalhado
@@ -14485,10 +14554,16 @@ async function _agItemDrop(e, targetId, day) {
 
 // ── Toggle / excluir itens pessoais ───────────────────────────────────────
 
-async function _agToggleItem(id) {
+async function _agToggleItem(id, ds) {
   const t = _AG.personal.find(x => x.id === id);
   if (!t) return;
-  t.concluida = !t.concluida;
+  if (t.recorrencia === 'weekly') {
+    const lista = new Set(t.concluidasEm || []);
+    lista.has(ds) ? lista.delete(ds) : lista.add(ds);
+    t.concluidasEm = [...lista];
+  } else {
+    t.concluida = !t.concluida;
+  }
   await (window.savePersonalTask ? window.savePersonalTask(t) : Promise.resolve());
   _agRenderCal();
   _agAtualizarBadge();
