@@ -36,6 +36,10 @@ app.use('/api/auth', authGoogleRouter);
 const syncMetricasRouter = require('./api/sync-metricas');
 app.use('/api/sync-metricas', syncMetricasRouter);
 
+// ─── FORMULÁRIOS PÚBLICOS (cadastro de clientes) ─────────────────
+const formulariosRouter = require('./api/formularios');
+app.use('/api/formularios', formulariosRouter);
+
 // ─── ROTA TESTE ──────────────────────────────────────────────────
 app.get('/api/status', (req, res) => {
   res.json({

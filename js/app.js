@@ -2037,7 +2037,12 @@ function showPage(page) {
   document.getElementById('top-new-btn').onclick = openNewModal;
   if (page === 'crm') { renderTeamNav(); renderCRM(); }
   else if (page === 'financeiro') renderFinanceiro();
-  else if (page === 'clients') { if (!['ativos','arquivados'].includes(clientsTab)) clientsTab='ativos'; renderClients(); }
+  else if (page === 'clients') {
+    if (!['ativos','arquivados'].includes(clientsTab)) clientsTab='ativos';
+    renderClients();
+    // Cadastros que chegaram pelos formulários entram na lista ao abrir Clientes
+    importarCadastrosDeFormularios().then((n) => { if (n) renderClients(); });
+  }
   else if (page === 'prospeccao') renderProspeccao();
   else if (page === 'briefings-trafego')  renderBriefingsPage('trafego');
   else if (page === 'briefings-gmb')      renderBriefingsPage('gmb');
@@ -2365,6 +2370,24 @@ function deleteItem(boardKey, groupId, itemId, e) {
 }
 
 // ─── CLIENTS — NEW SYSTEM ─────────────────────────────────────────────────────
+
+// Cadastros recebidos pelos formulários do sistema viram clientes (uma vez só)
+async function importarCadastrosDeFormularios() {
+  if (!window.dbList || !window.dbSave) return 0;
+  let novos = [];
+  try {
+    novos = ((await window.dbList('gmn_clientes_novos', 'criadoEm', 'desc')) || []).filter((c) => !c.importado);
+  } catch (e) { return 0; }
+  if (!novos.length) return 0;
+  for (const c of novos) {
+    const { importado, importadoEm, criadoEm, ...cliente } = c;
+    if (!clientsData.some((x) => x.id === cliente.id)) clientsData.push(cliente);
+    await window.dbSave('gmn_clientes_novos', { id: cliente.id, importado: true, importadoEm: new Date().toISOString() });
+  }
+  saveState();
+  addNotif(`${novos.length} novo(s) cadastro(s) recebido(s) do formulário`, 'success');
+  return novos.length;
+}
 
 function renderClients() {
   const canSensitive = window.currentRole === 'admin' || window.currentRole === 'gerente';

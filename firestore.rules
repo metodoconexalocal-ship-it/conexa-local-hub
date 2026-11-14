@@ -18,6 +18,18 @@ service cloud.firestore {
 
     // Informações públicas do portal (banner, nome, campos)
     // Clientes leem sem login para ver o banner/formulário
+    // Cadastros vindos dos formulários: a equipe lê; só o servidor escreve
+    match /gmn_clientes_novos/{docId} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+
+    // Respostas completas (podem ter CPF): só a conta principal lê; só o servidor escreve
+    match /gmn_formularios_respostas/{docId} {
+      allow read: if request.auth != null && request.auth.token.email == 'conexalocal@gmail.com';
+      allow write: if false;
+    }
+
     match /portal_public/{docId} {
       allow read: if true;
       allow write: if isAuth();

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formulário — Conexa Local</title>
+<style>
+  :root { --bg:#f4f5f9; --card:#ffffff; --texto:#1e1b2e; --sub:#6b6880; --borda:#dcdae6; --acento:#6d4cf0; --erro:#c81e4f; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#0e0c1a; --card:#17142a; --texto:#f2f0fb; --sub:#a09cb8; --borda:#2c2847; --acento:#8a6dff; --erro:#ff6b8b; }
+  }
+  :root[data-theme="dark"] { --bg:#0e0c1a; --card:#17142a; --texto:#f2f0fb; --sub:#a09cb8; --borda:#2c2847; --acento:#8a6dff; --erro:#ff6b8b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 32px 16px 60px; }
+  .marca { text-align:center; margin-bottom: 20px; }
+  .marca img { max-height: 72px; max-width: 220px; object-fit: contain; }
+  .card { background:var(--card); border:1px solid var(--borda); border-radius:14px; padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  .desc { color: var(--sub); font-size: 14px; line-height: 1.5; margin: 0 0 18px; }
+  .campo { margin-bottom: 14px; }
+  label { display:block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+  .ajuda { font-size: 12px; color: var(--sub); margin: -2px 0 6px; }
+  .obrig { color: var(--erro); }
+  input { width:100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--borda); background: var(--bg); color: var(--texto); font-size: 15px; }
+  input:focus { outline: none; border-color: var(--acento); }
+  input.invalido { border-color: var(--erro); }
+  .msg-erro { color: var(--erro); font-size: 12px; margin-top: 4px; min-height: 0; }
+  .grupo { font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--sub); margin: 22px 0 10px; }
+  button { width:100%; margin-top: 8px; padding: 13px; border:none; border-radius: 10px; background: var(--acento); color:#fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: default; }
+  .aviso { padding: 12px 14px; border-radius: 10px; font-size: 14px; margin-top: 14px; display:none; }
+  .aviso.erro { display:block; background: rgba(200,30,79,.1); color: var(--erro); }
+  .obrigado { text-align:center; padding: 30px 10px; }
+  .obrigado h2 { margin: 0 0 8px; font-size: 20px; }
+  .obrigado p { color: var(--sub); font-size: 14px; line-height: 1.5; }
+  .protocolo { display:inline-block; margin-top: 10px; padding: 6px 12px; border-radius: 8px; background: var(--bg); font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+  .oculto { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marca"><img src="img/conexa-logo.png" alt="Conexa Local"></div>
+  <div class="card" id="cartao">
+    <div id="carregando" style="color:var(--sub);font-size:14px">Carregando formulário…</div>
+    <form id="form" style="display:none" novalidate>
+      <h1 id="titulo"></h1>
+      <p class="desc" id="descricao"></p>
+      <div id="campos"></div>
+      <input class="oculto" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="aviso erro" id="aviso"></div>
+      <button type="submit" id="enviar">Enviar</button>
+    </form>
+    <div class="obrigado" id="obrigado" style="display:none">
+      <h2>Recebemos suas informações</h2>
+      <p>Obrigado! Nossa equipe vai usar esses dados para dar andamento ao seu atendimento.</p>
+      <div class="protocolo" id="protocolo"></div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const tipo = new URLSearchParams(location.search).get('tipo') || 'briefing';
+  const $ = (id) => document.getElementById(id);
+  const mascara = {
+    cnpj: (v) => v.replace(/\D/g, '').slice(0, 14).replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2}\.\d{3})(\d)/, '$1.$2').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'),
+    cpf: (v) => v.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'),
+    tel: (v) => v.replace(/\D/g, '').slice(0, 11).replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2'),
+  };
+
+  async function carregar() {
+    const r = await fetch('/api/formularios/' + encodeURIComponent(tipo));
+    if (!r.ok) throw new Error('Formulário não encontrado.');
+    return r.json();
+  }
+
+  function desenhar(f) {
+    document.title = f.titulo + ' — Conexa Local';
+    $('titulo').textContent = f.titulo;
+    $('descricao').textContent = f.descricao;
+    const html = [];
+    for (const c of f.campos) {
+      const tipoInput = c.tipo === 'email' ? 'email' : c.tipo === 'date' ? 'date' : 'text';
+      const modo = c.tipo === 'tel' ? 'tel' : '';
+      html.push(`<div class="campo" data-campo="${c.nome}">
+        <label for="c-${c.nome}">${c.rotulo}${c.obrigatorio ? ' <span class="obrig">*</span>' : ''}</label>
+        <input id="c-${c.nome}" name="${c.nome}" type="${tipoInput}" ${modo ? 'inputmode="tel"' : ''} autocomplete="off">
+        <div class="msg-erro" id="e-${c.nome}"></div>
+      </div>`);
+    }
+    // Agrupa por "ajuda" (ex.: "Dados da empresa") quando existir
+    let saida = '';
+    let atual = null;
+    f.campos.forEach((c, i) => {
+      if (c.ajuda && c.ajuda !== atual) { atual = c.ajuda; saida += `<div class="grupo">${c.ajuda}</div>`; }
+      if (!c.ajuda && atual) { atual = null; }
+      saida += html[i];
+    });
+    $('campos').innerHTML = saida;
+    f.campos.forEach((c) => {
+      const el = document.getElementById('c-' + c.nome);
+      if (mascara[c.tipo]) el.addEventListener('input', () => { el.value = mascara[c.tipo](el.value); });
+    });
+    $('carregando').style.display = 'none';
+    $('form').style.display = 'block';
+  }
+
+  function coletar(f) {
+    const dados = {};
+    for (const c of f.campos) dados[c.nome] = document.getElementById('c-' + c.nome).value.trim();
+    dados.website = document.querySelector('[name=website]').value;
+    return dados;
+  }
+
+  function mostrarErros(erros) {
+    document.querySelectorAll('.invalido').forEach((el) => el.classList.remove('invalido'));
+    for (const [nome, msg] of Object.entries(erros)) {
+      const el = document.getElementById('c-' + nome);
+      const m = document.getElementById('e-' + nome);
+      if (el) el.classList.add('invalido');
+      if (m) m.textContent = msg;
+    }
+    const primeiro = document.querySelector('.invalido');
+    if (primeiro) primeiro.focus();
+  }
+
+  let formulario = null;
+  carregar().then((f) => { formulario = f; desenhar(f); }).catch((e) => {
+    $('carregando').textContent = e.message;
+  });
+
+  $('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    $('aviso').style.display = 'none';
+    document.querySelectorAll('.msg-erro').forEach((m) => { m.textContent = ''; });
+    const botao = $('enviar');
+    botao.disabled = true;
+    botao.textContent = 'Enviando…';
+    try {
+      const r = await fetch('/api/formularios/' + encodeURIComponent(tipo), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(coletar(formulario)),
+      });
+      const dados = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (dados.erros) mostrarErros(dados.erros);
+        $('aviso').textContent = dados.erro || 'Não foi possível enviar. Tente de novo.';
+        $('aviso').style.display = 'block';
+        botao.disabled = false;
+        botao.textContent = 'Enviar';
+        return;
+      }
+      $('form').style.display = 'none';
+      $('protocolo').textContent = 'Protocolo ' + (dados.protocolo || '');
+      $('obrigado').style.display = 'block';
+    } catch (e) {
+      $('aviso').textContent = 'Sem conexão. Verifique a internet e tente de novo.';
+      $('aviso').style.display = 'block';
+      botao.disabled = false;
+      botao.textContent = 'Enviar';
+    }
+  });
+})();
+</script>
+</body>
+</html>
