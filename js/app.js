@@ -14248,7 +14248,7 @@ function _agRenderCal() {
       <div id="agp-${p.id}" data-id="${p.id}" data-day="${ds}" draggable="true"
         ondragstart="_agItemDragStart(event,'${p.id}','${ds}')" ondragend="_agItemDragEnd(event)"
         ondragover="_agItemDragOver(event)" ondragleave="_agItemDragLeave(event)" ondrop="_agItemDrop(event,'${p.id}','${ds}')"
-        style="background:${_agFeito(p, ds)?'transparent':'rgba(148,163,184,.14)'};border:1px solid var(--border);border-left:3px solid #94a3b8;border-radius:7px;padding:5px 7px;opacity:${_agFeito(p, ds)?.55:1};transition:box-shadow .12s">
+        style="background:${_agFeito(p, ds)?'transparent':(p.cor ? p.cor+'18' : 'rgba(148,163,184,.14)')};border:1px solid var(--border);border-left:3px solid ${p.cor || '#94a3b8'};border-radius:7px;padding:5px 7px;opacity:${_agFeito(p, ds)?.55:1};transition:box-shadow .12s">
         <div style="display:flex;align-items:center;gap:4px">
           <span style="cursor:grab;color:var(--text-muted);font-size:11px;flex-shrink:0" title="Arraste para reordenar">⠿</span>
           <span onclick="_agToggleItem('${p.id}','${ds}')" style="font-size:10px;cursor:pointer;flex-shrink:0">${_agFeito(p, ds)?'<i class="bi bi-check-square-fill"></i>':'<i class="bi bi-square"></i>'}</span>
