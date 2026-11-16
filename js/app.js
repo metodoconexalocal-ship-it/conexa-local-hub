@@ -2025,6 +2025,7 @@ function showPage(page) {
     'gmn-avaliacoes':     '<span>GMN</span> — Avaliações',
     'gmn-ranking':        '<span>GMN</span> — Ranking no Mapa',
     'gmn-auditoria':      '<span>GMN</span> — Auditoria GBP',
+    'gmn-diagnosticos':   '<span>GMN</span> — Diagnósticos',
     'gmn-relatorios':     '<span>GMN</span> — Relatórios do Perfil',
     'gmn-entregas':       '<span>GMN</span> — Entrega Final',
     'gmn-metricas':       '<span>GMN</span> — Métricas em Tempo Real',
@@ -2069,6 +2070,7 @@ function showPage(page) {
   else if (page === 'mapas')               renderMapasPage();
   else if (page === 'portal-access')       renderPortalAccessPage();
   else if (page === 'gmn-checklist')      { if (window.Checklist) window.Checklist.abrir(); }
+  else if (page === 'gmn-diagnosticos')   { if (window.Diagnosticos) window.Diagnosticos.abrir(); }
   else if (page === 'gmn-relatorios')     { if (window.Relatorios) window.Relatorios.abrir(); }
   else if (page === 'gmn-entregas')       { if (window.Entregas) window.Entregas.abrir(); }
   else if (page.startsWith('gmn-'))        { if (window.GMN) window.GMN.route(page); else if (page === 'gmn-metricas') renderGMNMetricas(); }
