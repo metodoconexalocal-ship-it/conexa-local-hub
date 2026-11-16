@@ -146,6 +146,7 @@
     </div>`;
   }
 
+  R.copiarTexto = (t) => { if (!t) return toast('Este produto ainda não tem link.'); navigator.clipboard.writeText(t).then(() => toast('Link copiado!'), () => prompt('Copie o link:', t)); };
   R.copiarLink = (token) => { const u = linkCliente(token); navigator.clipboard.writeText(u).then(() => toast('Link do cliente copiado!'), () => prompt('Copie o link:', u)); };
 
   R.novo = async () => {
@@ -238,6 +239,7 @@
       <div style="flex:1;display:flex;gap:8px;flex-wrap:wrap">${cols.map((c) => {
         const p = `${path}.${i}.${c.k}`, v = row[c.k] ?? '';
         if (c.sel) return `<label style="flex:${c.w || 1};min-width:110px"><span style="font-size:11px;color:var(--text-muted)">${c.l}</span><select class="form-input" data-p="${p}" data-k="text" style="width:100%">${c.sel.map((o) => `<option value="${o[0]}" ${o[0] === v ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></label>`;
+        if (c.copiar) return `<label style="flex:${c.w || 1};min-width:${c.min || 140}px"><span style="font-size:11px;color:var(--text-muted)">${c.l}</span><span style="display:flex;gap:6px"><input class="form-input" data-p="${p}" data-k="text" value="${esc(v)}" style="width:100%">${btnMini('<i class="bi bi-clipboard"></i> Copiar', `event.preventDefault();Relatorios.copiarTexto(this.parentNode.querySelector('input').value)`)}</span></label>`;
         return `<label style="flex:${c.w || 1};min-width:${c.min || 140}px"><span style="font-size:11px;color:var(--text-muted)">${c.l}</span>${c.area ? `<textarea class="form-input" data-p="${p}" data-k="text" rows="2" style="width:100%;resize:vertical">${esc(v)}</textarea>` : `<input class="form-input" data-p="${p}" data-k="text" value="${esc(v)}" style="width:100%">`}</label>`;
       }).join('')}</div>
       <div style="display:flex;flex-direction:column;gap:3px">${btnMini('↑', `Relatorios.mover('${path}',${i},-1)`)}${btnMini('↓', `Relatorios.mover('${path}',${i},1)`)}${btnMini('<i class="bi bi-trash"></i>', `Relatorios.remover('${path}',${i})`)}</div>
@@ -289,7 +291,7 @@
         ${campo(p + '.porque', 'Por que essa mudança (explicação para o cliente)', { area: true, rows: 2 })}
         <div style="display:flex;gap:10px;flex-wrap:wrap">${fld('antes', 'Hoje')}${fld('depois', 'Proposta')}</div>
         ${linha(campo(p + '.limite', 'Limite de caracteres (opcional)', { num: true, w: '0 0 200px' }), campo(p + '.pergunta', 'Pergunta para o cliente (opcional)', { area: true, rows: 2, w: 3 }))}
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 2px"><div style="font-weight:600;font-size:12.5px">Produtos deste item</div><label class="btn btn-ghost" style="font-size:11.5px;padding:4px 9px;cursor:pointer"><i class="bi bi-upload"></i> Substituir pelos do Claude (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="Relatorios.importarProdutos('${p}', this.files[0]);this.value=''"></label></div>${linhas(p + '.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida (sem imagem)', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3 }], { img: 'img', add: 'Adicionar produto' })}
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 2px"><div style="font-weight:600;font-size:12.5px">Produtos deste item</div><label class="btn btn-ghost" style="font-size:11.5px;padding:4px 9px;cursor:pointer"><i class="bi bi-upload"></i> Substituir pelos do Claude (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="Relatorios.importarProdutos('${p}', this.files[0]);this.value=''"></label></div>${linhas(p + '.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida (sem imagem)', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3, copiar: true }], { img: 'img', add: 'Adicionar produto' })}
         <div style="font-weight:600;font-size:12.5px;margin:12px 0 2px">Fotos deste item</div>${linhas(p + '.imagens', [{ k: 'legenda', l: 'Legenda', w: 3 }], { img: 'img', add: 'Adicionar foto' })}
         <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${btnMini('↑ Subir item', `Relatorios.mover('aprovacao.itens',${i},-1)`)}${btnMini('↓ Descer item', `Relatorios.mover('aprovacao.itens',${i},1)`)}${btnMini('<i class="bi bi-trash"></i> Remover item', `Relatorios.remover('aprovacao.itens',${i})`)}</div>
       </div></div>`;
@@ -309,7 +311,7 @@
       bloco('Visão geral', campo('previa.descricao', 'Descrição', { area: true, rows: 5, dica: `${String(v.descricao || '').length} de 750 caracteres` }) +
         linha(campo('previa.endereco', 'Endereço', { w: 2 }), campo('previa.horario', 'Horário')) + linha(campo('previa.telefone', 'Telefone'), campo('previa.site', 'Site')) +
         campo('previa.atributos', 'Atributos', { lines: true, rows: 3 })) +
-      bloco('Produtos', linhas('previa.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'botao', l: 'Botão' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3 }], { img: 'img', add: 'Adicionar produto' }),
+      bloco('Produtos', linhas('previa.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'botao', l: 'Botão' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3, copiar: true }], { img: 'img', add: 'Adicionar produto' }),
         btnMini('<i class="bi bi-arrow-repeat"></i> Copiar dos itens de aprovação', 'Relatorios.copiarProdutos()')) +
       bloco('Serviços', linhas('previa.servicos', [{ k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3 }], { add: 'Adicionar serviço' })) +
       bloco('Atualizações (posts)', linhas('previa.posts', [{ k: 'data', l: 'Data' }, { k: 'texto', l: 'Texto', w: 4, area: true }, { k: 'botao', l: 'Botão' }, { k: 'foto', l: 'Foto sugerida' }], { img: 'img', add: 'Adicionar post' })) +
