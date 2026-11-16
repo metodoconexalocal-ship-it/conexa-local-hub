@@ -83,6 +83,12 @@
             return '<div class="prod"><div class="pi">' + img(p.img, p.nome, p.foto) + '</div><div class="pb">' + (p.categoria ? '<div class="pc">' + esc(p.categoria) + '</div>' : '') + '<b>' + esc(p.nome) + '</b>' + (p.preco ? '<div class="pr">' + esc(p.preco) + '</div>' : '') + (p.descricao ? '<p>' + esc(p.descricao) + '</p>' : '') + '</div></div>';
           }).join('') + '</div>';
         }
+        if ((it.posts || []).length) {
+          h2 += '<div class="aposts">' + it.posts.map(function (p) {
+            var bt = p.botao ? (/^https:\/\//.test(p.link || '') ? '<a class="apb" href="' + esc(p.link) + '" target="_blank" rel="noopener">' + esc(p.botao) + ' ↗</a>' : '<span class="apb">' + esc(p.botao) + '</span>') : '';
+            return '<div class="apost"><div class="api">' + img(p.img, p.titulo) + '</div><div class="apt">' + (p.titulo ? '<b>' + esc(p.titulo) + '</b>' : '') + '<p>' + esc(p.texto || '') + '</p>' + bt + '</div></div>';
+          }).join('') + '</div>';
+        }
         if ((it.imagens || []).length) {
           h2 += '<div class="gal">' + it.imagens.map(function (g) {
             var x = typeof g === 'string' ? { img: g } : g;
@@ -141,7 +147,7 @@
       if (fotos.length) h3 += '<div class="gpane" data-pane="fotos"><div class="gfotos">' + fotos.map(function (f) { return '<div>' + gimg(f) + '</div>'; }).join('') + '</div></div>';
       if ((V.posts || []).length) {
         h3 += '<div class="gpane" data-pane="posts">' + V.posts.map(function (p) {
-          return '<div class="gpost">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : (p.foto ? '<div class="gph" style="aspect-ratio:4/3">📷 ' + esc(p.foto) + '</div>' : '')) + '<div class="gpb">' + (p.data ? '<div class="gpd">' + esc(p.data) + '</div>' : '') + esc(p.texto || '') + (p.botao ? '<br><span class="gcta">' + esc(p.botao) + '</span>' : '') + '</div></div>';
+          return '<div class="gpost">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : (p.foto ? '<div class="gph" style="aspect-ratio:4/3">📷 ' + esc(p.foto) + '</div>' : '')) + '<div class="gpb">' + (p.data ? '<div class="gpd">' + esc(p.data) + '</div>' : '') + esc(p.texto || '') + (p.botao ? '<br>' + (/^https:\/\//.test(p.link || '') ? '<a class="gcta" href="' + esc(p.link) + '" target="_blank" rel="noopener" style="text-decoration:none">' + esc(p.botao) + '</a>' : '<span class="gcta">' + esc(p.botao) + '</span>') : '') + '</div></div>';
         }).join('') + '</div>';
       }
       h3 += '</div></div><div class="gmodal"><div class="gm"></div></div></div></div></div></div></section>';

@@ -229,3 +229,13 @@ footer .wrap { display: flex; gap: 14px; align-items: center; justify-content: s
 .sentbox b { font-family: var(--display) }
 .saving { color: var(--dim); font-size: .78rem }
 .loading { min-height: 60vh; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px }
+
+/* postagens no item de aprovação */
+.aposts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 16px }
+.apost { background: var(--bg-2); border: 1px solid var(--border); border-radius: 13px; overflow: hidden; display: flex; flex-direction: column }
+.apost .api { aspect-ratio: 750/540; background: #141230; overflow: hidden }
+.apost .api img { width: 100%; height: 100%; object-fit: cover; display: block }
+.apost .apt { padding: 11px 12px 13px; display: flex; flex-direction: column; gap: 6px; flex: 1 }
+.apost b { font-family: var(--display); font-size: .95rem }
+.apost p { color: var(--muted); font-size: .84rem; margin: 0; white-space: pre-line }
+.apost .apb { align-self: flex-start; margin-top: auto; font-size: .8rem; font-weight: 600; color: var(--cyan); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; text-decoration: none }

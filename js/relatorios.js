@@ -249,14 +249,17 @@
   const NOVOS = {
     'antes.numeros': () => ({ valor: '', label: '', tom: '' }), 'antes.pontos': () => ({ tipo: 'falta', texto: '' }), 'antes.prints': () => ({ img: '', titulo: '', observacao: '' }),
     'previa.produtos': () => ({ categoria: '', nome: '', preco: '', descricao: '', foto: '', botao: 'Pedir pelo WhatsApp', link: '', img: '' }),
-    'previa.servicos': () => ({ nome: '', preco: '', descricao: '' }), 'previa.posts': () => ({ img: '', foto: '', data: '', texto: '', botao: '' }),
+    'previa.servicos': () => ({ nome: '', preco: '', descricao: '' }), 'previa.posts': () => ({ img: '', foto: '', data: '', texto: '', botao: 'Saiba mais', link: '' }),
   };
   const novoPara = (path) => {
     if (NOVOS[path]) return NOVOS[path]();
     if (/\.produtos$/.test(path)) return { categoria: '', nome: '', preco: '', descricao: '', foto: '', link: '', img: '' };
     if (/\.imagens$/.test(path)) return { img: '', legenda: '' };
+    if (/\.posts$/.test(path)) return { titulo: '', texto: '', botao: 'Saiba mais', link: '', img: '' };
     return {};
   };
+  const COLS_POST = [{ k: 'titulo', l: 'Título', w: 2 }, { k: 'botao', l: 'Botão' }, { k: 'texto', l: 'Legenda', w: 4, area: true }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 4, copiar: true }];
+  const botaoImportarPosts = (p) => `<label class="btn btn-ghost" style="font-size:11.5px;padding:4px 9px;cursor:pointer"><i class="bi bi-upload"></i> Importar postagens do Claude (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="Relatorios.importarPostagens('${p}', this.files[0]);this.value=''"></label>`;
 
   function abaGeral() {
     const d = S.atual;
@@ -292,6 +295,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap">${fld('antes', 'Hoje')}${fld('depois', 'Proposta')}</div>
         ${linha(campo(p + '.limite', 'Limite de caracteres (opcional)', { num: true, w: '0 0 200px' }), campo(p + '.pergunta', 'Pergunta para o cliente (opcional)', { area: true, rows: 2, w: 3 }))}
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 2px"><div style="font-weight:600;font-size:12.5px">Produtos deste item</div><label class="btn btn-ghost" style="font-size:11.5px;padding:4px 9px;cursor:pointer"><i class="bi bi-upload"></i> Substituir pelos do Claude (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="Relatorios.importarProdutos('${p}', this.files[0]);this.value=''"></label></div>${linhas(p + '.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida (sem imagem)', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3, copiar: true }], { img: 'img', add: 'Adicionar produto' })}
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 2px"><div style="font-weight:600;font-size:12.5px">Postagens deste item (arte, legenda e botão)</div>${botaoImportarPosts(p)}</div>${linhas(p + '.posts', COLS_POST, { img: 'img', add: 'Adicionar postagem' })}
         <div style="font-weight:600;font-size:12.5px;margin:12px 0 2px">Fotos deste item</div>${linhas(p + '.imagens', [{ k: 'legenda', l: 'Legenda', w: 3 }], { img: 'img', add: 'Adicionar foto' })}
         <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${btnMini('↑ Subir item', `Relatorios.mover('aprovacao.itens',${i},-1)`)}${btnMini('↓ Descer item', `Relatorios.mover('aprovacao.itens',${i},1)`)}${btnMini('<i class="bi bi-trash"></i> Remover item', `Relatorios.remover('aprovacao.itens',${i})`)}</div>
       </div></div>`;
@@ -314,7 +318,7 @@
       bloco('Produtos', linhas('previa.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'botao', l: 'Botão' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3, copiar: true }], { img: 'img', add: 'Adicionar produto' }),
         btnMini('<i class="bi bi-arrow-repeat"></i> Copiar dos itens de aprovação', 'Relatorios.copiarProdutos()')) +
       bloco('Serviços', linhas('previa.servicos', [{ k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3 }], { add: 'Adicionar serviço' })) +
-      bloco('Atualizações (posts)', linhas('previa.posts', [{ k: 'data', l: 'Data' }, { k: 'texto', l: 'Texto', w: 4, area: true }, { k: 'botao', l: 'Botão' }, { k: 'foto', l: 'Foto sugerida' }], { img: 'img', add: 'Adicionar post' })) +
+      bloco('Atualizações (posts)', linhas('previa.posts', [{ k: 'data', l: 'Data' }, { k: 'texto', l: 'Texto', w: 4, area: true }, { k: 'botao', l: 'Botão' }, { k: 'foto', l: 'Foto sugerida' }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3, copiar: true }], { img: 'img', add: 'Adicionar post' }), botaoImportarPosts('')) +
       bloco('Texto ao lado do celular', campo('previa.texto', 'Explicação', { area: true, rows: 2 }) + campo('previa.destaques', 'Destaques', { lines: true, rows: 4 }));
   }
   function abaRespostas() {
@@ -406,6 +410,30 @@
     S.atual.dados.previa.produtos = novos.map((p) => ({ ...base(p), botao: p.botao || 'Pedir pelo WhatsApp', img: fotoPrevia[chave(p.nome)] || fotoItem[chave(p.nome)] || '' }));
     marcarSujo(); reRender();
     toast(`${novos.length} produtos aplicados no item e na prévia. Clique em Salvar.`);
+  };
+  // Postagens do Claude ({ posts: [{ titulo, data, texto, botao, link, img (data URL) }] }): guarda as artes e põe
+  // as postagens no item (ou no item de Postagens, quando importado pela prévia) e também na prévia.
+  R.importarPostagens = async (path, file) => {
+    if (!file) return;
+    let novos;
+    try { const j = JSON.parse(await file.text()); novos = Array.isArray(j) ? j : j.posts; if (!Array.isArray(novos) || !novos.length) throw new Error('o arquivo não tem a lista "posts"'); }
+    catch (e) { return alert('Não consegui ler o arquivo: ' + e.message); }
+    const itens = (S.atual.dados.aprovacao || {}).itens || [];
+    if (!path) { const i = itens.findIndex((x) => /postage/i.test((x.secao || '') + ' ' + (x.titulo || ''))); if (i >= 0) path = 'aprovacao.itens.' + i; }
+    const atuais = (path ? (getP(S.atual.dados, path + '.posts') || []).length : 0) + (S.atual.dados.previa.posts || []).length;
+    if (atuais && !confirm(`Trocar as postagens ${path ? 'do item e ' : ''}da prévia pelas ${novos.length} do arquivo? Lembre de salvar depois.`)) return;
+    const prontos = [];
+    for (let i = 0; i < novos.length; i++) {
+      const n = novos[i];
+      toast(`Guardando arte ${i + 1} de ${novos.length}…`);
+      let img = n.img || '';
+      try { if (img.indexOf('data:image/') === 0) img = await salvarImagem(img, S.atual.id); } catch (e) { console.error(e); img = ''; }
+      prontos.push({ titulo: n.titulo || '', data: n.data || '', texto: n.texto || '', botao: n.botao || 'Saiba mais', link: n.link || '', img });
+    }
+    if (path) setP(S.atual.dados, path + '.posts', prontos.map(({ data, ...x }) => x));
+    S.atual.dados.previa.posts = prontos.map(({ titulo, ...x }) => x);
+    marcarSujo(); reRender();
+    toast(`${prontos.length} postagens aplicadas${path ? ' no item e' : ''} na prévia. Clique em Salvar.`);
   };
   R.uploadPara = async (path, file) => {
     if (!file) return;
