@@ -248,7 +248,7 @@
           var p = prodsV[+b.getAttribute('data-pi')];
           gmc.innerHTML = (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '') + '<div class="gmb"><button class="gx" aria-label="Fechar">✕</button><h5>' + esc(p.nome) + '</h5>' +
             (p.preco ? '<div style="margin-top:4px;color:#202124">' + esc(p.preco) + '</div>' : '') + (p.categoria ? '<div style="color:#70757a;font-size:13px;margin-top:2px">' + esc(p.categoria) + '</div>' : '') +
-            (p.descricao ? '<p style="color:#3c4043;font-size:13.5px">' + esc(p.descricao) + '</p>' : '') + (p.botao ? '<span style="color:#1a73e8;font-weight:600;font-size:13px">' + esc(p.botao) + '</span>' : '') + '</div>';
+            (p.descricao ? '<p style="color:#3c4043;font-size:13.5px">' + esc(p.descricao) + '</p>' : '') + (p.botao ? (/^https:\/\//.test(p.link || '') ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener" style="color:#1a73e8;font-weight:600;font-size:13px;text-decoration:none">' + esc(p.botao) + '</a>' : '<span style="color:#1a73e8;font-weight:600;font-size:13px">' + esc(p.botao) + '</span>') : '') + '</div>';
           gm.classList.add('on');
         });
       });

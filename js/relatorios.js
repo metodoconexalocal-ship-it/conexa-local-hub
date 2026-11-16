@@ -246,12 +246,12 @@
   }
   const NOVOS = {
     'antes.numeros': () => ({ valor: '', label: '', tom: '' }), 'antes.pontos': () => ({ tipo: 'falta', texto: '' }), 'antes.prints': () => ({ img: '', titulo: '', observacao: '' }),
-    'previa.produtos': () => ({ categoria: '', nome: '', preco: '', descricao: '', foto: '', botao: 'Pedir pelo WhatsApp', img: '' }),
+    'previa.produtos': () => ({ categoria: '', nome: '', preco: '', descricao: '', foto: '', botao: 'Pedir pelo WhatsApp', link: '', img: '' }),
     'previa.servicos': () => ({ nome: '', preco: '', descricao: '' }), 'previa.posts': () => ({ img: '', foto: '', data: '', texto: '', botao: '' }),
   };
   const novoPara = (path) => {
     if (NOVOS[path]) return NOVOS[path]();
-    if (/\.produtos$/.test(path)) return { categoria: '', nome: '', preco: '', descricao: '', foto: '', img: '' };
+    if (/\.produtos$/.test(path)) return { categoria: '', nome: '', preco: '', descricao: '', foto: '', link: '', img: '' };
     if (/\.imagens$/.test(path)) return { img: '', legenda: '' };
     return {};
   };
@@ -289,7 +289,7 @@
         ${campo(p + '.porque', 'Por que essa mudança (explicação para o cliente)', { area: true, rows: 2 })}
         <div style="display:flex;gap:10px;flex-wrap:wrap">${fld('antes', 'Hoje')}${fld('depois', 'Proposta')}</div>
         ${linha(campo(p + '.limite', 'Limite de caracteres (opcional)', { num: true, w: '0 0 200px' }), campo(p + '.pergunta', 'Pergunta para o cliente (opcional)', { area: true, rows: 2, w: 3 }))}
-        <div style="font-weight:600;font-size:12.5px;margin:6px 0 2px">Produtos deste item</div>${linhas(p + '.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida (sem imagem)', w: 2 }], { img: 'img', add: 'Adicionar produto' })}
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 2px"><div style="font-weight:600;font-size:12.5px">Produtos deste item</div><label class="btn btn-ghost" style="font-size:11.5px;padding:4px 9px;cursor:pointer"><i class="bi bi-upload"></i> Substituir pelos do Claude (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="Relatorios.importarProdutos('${p}', this.files[0]);this.value=''"></label></div>${linhas(p + '.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida (sem imagem)', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3 }], { img: 'img', add: 'Adicionar produto' })}
         <div style="font-weight:600;font-size:12.5px;margin:12px 0 2px">Fotos deste item</div>${linhas(p + '.imagens', [{ k: 'legenda', l: 'Legenda', w: 3 }], { img: 'img', add: 'Adicionar foto' })}
         <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${btnMini('↑ Subir item', `Relatorios.mover('aprovacao.itens',${i},-1)`)}${btnMini('↓ Descer item', `Relatorios.mover('aprovacao.itens',${i},1)`)}${btnMini('<i class="bi bi-trash"></i> Remover item', `Relatorios.remover('aprovacao.itens',${i})`)}</div>
       </div></div>`;
@@ -309,7 +309,7 @@
       bloco('Visão geral', campo('previa.descricao', 'Descrição', { area: true, rows: 5, dica: `${String(v.descricao || '').length} de 750 caracteres` }) +
         linha(campo('previa.endereco', 'Endereço', { w: 2 }), campo('previa.horario', 'Horário')) + linha(campo('previa.telefone', 'Telefone'), campo('previa.site', 'Site')) +
         campo('previa.atributos', 'Atributos', { lines: true, rows: 3 })) +
-      bloco('Produtos', linhas('previa.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'botao', l: 'Botão' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida', w: 2 }], { img: 'img', add: 'Adicionar produto' }),
+      bloco('Produtos', linhas('previa.produtos', [{ k: 'categoria', l: 'Categoria' }, { k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'botao', l: 'Botão' }, { k: 'descricao', l: 'Descrição', w: 3, area: true }, { k: 'foto', l: 'Foto sugerida', w: 2 }, { k: 'link', l: 'Link do botão (WhatsApp)', w: 3 }], { img: 'img', add: 'Adicionar produto' }),
         btnMini('<i class="bi bi-arrow-repeat"></i> Copiar dos itens de aprovação', 'Relatorios.copiarProdutos()')) +
       bloco('Serviços', linhas('previa.servicos', [{ k: 'nome', l: 'Nome', w: 2 }, { k: 'preco', l: 'Preço' }, { k: 'descricao', l: 'Descrição', w: 3 }], { add: 'Adicionar serviço' })) +
       bloco('Atualizações (posts)', linhas('previa.posts', [{ k: 'data', l: 'Data' }, { k: 'texto', l: 'Texto', w: 4, area: true }, { k: 'botao', l: 'Botão' }, { k: 'foto', l: 'Foto sugerida' }], { img: 'img', add: 'Adicionar post' })) +
@@ -386,6 +386,24 @@
     if ((S.atual.dados.previa.produtos || []).length && !confirm('Trocar os produtos da prévia pelos do item ' + (it.id || '') + '?')) return;
     S.atual.dados.previa.produtos = it.produtos.map((p) => ({ botao: 'Pedir pelo WhatsApp', ...p }));
     marcarSujo(); reRender();
+  };
+  // Troca só os produtos de um item pelos do arquivo do Claude ({ produtos: [...] }) e atualiza a prévia.
+  // Mantém as fotos já enviadas quando o nome do produto continua o mesmo.
+  R.importarProdutos = async (path, file) => {
+    if (!file) return;
+    let novos;
+    try { const j = JSON.parse(await file.text()); novos = Array.isArray(j) ? j : j.produtos; if (!Array.isArray(novos) || !novos.length) throw new Error('o arquivo não tem a lista "produtos"'); }
+    catch (e) { return alert('Não consegui ler o arquivo: ' + e.message); }
+    const chave = (s) => String(s || '').trim().toLowerCase();
+    const fotosDe = (lista) => Object.fromEntries((lista || []).filter((x) => x.img).map((x) => [chave(x.nome), x.img]));
+    const atuais = getP(S.atual.dados, path + '.produtos') || [];
+    if (atuais.length && !confirm(`Trocar os ${atuais.length} produtos deste item pelos ${novos.length} do arquivo? As fotos já enviadas continuam nos produtos de mesmo nome. Lembre de salvar depois.`)) return;
+    const fotoItem = fotosDe(atuais), fotoPrevia = fotosDe(S.atual.dados.previa.produtos);
+    const base = (p) => ({ categoria: p.categoria || '', nome: p.nome || '', preco: p.preco || '', descricao: p.descricao || '', foto: p.foto || '', link: p.link || '' });
+    setP(S.atual.dados, path + '.produtos', novos.map((p) => ({ ...base(p), img: fotoItem[chave(p.nome)] || fotoPrevia[chave(p.nome)] || '' })));
+    S.atual.dados.previa.produtos = novos.map((p) => ({ ...base(p), botao: p.botao || 'Pedir pelo WhatsApp', img: fotoPrevia[chave(p.nome)] || fotoItem[chave(p.nome)] || '' }));
+    marcarSujo(); reRender();
+    toast(`${novos.length} produtos aplicados no item e na prévia. Clique em Salvar.`);
   };
   R.uploadPara = async (path, file) => {
     if (!file) return;
