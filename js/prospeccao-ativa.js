@@ -28,7 +28,13 @@
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
-  const toast = (m) => { if (window.UI && UI.toast) return UI.toast(m); alert(m); };
+  // aviso rápido que some sozinho (alert() trava a página até alguém clicar em OK)
+  const toast = (m) => {
+    let el = document.getElementById('pa-toast');
+    if (!el) { el = document.createElement('div'); el.id = 'pa-toast'; el.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99999;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:13px;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.4)'; document.body.appendChild(el); }
+    el.textContent = m; el.style.display = 'block';
+    clearTimeout(toast.t); toast.t = setTimeout(() => { el.style.display = 'none'; }, /erro|não|nao/i.test(m) ? 9000 : 3000);
+  };
   const hojeISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
   const agora = () => new Date().toISOString();
   const fmtTel = (t) => (t && t.length === 11 ? `(${t.slice(0, 2)}) ${t.slice(2, 7)}-${t.slice(7)}` : t || '');
