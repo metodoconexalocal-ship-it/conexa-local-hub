@@ -1994,7 +1994,7 @@ function showPage(page) {
     crm: '<span>CRM</span> — Tarefas',
     clients: '<span>Clientes</span>',
     financeiro: '<span>Financeiro</span>',
-    prospeccao: '<span>Prospecção</span> — Leads',
+    prospeccao: '<span>Prospecção</span>',
     'briefings-trafego':  '<span>Formulários</span> — Tráfego Pago',
     'briefings-gmb':      '<span>Formulários</span> — Google Meu Negócio',
     'briefings-contrato': '<span>Formulários</span> — Contrato',
@@ -5086,7 +5086,12 @@ function renderTeamMembersModal() {
 }
 
 // ─── PROSPECÇÃO ───────────────────────────────────────────────────────────────
+// Aba "Prospecção ativa" (js/prospeccao-ativa.js) é a padrão; "Leads (CRM)" é a tabela abaixo.
 function renderProspeccao() {
+  if ((window._prspTab || 'ativa') === 'ativa' && window.ProspAtiva) return window.ProspAtiva.abrir();
+  return renderProspeccaoLeads();
+}
+function renderProspeccaoLeads() {
   const hoje = new Date().toISOString().split('T')[0];
   const total = prospLeads.length;
   const responderam = prospLeads.filter(l => l.status === 'Respondeu' || l.status === 'Agendou').length;
@@ -5125,7 +5130,7 @@ function renderProspeccao() {
     <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;margin-left:auto" onclick="window._prspSelectedIds=new Set();renderProspeccao()"><i class="bi bi-x-lg"></i> Limpar seleção</button>
   </div>` : '';
 
-  let html = followupBanner + `
+  let html = (window.ProspAtiva ? window.ProspAtiva.abas('leads') : '') + followupBanner + `
   <div class="prosp-stats">
     <div class="prosp-stat"><div class="prosp-stat-label">Total de leads</div><div class="prosp-stat-val" style="color:var(--blue)">${total}</div></div>
     <div class="prosp-stat"><div class="prosp-stat-label">Responderam</div><div class="prosp-stat-val" style="color:var(--green)">${responderam}</div></div>
@@ -5932,7 +5937,7 @@ window.deleteSubitem = function(boardKey, groupId, itemId, subId, e) {
         saveState();
         if (currentPage === 'crm') renderCRM();
         else if (currentPage === 'financeiro') renderFinanceiro();
-        else if (currentPage === 'prospeccao') renderProspeccao();
+        else if (currentPage === 'prospeccao' && window._prspTab === 'leads') renderProspeccaoLeads();
         else if (currentPage === 'clients') renderClients();
       });
     }
