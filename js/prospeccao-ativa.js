@@ -360,7 +360,7 @@
   P.importar = async (files) => {
     const arqs = Array.from(files || []); if (!arqs.length) return;
     $('main-content').insertAdjacentHTML('afterbegin', '<div id="pa-imp" style="position:sticky;top:0;z-index:5;background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin:10px">Importando…</div>');
-    let nCamp = 0, nEmp = 0, nIgual = 0; const erros = [];
+    let nCamp = 0, nEmp = 0, nIgual = 0, nFicha = 0; const erros = [];
     for (const f of arqs) {
       try {
         const j = JSON.parse(await f.text());
@@ -375,23 +375,35 @@
         camp = camp || S.camps.find((x) => x.id === cid);
         if (Array.isArray(j.empresas) && j.empresas.length) {
           if (!camp) throw new Error('não diz para qual prospecção são as empresas');
-          const novas = [];
+          const novas = []; const fichas = [];
           for (const e0 of j.empresas) {
             const tel = String(e0.tel || e0.whatsapp || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
             if (!tel) continue;
             const id = camp.id + '_' + tel;
-            if (S.emps.find((x) => x.id === id) && !j.substituir) { nIgual++; continue; }
+            const existe = S.emps.find((x) => x.id === id);
+            // empresa que já está na lista: só completa a ficha (campos vazios), sem mexer em etapa e histórico
+            if (existe && e0.ficha && !j.substituir) {
+              const f = { ...(existe.ficha || {}) }; let mudou = false;
+              Object.entries(e0.ficha).forEach(([k, v]) => { if (v && !String(f[k] || '').trim()) { f[k] = v; mudou = true; } });
+              if (mudou) fichas.push({ ...existe, ficha: f, hist: [...(existe.hist || []), { d: agora(), t: 'Ficha preenchida pelo Claude (Google, redes e resumo).', por: 'Claude' }] });
+              else nIgual++;
+              continue;
+            }
+            if (existe && !j.substituir) { nIgual++; continue; }
             novas.push({ status: 'a_enviar', hist: [{ d: agora(), t: 'Importada para a prospecção.' }], ...e0, tel, id, campanhaId: camp.id });
           }
           distribuir(camp, novas);
           let i = 0;
           for (const e of novas) { await salvarEmp(e); i++; if (i % 10 === 0 && $('pa-imp')) $('pa-imp').textContent = `Importando ${i} de ${novas.length} empresas…`; }
           nEmp += novas.length;
+          let k = 0;
+          for (const e of fichas) { await salvarEmp(e); k++; if (k % 10 === 0 && $('pa-imp')) $('pa-imp').textContent = `Preenchendo fichas: ${k} de ${fichas.length}…`; }
+          nFicha += fichas.length;
           await carregarEmps();
         }
       } catch (e) { erros.push(f.name + ' (' + e.message + ')'); }
     }
-    toast(`${nCamp ? nCamp + ' prospecção(ões) e ' : ''}${nEmp} empresa(s) importada(s)` + (nIgual ? `, ${nIgual} já estavam na lista` : '') + (erros.length ? `. Erros: ${erros.join(', ')}` : ''));
+    toast(`${nCamp ? nCamp + ' prospecção(ões) e ' : ''}${nEmp} empresa(s) importada(s)` + (nFicha ? `, ${nFicha} ficha(s) preenchida(s)` : '') + (nIgual ? `, ${nIgual} sem mudança` : '') + (erros.length ? `. Erros: ${erros.join(', ')}` : ''));
     if (S.camp) P.campanha(S.camp.id, S.pessoa || '__todos'); else inicio();
   };
 
