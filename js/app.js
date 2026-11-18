@@ -8987,6 +8987,9 @@ async function renderDashboard() {
       </div>
     </div>
 
+    <!-- Prospecção: demandas da Amanda e próximos passos da equipe (js/prospeccao-ativa.js) -->
+    ${window.ProspAtiva ? (setTimeout(() => window.ProspAtiva.widget('dash-prosp'), 30), '<div id="dash-prosp"></div>') : ''}
+
     <!-- Lembretes + Clientes destaque -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px;margin-bottom:24px">
     <!-- Lembretes próximos -->
