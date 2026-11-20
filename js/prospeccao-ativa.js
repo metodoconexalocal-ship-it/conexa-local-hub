@@ -331,7 +331,7 @@
   };
 
   // ── importação do Claude ──────────────────────────────────────────────
-  function distribuir(camp, novas) {
+  function distribuir(camp, novas, inicio) {
     const equipe = camp.equipe || [];
     const porPer = camp.porPeriodo || 50;
     const resto = equipe.find((p) => !(p.nichos || []).length);
@@ -345,7 +345,7 @@
     pessoas.forEach((pes) => {
       const ja = empsDa(camp.id).filter((e) => (e.responsavel || '') === pes && e.dia);
       const cont = {}; ja.forEach((e) => { cont[perKey(e)] = (cont[perKey(e)] || 0) + 1; });
-      const d = new Date(hojeISO() + 'T12:00:00'); let pi = 0;
+      const d = new Date((inicio && inicio > hojeISO() ? inicio : hojeISO()) + 'T12:00:00'); let pi = 0;
       const prox = () => { pi++; if (pi > 1) { pi = 0; d.setDate(d.getDate() + 1); while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1); } };
       while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1);
       novas.filter((e) => !e.dia && (e.responsavel || '') === pes).forEach((e) => {
@@ -360,7 +360,7 @@
   P.importar = async (files) => {
     const arqs = Array.from(files || []); if (!arqs.length) return;
     $('main-content').insertAdjacentHTML('afterbegin', '<div id="pa-imp" style="position:sticky;top:0;z-index:5;background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin:10px">Importando…</div>');
-    let nCamp = 0, nEmp = 0, nIgual = 0, nFicha = 0; const erros = [];
+    let nCamp = 0, nEmp = 0, nIgual = 0, nFicha = 0, nMov = 0; const erros = [];
     for (const f of arqs) {
       try {
         const j = JSON.parse(await f.text());
@@ -392,9 +392,18 @@
             if (existe && !j.substituir) { nIgual++; continue; }
             novas.push({ status: 'a_enviar', hist: [{ d: agora(), t: 'Importada para a prospecção.' }], ...e0, tel, id, campanhaId: camp.id });
           }
-          distribuir(camp, novas);
+          distribuir(camp, novas, j.inicio);
           let i = 0;
           for (const e of novas) { await salvarEmp(e); i++; if (i % 10 === 0 && $('pa-imp')) $('pa-imp').textContent = `Importando ${i} de ${novas.length} empresas…`; }
+          // moverDe: tira da prospecção antiga as empresas que ainda não tinham sido abordadas (ninguém recebe duas mensagens)
+          if (j.moverDe) {
+            let m = 0;
+            for (const e of novas) {
+              const velho = S.emps.find((x) => x.id === j.moverDe + '_' + e.tel);
+              if (velho && (velho.status || 'a_enviar') === 'a_enviar') { await window.dbRemove(C_EMP, velho.id); m++; }
+            }
+            nMov += m;
+          }
           nEmp += novas.length;
           let k = 0;
           for (const e of fichas) { await salvarEmp(e); k++; if (k % 10 === 0 && $('pa-imp')) $('pa-imp').textContent = `Preenchendo fichas: ${k} de ${fichas.length}…`; }
@@ -403,7 +412,7 @@
         }
       } catch (e) { erros.push(f.name + ' (' + e.message + ')'); }
     }
-    toast(`${nCamp ? nCamp + ' prospecção(ões) e ' : ''}${nEmp} empresa(s) importada(s)` + (nFicha ? `, ${nFicha} ficha(s) preenchida(s)` : '') + (nIgual ? `, ${nIgual} sem mudança` : '') + (erros.length ? `. Erros: ${erros.join(', ')}` : ''));
+    toast(`${nCamp ? nCamp + ' prospecção(ões) e ' : ''}${nEmp} empresa(s) importada(s)` + (nFicha ? `, ${nFicha} ficha(s) preenchida(s)` : '') + (nMov ? `, ${nMov} saíram da prospecção anterior` : '') + (nIgual ? `, ${nIgual} sem mudança` : '') + (erros.length ? `. Erros: ${erros.join(', ')}` : ''));
     if (S.camp) P.campanha(S.camp.id, S.pessoa || '__todos'); else inicio();
   };
 
