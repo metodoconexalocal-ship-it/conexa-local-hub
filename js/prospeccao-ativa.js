@@ -70,13 +70,16 @@
   window.ProspAtiva = P;
 
   // ── jornada ────────────────────────────────────────────────────────────
+  // saídas de cada etapa: na memória [[key, rótulo]]; no Firestore [{k, l}] (ele não aceita lista dentro de lista)
+  const saidasDe = (j) => (j && j.saidas || []).map((s) => (Array.isArray(s) ? s : [s.k, s.l]));
+  const paraSalvar = (js) => (js || []).map((j) => ({ ...j, saidas: saidasDe(j).map(([k, l]) => ({ k, l })) }));
   const jornada = (c) => {
     if (c && Array.isArray(c.jornada) && c.jornada.length) return c.jornada;
     return JORNADA_PADRAO.map((j) => (c && c.tipo === 'google' && j.key === 'quer_previa' ? { ...j, nome: 'Disse SIM · montar análise' } : j));
   };
   function etapa(c, key) {
     const js = jornada(c); const i = js.findIndex((j) => j.key === key);
-    if (i >= 0) return { ...js[i], idx: i, cor: js[i].key === 'fechou' ? 'var(--green)' : CORES[i % CORES.length] };
+    if (i >= 0) return { ...js[i], saidas: saidasDe(js[i]), idx: i, cor: js[i].key === 'fechou' ? 'var(--green)' : CORES[i % CORES.length] };
     const x = EXTRAS[key]; if (x) return { key, idx: 99, ...x };
     return { key, nome: key, quem: '', cor: 'var(--text-muted)', saidas: [], idx: 98 };
   }
@@ -272,7 +275,7 @@
         <input class="pa-e-dica" value="${esc(j.dica || '')}" placeholder="O que fazer nesta etapa" style="${sel}">
         ${j.texto === '{TEXTO1}' || j.texto === '{TEXTO2}' ? `<div style="font-size:12px;color:var(--text-muted)">Mensagem: usa o ${j.texto === '{TEXTO1}' ? 'Texto 1' : 'Texto 2'} acima.</div><input type="hidden" class="pa-e-texto" value="${esc(j.texto)}">`
           : `<textarea class="pa-e-texto" rows="${j.texto ? 6 : 2}" placeholder="Mensagem desta etapa (opcional)" style="${sel};resize:vertical">${esc(j.texto || '')}</textarea>`}
-        <div style="font-size:11.5px;color:var(--text-muted)">Próximos caminhos: ${(j.saidas || []).map(([k, l]) => esc(l)).join(' · ') || 'nenhum (fim)'}</div></div>`;
+        <div style="font-size:11.5px;color:var(--text-muted)">Próximos caminhos: ${saidasDe(j).map(([k, l]) => esc(l)).join(' · ') || 'nenhum (fim)'}</div></div>`;
     P._linhas = { linhaNicho, linhaEquipe, linhaExtra };
     const lbl = (t, d) => `<div style="font-weight:600;font-size:13px">${t}</div>${d ? `<div style="font-size:12px;color:var(--text-muted);margin:-4px 0 2px">${d}</div>` : ''}`;
     $('main-content').innerHTML = `<div class="page-wrap" style="max-width:940px">
@@ -324,6 +327,7 @@
     c.jornada = [...document.querySelectorAll('.pa-etapa')].map((d) => ({ ...(antes[d.dataset.key] || { key: d.dataset.key, saidas: [] }), nome: d.querySelector('.pa-e-nome').value.trim(), quem: d.querySelector('.pa-e-quem').value, dica: d.querySelector('.pa-e-dica').value.trim(), texto: d.querySelector('.pa-e-texto').value }));
     c.porPeriodo = Math.max(5, Math.min(100, parseInt($('pa-porper').value, 10) || 50)); c.ativa = $('pa-ativa').checked;
     c.id = c.id || slug(c.nome);
+    c.jornada = paraSalvar(c.jornada);
     await window.dbSet(C_CAMP, c.id, c);
     toast('Prospecção salva');
     await carregarCamps();
@@ -368,6 +372,7 @@
         if (j.campanha) {
           const atual = S.camps.find((x) => x.id === (j.campanha.id || slug(j.campanha.nome)));
           camp = { ...(atual || {}), ...j.campanha, id: j.campanha.id || slug(j.campanha.nome) };
+          if (camp.jornada) camp.jornada = paraSalvar(camp.jornada);
           await window.dbSet(C_CAMP, camp.id, camp); nCamp++;
           await carregarCamps();
         }
